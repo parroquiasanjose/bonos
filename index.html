@@ -464,7 +464,6 @@
                 this.state.auth = getAuth(app);
 
                 try {
-                    // Habilitar la persistencia offline
                     await enableIndexedDbPersistence(this.state.db);
                     console.log("Persistencia offline habilitada.");
                 } catch (err) {
@@ -869,14 +868,13 @@
                 let title = "Detalle de Búsqueda de Bonos";
                 if (searchInput1 && searchInput2) title = `Detalle de Bonos ${searchInput1} - ${searchInput2}`;
                 else if (searchInput1) title = `Detalle de Bono N° ${searchInput1}`;
-                doc.setFontSize(18);
-                doc.text(title, 14, 22);
+                const startY = this.addPdfHeader(doc, title);
                 const tableColumn = ["Nombre", "Teléfono", "Bonos", "Fecha Carga", "Pago", "Cuotas", "Monto"];
                 const tableRows = this.state.searchResult.map(record => {
                     const monto = record.cuotas == 1 ? 15000 : 30000;
                     return [record.nombre, record.telefono, `${record.bonoNro1} - ${record.bonoNro2}`, record.sessionDate, record.tipoPago, record.cuotas, this.formatCurrency(monto)];
                 });
-                doc.autoTable({ head: [tableColumn], body: tableRows, startY: 30, theme: 'grid', headStyles: { fillColor: [67, 56, 202] } });
+                doc.autoTable({ head: [tableColumn], body: tableRows, startY: startY, theme: 'grid', headStyles: { fillColor: [67, 56, 202] } });
                 const currentDate = this.getCurrentDateFormatted();
                 doc.save(`busqueda_bonos_${currentDate}.pdf`);
             },
@@ -925,12 +923,10 @@
             downloadWinnerPDF() {
                 if (this.state.winnersData.length === 0) return;
                 const doc = new jsPDF();
-                doc.setFontSize(22);
-                doc.setTextColor(22, 163, 74);
-                doc.text("Resultados del Sorteo", doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+                const startY = this.addPdfHeader(doc, "Resultados del Sorteo");
                 const tableColumn = ["Premio", "N° Ganador", "Nombre", "Teléfono", "Bonos Comprados"];
                 const tableRows = this.state.winnersData.map(data => [data.prizeLevel, data.winningNumber, data.nombre, data.telefono, `${data.bonoNro1} - ${data.bonoNro2}`]);
-                doc.autoTable({ head: [tableColumn], body: tableRows, startY: 30, theme: 'grid', headStyles: { fillColor: [22, 163, 74] } });
+                doc.autoTable({ head: [tableColumn], body: tableRows, startY: startY, theme: 'grid', headStyles: { fillColor: [22, 163, 74] } });
                 const currentDate = this.getCurrentDateFormatted();
                 doc.save(`resultados_sorteo_${currentDate}.pdf`);
             },
@@ -999,8 +995,7 @@
 
             downloadBalancePDF() {
                 const doc = new jsPDF();
-                doc.setFontSize(22);
-                doc.text("Balance General", doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+                const startY = this.addPdfHeader(doc, "Balance General");
                 
                 let totalBonosEfectivo = 0, totalBonosTransferencia = 0, totalBonos = 0;
                 let totalExpenses = 0;
@@ -1024,12 +1019,12 @@
                 doc.autoTable({
                     head: [["Fecha", "Nombre", "Bonos", "Tipo de Pago", "Monto"]],
                     body: bonoTableRows,
-                    startY: 30,
+                    startY: startY,
                     theme: 'grid',
                     headStyles: { fillColor: [67, 56, 202] },
                     didDrawPage: (data) => {
                         doc.setFontSize(14);
-                        doc.text('Ingresos por Bonos', data.settings.margin.left, 28);
+                        doc.text('Ingresos por Bonos', data.settings.margin.left, data.cursor.y - 5);
                     }
                 });
 
@@ -1118,8 +1113,7 @@
                     fileName = `detalle_bonos_${this.formatDateForId(rawDate, true)}.pdf`;
                 }
                 
-                doc.setFontSize(18);
-                doc.text(title, 14, 22);
+                const startY = this.addPdfHeader(doc, title);
                 const tableColumn = ["Nombre", "Bonos", "Pago", "Cuotas", "Monto"];
                 const tableRows = [];
                 let subtotal = 0, totalEfectivo = 0;
@@ -1132,7 +1126,7 @@
                 doc.autoTable({
                     head: [tableColumn],
                     body: tableRows,
-                    startY: 30,
+                    startY: startY,
                     theme: 'grid',
                     headStyles: { fillColor: [107, 114, 128] },
                     foot: [
@@ -1183,7 +1177,8 @@
                     depositDiv.className = 'flex justify-between items-center p-3 bg-white rounded-lg border';
                     depositDiv.innerHTML = `<div><p class="font-semibold">Depósito - ${this.formatDateForId(deposit.date)}</p><p class="text-sm text-gray-600">${this.formatCurrency(parseFloat(deposit.amount))} (${deposit.type})</p></div><div class="flex gap-2"><button onclick="App.editBankDeposit('${deposit.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.promptDeleteItem('${deposit.id}', 'deposit')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button><button onclick="App.downloadDepositPDF('${deposit.id}')" class="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">PDF</button></div>`;
                     this.dom.bankDepositsListContainer.appendChild(depositDiv);
-                });
+                }
+                );
                 if (!this.state.showAllDeposits && deposits.length > 3) {
                     const seeMoreButton = document.createElement('button');
                     seeMoreButton.className = 'w-full mt-2 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300';
@@ -1230,12 +1225,11 @@
                 const deposit = this.state.bankDeposits.find(d => d.id === depositId);
                 if (!deposit) return;
                 const doc = new jsPDF();
-                doc.setFontSize(18);
-                doc.text(`Detalle de Depósito`, 14, 22);
+                const startY = this.addPdfHeader(doc, "Detalle de Depósito");
                 doc.autoTable({
                     head: [["Campo", "Valor"]],
                     body: [["Fecha", this.formatDateForId(deposit.date)], ["Importe", this.formatCurrency(parseFloat(deposit.amount))], ["Tipo", deposit.type]],
-                    startY: 30, theme: 'grid', headStyles: { fillColor: [8, 145, 178] }
+                    startY: startY, theme: 'grid', headStyles: { fillColor: [8, 145, 178] }
                 });
                 doc.save(`deposito_${deposit.id}.pdf`);
             },
@@ -1367,7 +1361,25 @@
                 setTimeout(() => {
                     toast.remove();
                 }, 3000);
-            }
+            },
+
+            addPdfHeader(doc, title) {
+                doc.setFontSize(20);
+                doc.setFont(undefined, 'bold');
+                doc.text("Parroquia San José Bono", 15, 20);
+
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'normal');
+                doc.text(title, 15, 30);
+
+                doc.setFontSize(10);
+                doc.text(this.getCurrentDateFormatted(), doc.internal.pageSize.getWidth() - 15, 20, { align: 'right' });
+
+                doc.setDrawColor(180, 180, 180);
+                doc.line(15, 35, doc.internal.pageSize.getWidth() - 15, 35);
+
+                return 45; // Return the start Y position for the table
+            },
         };
 
         // Start the application
