@@ -9,6 +9,8 @@
     <!-- jsPDF for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <!-- Tone.js for sound effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,9 +43,30 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* Toast Notification Styles */
+        .toast {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 600;
+            opacity: 0;
+            transform: translateX(100%);
+            animation: slideInAndOut 3s forwards;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .toast-success { background-color: #16a34a; }
+        .toast-error { background-color: #dc2626; }
+        @keyframes slideInAndOut {
+            0% { opacity: 0; transform: translateX(100%); }
+            15% { opacity: 1; transform: translateX(0); }
+            85% { opacity: 1; transform: translateX(0); }
+            100% { opacity: 0; transform: translateX(100%); }
+        }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div id="toastContainer" class="fixed top-5 right-5 z-50 space-y-2"></div>
 
     <div class="w-full max-w-lg relative">
         <!-- Loading Indicator -->
@@ -52,14 +75,13 @@
         </div>
 
         <!-- 0. Login Screen -->
-        <div id="loginScreen" class="screen active-screen p-8 space-y-4 bg-white rounded-xl shadow-lg text-center fade-in">
+        <div id="loginScreen" class="screen p-8 space-y-4 bg-white rounded-xl shadow-lg text-center fade-in">
             <h1 class="text-3xl font-bold text-gray-800">Bienvenido</h1>
             <p class="text-gray-600">Coloque su clave para ingresar.</p>
             <form id="loginForm" class="space-y-4 pt-4">
                 <input type="password" id="passwordInput" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" placeholder="Clave">
                 <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">Ingresar</button>
             </form>
-            <div id="loginError" class="hidden text-sm text-red-600 pt-2">Clave incorrecta.</div>
         </div>
 
         <!-- 1. Initial Screen -->
@@ -83,6 +105,9 @@
                 <button id="goToBankButton" class="w-full px-4 py-3 font-semibold text-white bg-cyan-600 rounded-lg hover:bg-cyan-700">
                     Banco
                 </button>
+                <button id="goToExpenseButton" class="w-full px-4 py-3 font-semibold text-white bg-red-500 rounded-lg hover:bg-red-600">
+                    Egresos
+                </button>
                 <button id="goToBalanceButton" class="w-full px-4 py-3 font-semibold text-white bg-orange-600 rounded-lg hover:bg-orange-700">
                     Balance
                 </button>
@@ -93,9 +118,6 @@
         <!-- 2. Data Entry Form Screen -->
         <div id="formScreen" class="screen p-8 bg-white rounded-xl shadow-lg fade-in">
             <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Cargar Datos del Bono</h2>
-            <div id="formSuccessMessage" class="hidden mb-4 text-sm text-center text-green-600 font-semibold p-2 bg-green-100 rounded-lg">
-                ¡Guardado! Listo para la siguiente carga.
-            </div>
             <form id="dataForm" class="space-y-4">
                 <div>
                     <label for="fecha" class="block text-sm font-medium text-gray-700">Fecha</label>
@@ -251,6 +273,39 @@
             <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Volver al Inicio</button>
         </div>
 
+        <!-- 9. Expense Screen -->
+        <div id="expenseScreen" class="screen p-8 bg-white rounded-xl shadow-lg fade-in">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Gestión de Egresos</h2>
+            <form id="expenseForm" class="space-y-4 mb-6 p-4 border rounded-lg">
+                <h3 class="text-lg font-semibold text-gray-700" id="expenseFormTitle">Nuevo Egreso</h3>
+                <div>
+                    <label for="expenseDate" class="block text-sm font-medium text-gray-700">Fecha</label>
+                    <input type="date" id="expenseDate" name="expenseDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="expenseDescription" class="block text-sm font-medium text-gray-700">Descripción</label>
+                    <input type="text" id="expenseDescription" name="expenseDescription" required placeholder="Ej: Compra de insumos" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="expenseAmount" class="block text-sm font-medium text-gray-700">Importe</label>
+                    <input type="number" id="expenseAmount" name="expenseAmount" required placeholder="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="expenseType" class="block text-sm font-medium text-gray-700">Tipo de Pago</label>
+                    <select id="expenseType" name="expenseType" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Transferencia">Transferencia</option>
+                    </select>
+                </div>
+                <div id="expenseFormActions">
+                    <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700">Confirmar Egreso</button>
+                </div>
+            </form>
+            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Egresos Registrados</h3>
+            <div id="expenseListContainer" class="mb-6 space-y-3"></div>
+            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Volver al Inicio</button>
+        </div>
+
     </div>
 
     <!-- Modals -->
@@ -310,8 +365,10 @@
                 currentSessionRecords: [],
                 allSessions: [],
                 bankDeposits: [],
+                expenses: [],
                 recordToEdit: null,
                 depositToEditId: null,
+                expenseToEditId: null,
                 itemToDelete: { id: null, type: null },
                 sessionToEditId: null,
                 sessionToEditRawDate: null, 
@@ -322,7 +379,9 @@
                 userId: null,
                 unsubscribeHistory: null,
                 unsubscribeBank: null,
+                unsubscribeExpenses: null,
                 showAllDeposits: false,
+                showAllExpenses: false,
                 datePromptType: null,
             },
 
@@ -345,7 +404,6 @@
                     screens: document.querySelectorAll('.screen'),
                     loginForm: document.getElementById('loginForm'),
                     passwordInput: document.getElementById('passwordInput'),
-                    loginError: document.getElementById('loginError'),
                     dataForm: document.getElementById('dataForm'),
                     confirmModal: document.getElementById('confirmModal'),
                     deleteConfirmModal: document.getElementById('deleteConfirmModal'),
@@ -382,6 +440,13 @@
                     bankFormTitle: document.getElementById('bankFormTitle'),
                     bankFormActions: document.getElementById('bankFormActions'),
                     bankDepositsListContainer: document.getElementById('bankDepositsListContainer'),
+                    expenseScreen: document.getElementById('expenseScreen'),
+                    expenseForm: document.getElementById('expenseForm'),
+                    expenseFormTitle: document.getElementById('expenseFormTitle'),
+                    expenseFormActions: document.getElementById('expenseFormActions'),
+                    expenseListContainer: document.getElementById('expenseListContainer'),
+                    toastContainer: document.getElementById('toastContainer'),
+                    goToExpenseButton: document.getElementById('goToExpenseButton'),
                 };
             },
 
@@ -405,6 +470,7 @@
                         this.dom.mainButtons.classList.remove('hidden');
                         this.loadHistoryFromFirestore();
                         this.loadBankDepositsFromFirestore();
+                        this.loadExpensesFromFirestore();
                     } else {
                         this.state.userId = null;
                         this.showLoading(false);
@@ -435,6 +501,7 @@
                 document.getElementById('goToWinnerButton').addEventListener('click', () => this.showScreen('winnerScreen'));
                 document.getElementById('goToSearchButton').addEventListener('click', () => this.showScreen('searchScreen'));
                 document.getElementById('goToBankButton').addEventListener('click', () => this.promptForDate('banco'));
+                this.dom.goToExpenseButton.addEventListener('click', () => this.showExpenseScreen());
                 this.dom.goToBalanceButton.addEventListener('click', () => this.showBalanceScreen());
                 this.dom.logoutButton.addEventListener('click', () => this.logout());
                 this.dom.dataForm.addEventListener('submit', (e) => this.handleFormSubmit(e));
@@ -449,6 +516,7 @@
                 this.dom.downloadSearchPdfButton.addEventListener('click', () => this.downloadSearchPDF());
                 this.dom.downloadBalancePdfButton.addEventListener('click', () => this.downloadBalancePDF());
                 this.dom.bankForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleBankFormSubmit(); });
+                this.dom.expenseForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleExpenseFormSubmit(); });
                 this.dom.confirmDateButton.addEventListener('click', () => this.handleDateConfirm());
                 this.dom.cancelDateButton.addEventListener('click', () => this.dom.dateConfirmModal.classList.add('hidden'));
             },
@@ -459,10 +527,9 @@
                 if (validUsers.includes(password)) {
                     localStorage.setItem('currentUser', password);
                     this.login(password);
-                    this.dom.loginError.classList.add('hidden');
                     this.dom.passwordInput.value = '';
                 } else {
-                    this.dom.loginError.classList.remove('hidden');
+                    this.showToast('Clave incorrecta.', 'error');
                 }
             },
 
@@ -481,6 +548,7 @@
                 const user = this.state.currentUser;
                 const isAdmin = user === 'adan' || user === 'jose';
                 this.dom.goToBalanceButton.style.display = isAdmin ? 'block' : 'none';
+                this.dom.goToExpenseButton.style.display = isAdmin ? 'block' : 'none';
             },
 
             loadHistoryFromFirestore() {
@@ -527,8 +595,10 @@
                     });
                     await batch.commit();
                     this.displayDetailsScreen(this.state.currentSessionRecords, 'new');
+                    this.showToast('Carga finalizada y guardada con éxito.');
                 } catch (error) {
                     console.error("Error saving session to Firestore: ", error);
+                    this.showToast('Error al guardar la carga.', 'error');
                 } finally {
                     this.showLoading(false);
                 }
@@ -607,7 +677,39 @@
             handleFormSubmit(event) {
                 event.preventDefault();
                 const formData = new FormData(this.dom.dataForm);
-                this.state.recordToEdit = Object.fromEntries(formData.entries());
+                const newRecord = Object.fromEntries(formData.entries());
+
+                const phoneRegex = /^\d{6,12}$/;
+                if (!phoneRegex.test(newRecord.telefono)) {
+                    this.showToast('Teléfono inválido (6-12 dígitos).', 'error');
+                    return;
+                }
+
+                const newBono1 = parseInt(newRecord.bonoNro1, 10);
+                const newBono2 = parseInt(newRecord.bonoNro2, 10);
+
+                if (newBono1 > newBono2) {
+                    this.showToast('El primer número del bono no puede ser mayor que el segundo.', 'error');
+                    return;
+                }
+
+                let isOverlap = false;
+                for (const session of this.state.allSessions) {
+                    for (const record of session.records) {
+                        const existingBono1 = parseInt(record.bonoNro1, 10);
+                        const existingBono2 = parseInt(record.bonoNro2, 10);
+                        if (Math.max(newBono1, existingBono1) <= Math.min(newBono2, existingBono2)) {
+                            isOverlap = true;
+                            this.showToast(`El rango de bonos se superpone con el de ${record.nombre}.`, 'error');
+                            break;
+                        }
+                    }
+                    if (isOverlap) break;
+                }
+
+                if (isOverlap) return;
+
+                this.state.recordToEdit = newRecord;
                 const monto = this.state.recordToEdit.cuotas == 1 ? 15000 : 30000;
                 document.getElementById('confirmationData').innerHTML = `<p><strong>Nombre:</strong> ${this.state.recordToEdit.nombre}</p><p><strong>Bonos:</strong> Nro. ${this.state.recordToEdit.bonoNro1} - Nro. ${this.state.recordToEdit.bonoNro2}</p><p><strong>Monto:</strong> <span class="font-bold">${this.formatCurrency(monto)}</span></p>`;
                 this.dom.confirmModal.classList.remove('hidden');
@@ -616,8 +718,7 @@
             handleSaveAndNew() {
                 this.state.currentSessionRecords.push(this.state.recordToEdit);
                 this.dom.confirmModal.classList.add('hidden');
-                this.dom.formSuccessMessage.classList.remove('hidden');
-                setTimeout(() => this.dom.formSuccessMessage.classList.add('hidden'), 2000);
+                this.showToast('Bono guardado.');
                 const currentDate = document.getElementById('fecha').value;
                 this.dom.dataForm.reset();
                 document.getElementById('fecha').value = currentDate;
@@ -669,8 +770,10 @@
                     } else {
                         await deleteDoc(sessionDocRef);
                     }
+                    this.showToast('Cambios guardados con éxito.');
                 } catch (error) {
                     console.error("Error modifying session: ", error);
+                    this.showToast('Error al guardar los cambios.', 'error');
                 } finally {
                     this.showLoading(false);
                     this.showHistoryScreen();
@@ -687,29 +790,29 @@
                 if (!id || !type) return;
 
                 this.showLoading(true);
-                if (type === 'session') {
-                    const sessionDocRef = doc(this.state.db, "sessions", id);
-                    try {
+                try {
+                    if (type === 'session') {
+                        const sessionDocRef = doc(this.state.db, "sessions", id);
                         const recordsColRef = collection(sessionDocRef, 'records');
                         const recordsSnapshot = await getDocs(recordsColRef);
                         const batch = writeBatch(this.state.db);
                         recordsSnapshot.forEach(doc => batch.delete(doc.ref));
                         await batch.commit();
                         await deleteDoc(sessionDocRef);
-                    } catch (error) {
-                        console.error("Error deleting session: ", error);
-                    }
-                } else if (type === 'deposit') {
-                    try {
+                    } else if (type === 'deposit') {
                         await deleteDoc(doc(this.state.db, "bank_deposits", id));
-                    } catch (error) {
-                        console.error("Error deleting bank deposit: ", error);
+                    } else if (type === 'expense') {
+                        await deleteDoc(doc(this.state.db, "expenses", id));
                     }
+                    this.showToast('Registro eliminado correctamente.');
+                } catch (error) {
+                    console.error(`Error deleting ${type}:`, error);
+                    this.showToast('Error al eliminar el registro.', 'error');
+                } finally {
+                    this.dom.deleteConfirmModal.classList.add('hidden');
+                    this.showLoading(false);
+                    this.state.itemToDelete = { id: null, type: null };
                 }
-                
-                this.dom.deleteConfirmModal.classList.add('hidden');
-                this.showLoading(false);
-                this.state.itemToDelete = { id: null, type: null };
             },
 
             findBono() {
@@ -824,7 +927,7 @@
                 this.dom.balanceListContainer.innerHTML = '';
                 this.dom.balanceSummaryContainer.innerHTML = '';
                 let totalBonosEfectivo = 0, totalBonosTransferencia = 0, totalBonos = 0;
-                let totalBancoEfectivo = 0, totalBancoTransferencia = 0, totalBanco = 0;
+                let totalExpenses = 0;
                 
                 const allRecords = [];
                 this.state.allSessions.forEach(session => {
@@ -848,16 +951,14 @@
                 }
                 balanceHTML += '</div>';
 
-                balanceHTML += '<div class="mt-6"><h3 class="text-lg font-semibold text-gray-700 mb-2 border-b pb-2">Depósitos Bancarios</h3>';
-                if (this.state.bankDeposits.length === 0) {
-                    balanceHTML += '<p class="text-center text-gray-500">No hay depósitos bancarios.</p>';
+                balanceHTML += '<div class="mt-6"><h3 class="text-lg font-semibold text-red-700 mb-2 border-b border-red-200 pb-2">Egresos</h3>';
+                if (this.state.expenses.length === 0) {
+                    balanceHTML += '<p class="text-center text-gray-500">No hay egresos registrados.</p>';
                 } else {
-                    this.state.bankDeposits.forEach(deposit => {
-                        const monto = parseFloat(deposit.amount);
-                        totalBanco += monto;
-                        if (deposit.type === 'Efectivo') totalBancoEfectivo += monto;
-                        else totalBancoTransferencia += monto;
-                        balanceHTML += `<div class="p-3 mb-2 border rounded-md bg-white grid grid-cols-3 gap-2 items-center text-sm"><div><p class="font-semibold">Depósito</p><p class="text-xs text-gray-500">${this.formatDateForId(deposit.date)}</p></div><p class="text-center">${deposit.type}</p><p class="text-right font-semibold">${this.formatCurrency(monto)}</p></div>`;
+                    this.state.expenses.forEach(expense => {
+                        const monto = parseFloat(expense.amount);
+                        totalExpenses += monto;
+                        balanceHTML += `<div class="p-3 mb-2 border rounded-md bg-white grid grid-cols-3 gap-2 items-center text-sm"><div><p class="font-semibold">${expense.description}</p><p class="text-xs text-gray-500">${this.formatDateForId(expense.date)}</p></div><p class="text-center">${expense.type}</p><p class="text-right font-semibold text-red-600">-${this.formatCurrency(monto)}</p></div>`;
                     });
                 }
                 balanceHTML += '</div>';
@@ -866,18 +967,19 @@
 
                 this.dom.balanceSummaryContainer.innerHTML = `
                     <div class="p-4 border rounded-lg bg-white mb-4">
-                        <h4 class="font-bold text-lg mb-2 text-gray-800">Resumen de Bonos</h4>
+                        <h4 class="font-bold text-lg mb-2 text-gray-800">Resumen de Ingresos (Bonos)</h4>
                         <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Total Efectivo:</span><span class="font-bold text-green-700">${this.formatCurrency(totalBonosEfectivo)}</span></div>
                         <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Total Transferencia:</span><span class="font-bold text-blue-700">${this.formatCurrency(totalBonosTransferencia)}</span></div>
                         <hr class="my-2 border-gray-200">
                         <div class="flex justify-between items-center text-lg"><span class="font-bold text-gray-800">Total Bonos:</span><span class="font-extrabold text-gray-900">${this.formatCurrency(totalBonos)}</span></div>
                     </div>
-                    <div class="p-4 border rounded-lg bg-white">
-                        <h4 class="font-bold text-lg mb-2 text-gray-800">Resumen de Banco</h4>
-                        <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Total Efectivo:</span><span class="font-bold text-green-700">${this.formatCurrency(totalBancoEfectivo)}</span></div>
-                        <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Total Transferencia:</span><span class="font-bold text-blue-700">${this.formatCurrency(totalBancoTransferencia)}</span></div>
-                        <hr class="my-2 border-gray-200">
-                        <div class="flex justify-between items-center text-lg"><span class="font-bold text-gray-800">Total Banco:</span><span class="font-extrabold text-gray-900">${this.formatCurrency(totalBanco)}</span></div>
+                     <div class="p-4 border rounded-lg bg-white mb-4">
+                        <h4 class="font-bold text-lg mb-2 text-gray-800">Resumen de Egresos</h4>
+                        <div class="flex justify-between items-center text-lg"><span class="font-bold text-gray-800">Total Egresos:</span><span class="font-extrabold text-red-600">-${this.formatCurrency(totalExpenses)}</span></div>
+                    </div>
+                    <div class="p-4 border rounded-lg bg-gray-800 text-white">
+                        <h4 class="font-bold text-xl mb-2">Balance Final</h4>
+                        <div class="flex justify-between items-center text-2xl"><span class="font-bold">TOTAL:</span><span class="font-extrabold">${this.formatCurrency(totalBonos - totalExpenses)}</span></div>
                     </div>
                 `;
                 this.showScreen('balanceScreen');
@@ -886,10 +988,10 @@
             downloadBalancePDF() {
                 const doc = new jsPDF();
                 doc.setFontSize(22);
-                doc.text("Balance General de Ingresos", doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+                doc.text("Balance General", doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
                 
                 let totalBonosEfectivo = 0, totalBonosTransferencia = 0, totalBonos = 0;
-                let totalBancoEfectivo = 0, totalBancoTransferencia = 0, totalBanco = 0;
+                let totalExpenses = 0;
 
                 const bonoRecords = [];
                 this.state.allSessions.forEach(session => {
@@ -919,23 +1021,21 @@
                     }
                 });
 
-                const bankTableRows = this.state.bankDeposits.map(deposit => {
-                    const monto = parseFloat(deposit.amount);
-                    totalBanco += monto;
-                    if (deposit.type === 'Efectivo') totalBancoEfectivo += monto;
-                    else totalBancoTransferencia += monto;
-                    return [this.formatDateForId(deposit.date), 'Depósito Bancario', '-', deposit.type, this.formatCurrency(monto)];
+                const expenseTableRows = this.state.expenses.map(expense => {
+                    const monto = parseFloat(expense.amount);
+                    totalExpenses += monto;
+                    return [this.formatDateForId(expense.date), expense.description, expense.type, `-${this.formatCurrency(monto)}`];
                 });
 
                 doc.autoTable({
-                    head: [["Fecha", "Descripción", "", "Tipo", "Monto"]],
-                    body: bankTableRows,
+                    head: [["Fecha", "Descripción", "Tipo de Pago", "Monto"]],
+                    body: expenseTableRows,
                     startY: doc.autoTable.previous.finalY + 15,
                     theme: 'grid',
-                    headStyles: { fillColor: [8, 145, 178] },
+                    headStyles: { fillColor: [220, 38, 38] },
                      didDrawPage: (data) => {
                         doc.setFontSize(14);
-                        doc.text('Depósitos Bancarios', data.settings.margin.left, doc.autoTable.previous.finalY + 13);
+                        doc.text('Egresos', data.settings.margin.left, doc.autoTable.previous.finalY + 13);
                     }
                 });
                 
@@ -948,10 +1048,10 @@
                         ['Total Transferencia (Bonos):', this.formatCurrency(totalBonosTransferencia)],
                         [{content: 'Total Bonos:', styles: {fontStyle: 'bold'}}, {content: this.formatCurrency(totalBonos), styles: {fontStyle: 'bold'}}],
                         ['', ''], // Spacer
-                        ['Resumen de Banco', ''],
-                        ['Total Efectivo (Banco):', this.formatCurrency(totalBancoEfectivo)],
-                        ['Total Transferencia (Banco):', this.formatCurrency(totalBancoTransferencia)],
-                        [{content: 'Total Banco:', styles: {fontStyle: 'bold'}}, {content: this.formatCurrency(totalBanco), styles: {fontStyle: 'bold'}}],
+                        ['Resumen de Egresos', ''],
+                        [{content: 'Total Egresos:', styles: {fontStyle: 'bold'}}, {content: `-${this.formatCurrency(totalExpenses)}`, styles: {fontStyle: 'bold'}}],
+                        ['', ''], // Spacer
+                        [{content: 'Balance Final (Ingresos Bonos - Egresos):', styles: {fontStyle: 'bold', fontSize: 12}}, {content: this.formatCurrency(totalBonos - totalExpenses), styles: {fontStyle: 'bold', fontSize: 12}}],
                     ],
                     columnStyles: {
                         0: { halign: 'right', fontStyle: 'bold' },
@@ -1032,16 +1132,13 @@
                 doc.save(fileName);
             },
             
-            // --- BANK LOGIC ---
+            // --- BANK & EXPENSE LOGIC ---
             showBankScreen(date = null) {
                 this.state.showAllDeposits = false;
                 this.dom.bankForm.reset();
                 const dateInput = document.getElementById('bankDate');
-                if (date) {
-                    dateInput.value = date;
-                } else {
-                    dateInput.valueAsDate = new Date();
-                }
+                if (date) dateInput.value = date;
+                else dateInput.valueAsDate = new Date();
                 this.dom.bankFormTitle.textContent = 'Nuevo Depósito';
                 this.dom.bankFormActions.innerHTML = `<button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-cyan-600 rounded-lg hover:bg-cyan-700">Confirmar</button>`;
                 this.state.depositToEditId = null;
@@ -1068,59 +1165,38 @@
                     this.dom.bankDepositsListContainer.innerHTML = '<p class="text-center text-gray-500">No hay depósitos registrados.</p>';
                     return;
                 }
-
                 const depositsToShow = this.state.showAllDeposits ? deposits : deposits.slice(0, 3);
-
                 depositsToShow.forEach(deposit => {
                     const depositDiv = document.createElement('div');
                     depositDiv.className = 'flex justify-between items-center p-3 bg-white rounded-lg border';
-                    depositDiv.innerHTML = `
-                        <div>
-                            <p class="font-semibold">Depósito - ${this.formatDateForId(deposit.date)}</p>
-                            <p class="text-sm text-gray-600">${this.formatCurrency(parseFloat(deposit.amount))} (${deposit.type})</p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="App.editBankDeposit('${deposit.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button>
-                            <button onclick="App.promptDeleteItem('${deposit.id}', 'deposit')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button>
-                            <button onclick="App.downloadDepositPDF('${deposit.id}')" class="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">PDF</button>
-                        </div>
-                    `;
+                    depositDiv.innerHTML = `<div><p class="font-semibold">Depósito - ${this.formatDateForId(deposit.date)}</p><p class="text-sm text-gray-600">${this.formatCurrency(parseFloat(deposit.amount))} (${deposit.type})</p></div><div class="flex gap-2"><button onclick="App.editBankDeposit('${deposit.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.promptDeleteItem('${deposit.id}', 'deposit')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button><button onclick="App.downloadDepositPDF('${deposit.id}')" class="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">PDF</button></div>`;
                     this.dom.bankDepositsListContainer.appendChild(depositDiv);
                 });
-
                 if (!this.state.showAllDeposits && deposits.length > 3) {
                     const seeMoreButton = document.createElement('button');
                     seeMoreButton.className = 'w-full mt-2 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300';
                     seeMoreButton.textContent = 'Ver más';
-                    seeMoreButton.onclick = () => {
-                        this.state.showAllDeposits = true;
-                        this.renderBankDeposits();
-                    };
+                    seeMoreButton.onclick = () => { this.state.showAllDeposits = true; this.renderBankDeposits(); };
                     this.dom.bankDepositsListContainer.appendChild(seeMoreButton);
                 }
             },
 
             async handleBankFormSubmit() {
                 const formData = new FormData(this.dom.bankForm);
-                const depositData = {
-                    date: formData.get('bankDate'),
-                    amount: parseFloat(formData.get('bankAmount')),
-                    type: formData.get('bankType'),
-                };
-
+                const depositData = { date: formData.get('bankDate'), amount: parseFloat(formData.get('bankAmount')), type: formData.get('bankType') };
                 this.showLoading(true);
                 try {
                     if (this.state.depositToEditId) {
-                        // Update existing
-                        const docRef = doc(this.state.db, "bank_deposits", this.state.depositToEditId);
-                        await updateDoc(docRef, depositData);
+                        await updateDoc(doc(this.state.db, "bank_deposits", this.state.depositToEditId), depositData);
+                        this.showToast('Depósito modificado.');
                     } else {
-                        // Add new
                         await addDoc(collection(this.state.db, "bank_deposits"), depositData);
+                        this.showToast('Depósito guardado.');
                     }
-                    this.showBankScreen(); // Refresh screen
+                    this.showBankScreen();
                 } catch (error) {
                     console.error("Error saving bank deposit:", error);
+                    this.showToast('Error al guardar depósito.', 'error');
                 } finally {
                     this.showLoading(false);
                 }
@@ -1129,72 +1205,156 @@
             editBankDeposit(depositId) {
                 const deposit = this.state.bankDeposits.find(d => d.id === depositId);
                 if (!deposit) return;
-                
                 this.state.depositToEditId = depositId;
                 document.getElementById('bankDate').value = deposit.date;
                 document.getElementById('bankAmount').value = deposit.amount;
                 document.getElementById('bankType').value = deposit.type;
-
                 this.dom.bankFormTitle.textContent = 'Modificar Depósito';
-                this.dom.bankFormActions.innerHTML = `
-                    <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">Guardar Cambios</button>
-                    <button type="button" onclick="App.showBankScreen()" class="w-full mt-2 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cancelar</button>
-                `;
+                this.dom.bankFormActions.innerHTML = `<button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">Guardar Cambios</button><button type="button" onclick="App.showBankScreen()" class="w-full mt-2 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cancelar</button>`;
                 window.scrollTo(0, 0);
             },
 
             downloadDepositPDF(depositId) {
                 const deposit = this.state.bankDeposits.find(d => d.id === depositId);
                 if (!deposit) return;
-
                 const doc = new jsPDF();
                 doc.setFontSize(18);
                 doc.text(`Detalle de Depósito`, 14, 22);
-                
-                const tableColumn = ["Campo", "Valor"];
-                const tableRows = [
-                    ["Fecha", this.formatDateForId(deposit.date)],
-                    ["Importe", this.formatCurrency(parseFloat(deposit.amount))],
-                    ["Tipo", deposit.type],
-                ];
-
                 doc.autoTable({
-                    head: [tableColumn],
-                    body: tableRows,
-                    startY: 30,
-                    theme: 'grid',
-                    headStyles: { fillColor: [8, 145, 178] }
+                    head: [["Campo", "Valor"]],
+                    body: [["Fecha", this.formatDateForId(deposit.date)], ["Importe", this.formatCurrency(parseFloat(deposit.amount))], ["Tipo", deposit.type]],
+                    startY: 30, theme: 'grid', headStyles: { fillColor: [8, 145, 178] }
                 });
-                
                 doc.save(`deposito_${deposit.id}.pdf`);
             },
 
             promptForDate(type) {
                 this.state.datePromptType = type;
                 this.dom.modalDateInput.valueAsDate = new Date();
-                if (type === 'bono') {
-                    this.dom.dateConfirmTitle.textContent = 'Confirmar Fecha de Carga';
-                } else if (type === 'banco') {
-                    this.dom.dateConfirmTitle.textContent = 'Confirmar Fecha de Depósito';
-                }
+                if (type === 'bono') this.dom.dateConfirmTitle.textContent = 'Confirmar Fecha de Carga';
+                else if (type === 'banco') this.dom.dateConfirmTitle.textContent = 'Confirmar Fecha de Depósito';
                 this.dom.dateConfirmModal.classList.remove('hidden');
             },
 
             handleDateConfirm() {
                 const selectedDate = this.dom.modalDateInput.value;
                 if (!selectedDate) {
-                    alert('Por favor, seleccione una fecha.');
+                    this.showToast('Por favor, seleccione una fecha.', 'error');
                     return;
                 }
-
-                if (this.state.datePromptType === 'bono') {
-                    this.startNewSession(false, selectedDate);
-                } else if (this.state.datePromptType === 'banco') {
-                    this.showBankScreen(selectedDate);
-                }
-                
+                if (this.state.datePromptType === 'bono') this.startNewSession(false, selectedDate);
+                else if (this.state.datePromptType === 'banco') this.showBankScreen(selectedDate);
                 this.dom.dateConfirmModal.classList.add('hidden');
                 this.state.datePromptType = null;
+            },
+
+            showExpenseScreen() {
+                this.state.showAllExpenses = false;
+                this.dom.expenseForm.reset();
+                document.getElementById('expenseDate').valueAsDate = new Date();
+                this.dom.expenseFormTitle.textContent = 'Nuevo Egreso';
+                this.dom.expenseFormActions.innerHTML = `<button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700">Confirmar Egreso</button>`;
+                this.state.expenseToEditId = null;
+                this.renderExpenses();
+                this.showScreen('expenseScreen');
+            },
+
+            loadExpensesFromFirestore() {
+                if (this.state.unsubscribeExpenses) this.state.unsubscribeExpenses();
+                const expensesColRef = collection(this.state.db, "expenses");
+                this.state.unsubscribeExpenses = onSnapshot(query(expensesColRef), (snapshot) => {
+                    this.state.expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    this.state.expenses.sort((a, b) => b.date.localeCompare(a.date));
+                    if (document.getElementById('expenseScreen').classList.contains('active-screen')) {
+                        this.renderExpenses();
+                    }
+                });
+            },
+
+            renderExpenses() {
+                this.dom.expenseListContainer.innerHTML = '';
+                const expenses = this.state.expenses;
+                if (expenses.length === 0) {
+                    this.dom.expenseListContainer.innerHTML = '<p class="text-center text-gray-500">No hay egresos registrados.</p>';
+                    return;
+                }
+                const expensesToShow = this.state.showAllExpenses ? expenses : expenses.slice(0, 3);
+                expensesToShow.forEach(expense => {
+                    const expenseDiv = document.createElement('div');
+                    expenseDiv.className = 'flex justify-between items-center p-3 bg-white rounded-lg border';
+                    expenseDiv.innerHTML = `<div><p class="font-semibold">${expense.description}</p><p class="text-sm text-gray-600">${this.formatDateForId(expense.date)} - ${this.formatCurrency(parseFloat(expense.amount))} (${expense.type})</p></div><div class="flex gap-2"><button onclick="App.editExpense('${expense.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.promptDeleteItem('${expense.id}', 'expense')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button></div>`;
+                    this.dom.expenseListContainer.appendChild(expenseDiv);
+                });
+                if (!this.state.showAllExpenses && expenses.length > 3) {
+                    const seeMoreButton = document.createElement('button');
+                    seeMoreButton.className = 'w-full mt-2 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300';
+                    seeMoreButton.textContent = 'Ver más';
+                    seeMoreButton.onclick = () => { this.state.showAllExpenses = true; this.renderExpenses(); };
+                    this.dom.expenseListContainer.appendChild(seeMoreButton);
+                }
+            },
+            
+            async handleExpenseFormSubmit() {
+                const formData = new FormData(this.dom.expenseForm);
+                const expenseData = {
+                    date: formData.get('expenseDate'),
+                    description: formData.get('expenseDescription'),
+                    amount: parseFloat(formData.get('expenseAmount')),
+                    type: formData.get('expenseType'),
+                };
+                this.showLoading(true);
+                try {
+                    if (this.state.expenseToEditId) {
+                        await updateDoc(doc(this.state.db, "expenses", this.state.expenseToEditId), expenseData);
+                        this.showToast('Egreso modificado.');
+                    } else {
+                        await addDoc(collection(this.state.db, "expenses"), expenseData);
+                        this.showToast('Egreso guardado.');
+                    }
+                    this.showExpenseScreen();
+                } catch (error) {
+                    console.error("Error saving expense:", error);
+                    this.showToast('Error al guardar el egreso.', 'error');
+                } finally {
+                    this.showLoading(false);
+                }
+            },
+
+            editExpense(expenseId) {
+                const expense = this.state.expenses.find(e => e.id === expenseId);
+                if (!expense) return;
+                this.state.expenseToEditId = expenseId;
+                document.getElementById('expenseDate').value = expense.date;
+                document.getElementById('expenseDescription').value = expense.description;
+                document.getElementById('expenseAmount').value = expense.amount;
+                document.getElementById('expenseType').value = expense.type;
+                this.dom.expenseFormTitle.textContent = 'Modificar Egreso';
+                this.dom.expenseFormActions.innerHTML = `<button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">Guardar Cambios</button><button type="button" onclick="App.showExpenseScreen()" class="w-full mt-2 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cancelar</button>`;
+                window.scrollTo(0, 0);
+            },
+            
+            showToast(message, type = 'success') {
+                const toastContainer = this.dom.toastContainer;
+                const toast = document.createElement('div');
+                toast.className = `toast toast-${type}`;
+                toast.textContent = message;
+                toastContainer.appendChild(toast);
+
+                // Play sound
+                try {
+                    const synth = new Tone.Synth().toDestination();
+                    if (type === 'success') {
+                        synth.triggerAttackRelease("C5", "8n", Tone.now());
+                    } else if (type === 'error') {
+                        synth.triggerAttackRelease("A3", "8n", Tone.now());
+                    }
+                } catch (e) {
+                    console.warn("Could not play sound, user interaction might be required first.");
+                }
+
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
             }
         };
 
