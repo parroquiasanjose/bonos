@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parroquia San José Bono - Carga de Datos</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+        .screen { display: none; } /* Helper class to manage views */
+        .active-screen { display: block; }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-lg relative">
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="hidden">
+            <div class="loader"></div>
+        </div>
+
+        <!-- 1. Initial Screen -->
+        <div id="initialScreen" class="screen active-screen p-8 space-y-4 bg-white rounded-xl shadow-lg text-center fade-in">
+            <h1 class="text-3xl font-bold text-gray-800">Parroquia San José Bono</h1>
+            <p class="text-xl text-gray-600">"Sembradores de Esperanza"</p>
+            <div id="authError" class="hidden p-4 my-4 text-sm text-red-700 bg-red-100 rounded-lg text-left"></div>
+            <div id="mainButtons" class="space-y-4">
+                <button id="goToFormButton" class="w-full px-4 py-3 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+                    Nueva Carga
+                </button>
+                <button id="goToHistoryButton" class="w-full px-4 py-3 font-semibold text-white bg-gray-600 rounded-lg hover:bg-gray-700">
+                    Historial de Carga
+                </button>
+                <button id="goToSearchButton" class="w-full px-4 py-3 font-semibold text-white bg-purple-600 rounded-lg hover:bg-purple-700">
+                    Buscar Bonos
+                </button>
+                <button id="goToWinnerButton" class="w-full px-4 py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">
+                    Ganador
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. Data Entry Form Screen -->
+        <div id="formScreen" class="screen p-8 bg-white rounded-xl shadow-lg fade-in">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Cargar Datos del Bono</h2>
+            <div id="formSuccessMessage" class="hidden mb-4 text-sm text-center text-green-600 font-semibold p-2 bg-green-100 rounded-lg">
+                ¡Guardado! Listo para la siguiente carga.
+            </div>
+            <form id="dataForm" class="space-y-4">
+                <div>
+                    <label for="fecha" class="block text-sm font-medium text-gray-700">Fecha</label>
+                    <input type="date" id="fecha" name="fecha" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Números de Bonos</label>
+                    <div class="flex items-center gap-4 mt-1">
+                        <div class="w-1/2">
+                            <label for="bonoNro1" class="text-xs text-gray-500">Nro. 1</label>
+                            <input type="number" id="bonoNro1" name="bonoNro1" required placeholder="000" oninput="this.value = this.value.slice(0, 3);" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                        </div>
+                        <div class="w-1/2">
+                            <label for="bonoNro2" class="text-xs text-gray-500">Nro. 2</label>
+                            <input type="number" id="bonoNro2" name="bonoNro2" required placeholder="999" oninput="this.value = this.value.slice(0, 3);" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre y Apellido</label>
+                    <input type="text" id="nombre" name="nombre" required placeholder="Juan Pérez" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="telefono" class="block text-sm font-medium text-gray-700">Teléfono</label>
+                    <input type="tel" id="telefono" name="telefono" required placeholder="3772..." class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="tipoPago" class="block text-sm font-medium text-gray-700">Tipo de Pago</label>
+                    <select id="tipoPago" name="tipoPago" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Transferencia">Transferencia</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="cuotas" class="block text-sm font-medium text-gray-700">Cuotas Abonadas</label>
+                    <select id="cuotas" name="cuotas" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full px-4 py-3 mt-4 font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">Revisar Datos</button>
+                <button type="button" onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Volver al Inicio</button>
+            </form>
+        </div>
+
+        <!-- 3. Final Details Screen -->
+        <div id="detailsScreen" class="screen p-8 bg-white rounded-xl shadow-lg fade-in">
+            <h2 id="detailsTitle" class="text-2xl font-bold text-gray-800 mb-4 text-center">Detalle de Carga</h2>
+            <div id="detailsListContainer" class="mb-6 max-h-80 overflow-y-auto p-3 bg-gray-50 rounded-lg border"></div>
+            <div id="summaryContainer" class="mb-6 p-4 bg-gray-100 rounded-lg space-y-2 text-lg"></div>
+            <div id="detailsActions" class="space-y-3"></div>
+        </div>
+        
+        <!-- 4. History Screen -->
+        <div id="historyScreen" class="screen p-8 bg-white rounded-xl shadow-lg fade-in">
+             <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Historial de Cargas</h2>
+             <div id="historyListContainer" class="mb-6 max-h-96 overflow-y-auto space-y-3"></div>
+             <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-3 font-semibold text-white bg-gray-600 rounded-lg hover:bg-gray-700">Volver al Inicio</button>
+        </div>
+
+        <!-- 5. Winner Screen -->
+        <div id="winnerScreen" class="screen p-8 bg-white rounded-xl shadow-lg fade-in">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Buscar Ganador</h2>
+            <div class="space-y-6 mb-6">
+                <!-- Prize 1 -->
+                <div class="p-3 border rounded-lg">
+                    <h3 class="font-bold text-lg text-gray-700 mb-2">Primer Premio</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="number" data-prize="1er Premio" class="winner-input w-full text-center p-3 border rounded-md" placeholder="000" oninput="this.value = this.value.slice(0, 3);">
+                        <input type="number" data-prize="1er Premio" class="winner-input w-full text-center p-3 border rounded-md" placeholder="000" oninput="this.value = this.value.slice(0, 3);">
+                    </div>
+                </div>
+                <!-- Prize 2 -->
+                <div class="p-3 border rounded-lg">
+                    <h3 class="font-bold text-lg text-gray-700 mb-2">2do Premio</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="number" data-prize="2do Premio" class="winner-input w-full text-center p-3 border rounded-md" placeholder="000" oninput="this.value = this.value.slice(0, 3);">
+                        <input type="number" data-prize="2do Premio" class="winner-input w-full text-center p-3 border rounded-md" placeholder="000" oninput="this.value = this.value.slice(0, 3);">
+                    </div>
+                </div>
+                <!-- Prize 3 -->
+                <div class="p-3 border rounded-lg">
+                    <h3 class="font-bold text-lg text-gray-700 mb-2">3er Premio</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="number" data-prize="3er Premio" class="winner-input w-full text-center p-3 border rounded-md" placeholder="000" oninput="this.value = this.value.slice(0, 3);">
+                        <input type="number" data-prize="3er Premio" class="winner-input w-full text-center p-3 border rounded-md" placeholder="000" oninput="this.value = this.value.slice(0, 3);">
+                    </div>
+                </div>
+            </div>
+            <button id="findWinnerButton" class="w-full px-4 py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 mb-4">Buscar Ganadores</button>
+            <div id="winnerResultContainer" class="p-4 bg-gray-50 rounded-lg border min-h-[100px]"></div>
+            <button id="downloadWinnerPdfButton" class="hidden w-full mt-4 px-4 py-3 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700">Descargar PDF de Ganadores</button>
+            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Volver al Inicio</button>
+        </div>
+        
+        <!-- 6. Search Bono Screen -->
+        <div id="searchScreen" class="screen p-8 bg-white rounded-xl shadow-lg fade-in">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Buscar Bono</h2>
+            <div class="space-y-4 mb-6">
+                <div class="flex items-center gap-4 mt-1">
+                    <div class="w-1/2">
+                        <label for="bonoSearchInput1" class="block text-sm font-medium text-gray-700">Desde Nro.</label>
+                        <input type="number" id="bonoSearchInput1" placeholder="000" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                    </div>
+                    <div class="w-1/2">
+                        <label for="bonoSearchInput2" class="block text-sm font-medium text-gray-700">Hasta Nro.</label>
+                        <input type="number" id="bonoSearchInput2" placeholder="999" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                    </div>
+                </div>
+                <p class="text-xs text-center text-gray-500">Puede buscar por un número o por el rango completo.</p>
+                <button id="findBonoButton" class="w-full px-4 py-3 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700">Buscar</button>
+            </div>
+            <div id="searchResultContainer" class="p-4 bg-gray-50 rounded-lg border min-h-[100px] max-h-80 overflow-y-auto"></div>
+            <button id="downloadSearchPdfButton" class="hidden w-full mt-4 px-4 py-3 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700">Descargar PDF</button>
+            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Volver al Inicio</button>
+        </div>
+
+    </div>
+
+    <!-- Modals -->
+    <div id="confirmModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center p-4 z-50">
+        <div class="relative mx-auto p-8 border w-full max-w-md shadow-lg rounded-xl bg-white fade-in">
+            <div class="text-center">
+                <h3 class="text-2xl font-bold text-gray-900">Confirmar Información</h3>
+                <div id="confirmationData" class="mt-4 text-left space-y-2 text-gray-700"></div>
+                <div class="mt-6 space-y-3">
+                    <button id="saveAndNewButton" class="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Guardar y Cargar Otro</button>
+                    <button id="saveAndCloseButton" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Confirmar y Finalizar</button>
+                    <button id="goBackButton" class="w-full px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">Volver</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="deleteConfirmModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-lg shadow-xl text-center fade-in">
+            <h3 class="text-lg font-bold text-gray-900">Confirmar Eliminación</h3>
+            <p class="text-sm text-gray-600 my-4">Esta operación no puede revertirse. Todos los datos de la fecha seleccionada se perderán.</p>
+            <div class="flex justify-center gap-4">
+                <button id="cancelDeleteButton" class="px-5 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">Volver</button>
+                <button id="confirmDeleteButton" class="px-5 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, addDoc, getDocs, deleteDoc, onSnapshot, query, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- App Initialization ---
+        const { jsPDF } = window.jspdf;
+        
+        window.App = {
+            // --- STATE ---
+            state: {
+                currentSessionRecords: [],
+                allSessions: [],
+                recordToEdit: null,
+                sessionToEditId: null,
+                sessionToEditRawDate: null, 
+                sessionToDeleteId: null,
+                winnersData: [],
+                searchResult: [], 
+                db: null,
+                auth: null,
+                userId: null,
+                unsubscribeHistory: null,
+            },
+
+            // --- INITIALIZATION ---
+            async init() {
+                this.cacheDOMElements();
+                this.bindEvents();
+                this.showLoading(true);
+                await this.initializeFirebase();
+            },
+
+            cacheDOMElements() {
+                this.dom = {
+                    screens: document.querySelectorAll('.screen'),
+                    dataForm: document.getElementById('dataForm'),
+                    confirmModal: document.getElementById('confirmModal'),
+                    deleteConfirmModal: document.getElementById('deleteConfirmModal'),
+                    formSuccessMessage: document.getElementById('formSuccessMessage'),
+                    historyListContainer: document.getElementById('historyListContainer'),
+                    detailsScreen: document.getElementById('detailsScreen'),
+                    detailsListContainer: document.getElementById('detailsListContainer'),
+                    summaryContainer: document.getElementById('summaryContainer'),
+                    detailsActions: document.getElementById('detailsActions'),
+                    detailsTitle: document.getElementById('detailsTitle'),
+                    winnerResultContainer: document.getElementById('winnerResultContainer'),
+                    downloadWinnerPdfButton: document.getElementById('downloadWinnerPdfButton'),
+                    loadingIndicator: document.getElementById('loadingIndicator'),
+                    authError: document.getElementById('authError'),
+                    mainButtons: document.getElementById('mainButtons'),
+                    searchScreen: document.getElementById('searchScreen'),
+                    findBonoButton: document.getElementById('findBonoButton'),
+                    searchResultContainer: document.getElementById('searchResultContainer'),
+                    downloadSearchPdfButton: document.getElementById('downloadSearchPdfButton'),
+                };
+            },
+
+            async initializeFirebase() {
+                // Your web app's Firebase configuration
+                const firebaseConfig = {
+                  apiKey: "AIzaSyAhV7Ri-DfYSQA_tgbDeSSGtpG74UNC10g",
+                  authDomain: "bonosparroquia-30762.firebaseapp.com",
+                  projectId: "bonosparroquia-30762",
+                  storageBucket: "bonosparroquia-30762.appspot.com",
+                  messagingSenderId: "24790926044",
+                  appId: "1:24790926044:web:a4ee95475ba61c133baa19"
+                };
+
+                // Initialize Firebase
+                const app = initializeApp(firebaseConfig);
+                this.state.db = getFirestore(app);
+                this.state.auth = getAuth(app);
+
+                onAuthStateChanged(this.state.auth, (user) => {
+                    if (user) {
+                        this.state.userId = user.uid;
+                        console.log("User is signed in with UID:", this.state.userId);
+                        this.dom.authError.classList.add('hidden');
+                        this.dom.mainButtons.classList.remove('hidden');
+                        this.loadHistoryFromFirestore();
+                    } else {
+                        console.log("User is signed out.");
+                        this.state.userId = null;
+                        this.showLoading(false);
+                    }
+                });
+
+                try {
+                    await signInAnonymously(this.state.auth);
+                } catch (error) {
+                    this.showLoading(false);
+                    if (error.code === 'auth/configuration-not-found') {
+                        const errorMessage = `
+                            <h4 class="font-bold text-lg mb-2">Error de Configuración de Firebase</h4>
+                            <p class="mb-2">La aplicación no puede conectarse porque el <strong>inicio de sesión anónimo</strong> no está habilitado en tu proyecto de Firebase.</p>
+                            <p class="font-semibold mb-2">Por favor, sigue estos pasos para solucionarlo:</p>
+                            <ol class="text-left text-gray-600 space-y-1 list-decimal list-inside">
+                                <li>Ve a la <a href="https://console.firebase.google.com/" target="_blank" class="text-blue-600 hover:underline">Consola de Firebase</a>.</li>
+                                <li>Selecciona tu proyecto: <strong>bonosparroquia-30762</strong>.</li>
+                                <li>En el menú de la izquierda, ve a <strong>Authentication</strong>.</li>
+                                <li>Haz clic en la pestaña <strong>Sign-in method</strong> (Método de inicio de sesión).</li>
+                                <li>En la lista, haz clic en <strong>Anónimo</strong>.</li>
+                                <li>Activa el interruptor y haz clic en <strong>Guardar</strong>.</li>
+                            </ol>
+                            <p class="mt-4 text-sm text-gray-500">Una vez habilitado, por favor recarga la página.</p>
+                        `;
+                        this.dom.mainButtons.classList.add('hidden');
+                        this.dom.authError.innerHTML = errorMessage;
+                        this.dom.authError.classList.remove('hidden');
+                    } else {
+                        console.error("Error signing in anonymously:", error);
+                        this.dom.authError.textContent = "Ocurrió un error inesperado al conectar con la base de datos.";
+                        this.dom.authError.classList.remove('hidden');
+                    }
+                }
+            },
+
+            bindEvents() {
+                // Main Navigation
+                document.getElementById('goToFormButton').addEventListener('click', () => this.startNewSession());
+                document.getElementById('goToHistoryButton').addEventListener('click', () => this.showHistoryScreen());
+                document.getElementById('goToWinnerButton').addEventListener('click', () => this.showScreen('winnerScreen'));
+                document.getElementById('goToSearchButton').addEventListener('click', () => this.showScreen('searchScreen'));
+                
+                // Form Submission
+                this.dom.dataForm.addEventListener('submit', (e) => this.handleFormSubmit(e));
+
+                // Confirmation Modal (for new records)
+                document.getElementById('saveAndNewButton').addEventListener('click', () => this.handleSaveAndNew());
+                document.getElementById('saveAndCloseButton').addEventListener('click', () => this.handleSaveAndFinish());
+                document.getElementById('goBackButton').addEventListener('click', () => this.dom.confirmModal.classList.add('hidden'));
+
+                // Delete Confirmation Modal
+                document.getElementById('cancelDeleteButton').addEventListener('click', () => this.dom.deleteConfirmModal.classList.add('hidden'));
+                document.getElementById('confirmDeleteButton').addEventListener('click', () => this.deleteSession());
+
+                // Winner Screen
+                document.getElementById('findWinnerButton').addEventListener('click', () => this.findWinner());
+                this.dom.downloadWinnerPdfButton.addEventListener('click', () => this.downloadWinnerPDF());
+                
+                // Search Screen
+                this.dom.findBonoButton.addEventListener('click', () => this.findBono());
+                this.dom.downloadSearchPdfButton.addEventListener('click', () => this.downloadSearchPDF());
+            },
+
+            // --- FIRESTORE & DATA ---
+            loadHistoryFromFirestore() {
+                if (this.state.unsubscribeHistory) {
+                    this.state.unsubscribeHistory(); 
+                }
+                const sessionsColRef = collection(this.state.db, "sessions");
+                
+                this.showLoading(true);
+                this.state.unsubscribeHistory = onSnapshot(query(sessionsColRef), async (snapshot) => {
+                    console.log(`Snapshot received. Found ${snapshot.docs.length} session documents.`); // Debugging log
+                    const sessionsPromises = snapshot.docs.map(async (docSnap) => {
+                        const sessionDocData = docSnap.data();
+                        const sessionData = { 
+                            id: docSnap.id, 
+                            records: [], 
+                            rawDate: sessionDocData.rawDate 
+                        };
+                        const recordsColRef = collection(docSnap.ref, 'records');
+                        const recordsSnapshot = await getDocs(recordsColRef);
+                        sessionData.records = recordsSnapshot.docs.map(d => ({...d.data(), recordId: d.id}));
+                        return sessionData;
+                    });
+                    
+                    this.state.allSessions = await Promise.all(sessionsPromises);
+                    console.log("History loaded from Firestore:", this.state.allSessions);
+                    this.showLoading(false);
+                    if (document.getElementById('historyScreen').classList.contains('active-screen')) {
+                        this.showHistoryScreen();
+                    }
+                }, (error) => {
+                    console.error("Error listening to history changes:", error);
+                    this.showLoading(false);
+                });
+            },
+
+            async saveSessionToFirestore() {
+                if (this.state.currentSessionRecords.length === 0) return;
+                this.showLoading(true);
+
+                const rawDate = this.state.currentSessionRecords[0].fecha;
+                const sessionId = this.formatDateForId(rawDate, true); // Use safe format for ID
+                const sessionDocRef = doc(this.state.db, "sessions", sessionId);
+                const recordsColRef = collection(sessionDocRef, 'records');
+
+                try {
+                    const batch = writeBatch(this.state.db);
+                    
+                    batch.set(sessionDocRef, { id: this.formatDateForId(rawDate), rawDate: rawDate, lastUpdated: new Date() }, { merge: true });
+
+                    this.state.currentSessionRecords.forEach(record => {
+                        const newRecordRef = doc(recordsColRef);
+                        batch.set(newRecordRef, record);
+                    });
+
+                    await batch.commit();
+                    console.log("Session saved successfully to Firestore.");
+                    this.displayDetailsScreen(this.state.currentSessionRecords, 'new');
+                } catch (error) {
+                    console.error("Error saving session to Firestore: ", error);
+                } finally {
+                    this.showLoading(false);
+                }
+            },
+
+            // --- SCREEN & VIEW MANAGEMENT ---
+            showLoading(isLoading) {
+                this.dom.loadingIndicator.classList.toggle('hidden', !isLoading);
+            },
+
+            showScreen(screenId) {
+                this.dom.screens.forEach(s => s.classList.remove('active-screen'));
+                document.getElementById(screenId).classList.add('active-screen');
+            },
+
+            showHistoryScreen() {
+                console.log('Rendering history screen with sessions:', this.state.allSessions); // Debugging log
+                this.dom.historyListContainer.innerHTML = '';
+                if (this.state.allSessions.length === 0) {
+                    this.dom.historyListContainer.innerHTML = '<p class="text-center text-gray-500">No hay cargas guardadas.</p>';
+                } else {
+                    const sortedSessions = [...this.state.allSessions].sort((a, b) => {
+                        const dateA = a.rawDate || this.parseIdToDate(a.id);
+                        const dateB = b.rawDate || this.parseIdToDate(b.id);
+                        return dateB.localeCompare(dateA);
+                    });
+                    sortedSessions.forEach(session => {
+                        const displayId = session.id.replace(/-/g, '/'); // Show with slashes
+                        const sessionDiv = document.createElement('div');
+                        sessionDiv.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg border';
+                        sessionDiv.innerHTML = `
+                            <span class="font-semibold text-gray-800">Carga del ${displayId}</span>
+                            <div class="flex gap-2">
+                                <button onclick="App.editSession('${session.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button>
+                                <button onclick="App.promptDeleteSession('${session.id}')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button>
+                                <button onclick="App.downloadSessionPDF('${session.id}')" class="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">PDF</button>
+                            </div>
+                        `;
+                        this.dom.historyListContainer.appendChild(sessionDiv);
+                    });
+                }
+                this.showScreen('historyScreen');
+            },
+
+            displayDetailsScreen(records, mode = 'new') {
+                this.dom.detailsListContainer.innerHTML = '';
+                this.dom.summaryContainer.innerHTML = '';
+                
+                if (!records || records.length === 0) {
+                    this.dom.detailsListContainer.innerHTML = '<p class="text-center text-gray-500">No hay registros.</p>';
+                    return;
+                }
+
+                let subtotal = 0, totalEfectivo = 0;
+
+                records.forEach((data, index) => {
+                    const monto = data.cuotas == 1 ? 15000 : 30000;
+                    subtotal += monto;
+                    if (data.tipoPago === 'Efectivo') totalEfectivo += monto;
+
+                    const detailDiv = document.createElement('div');
+                    detailDiv.className = 'p-3 mb-2 border rounded-md bg-white grid grid-cols-4 gap-2 items-center';
+                    detailDiv.innerHTML = `
+                        <div class="col-span-3">
+                            <p class="font-bold text-indigo-700">${data.nombre}</p>
+                            <p class="text-sm text-gray-600">Bonos: ${data.bonoNro1}-${data.bonoNro2} | ${data.tipoPago}</p>
+                        </div>
+                        <p class="col-span-1 text-right font-semibold text-gray-800">${this.formatCurrency(monto)}</p>
+                        ${mode === 'edit' ? `
+                        <div class="col-span-4 text-right">
+                             <button onclick="App.deleteRecordFromSession(${index})" class="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Eliminar Registro</button>
+                        </div>` : ''}
+                    `;
+                    this.dom.detailsListContainer.appendChild(detailDiv);
+                });
+
+                this.dom.summaryContainer.innerHTML = `
+                    <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Subtotal:</span><span class="font-bold text-gray-900">${this.formatCurrency(subtotal)}</span></div>
+                    <div class="flex justify-between items-center text-green-700"><span class="font-medium">Total (Efectivo):</span><span class="font-bold">${this.formatCurrency(totalEfectivo)}</span></div>
+                `;
+
+                if (mode === 'new') {
+                    const rawDate = this.state.currentSessionRecords[0].fecha;
+                    this.dom.detailsTitle.textContent = `Detalle de Carga - ${this.formatDateForId(rawDate)}`;
+                    this.dom.detailsActions.innerHTML = `
+                        <button onclick="App.downloadSessionPDF(null)" class="w-full px-4 py-3 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700">Descargar PDF</button>
+                        <button onclick="App.startNewSession(true)" class="w-full px-4 py-3 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700">Nueva Carga</button>
+                        <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-3 font-semibold text-white bg-gray-600 rounded-lg hover:bg-gray-700">Volver al Inicio</button>
+                    `;
+                } else if (mode === 'edit') {
+                    this.dom.detailsTitle.textContent = `Modificando Carga del ${this.state.sessionToEditId.replace(/-/g, '/')}`;
+                    this.dom.detailsActions.innerHTML = `
+                        <button onclick="App.saveModifiedSession()" class="w-full px-4 py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">Guardar Cambios</button>
+                        <button onclick="App.showHistoryScreen()" class="w-full px-4 py-3 font-semibold text-white bg-gray-600 rounded-lg hover:bg-gray-700">Cancelar</button>
+                    `;
+                }
+
+                this.showScreen('detailsScreen');
+            },
+
+            // --- CORE LOGIC & EVENT HANDLERS ---
+            startNewSession(fromFinish = false) {
+                 if (!fromFinish) {
+                    this.state.currentSessionRecords = [];
+                 }
+                this.dom.dataForm.reset();
+                document.getElementById('fecha').valueAsDate = new Date();
+                this.showScreen('formScreen');
+            },
+            
+            handleFormSubmit(event) {
+                event.preventDefault();
+                const formData = new FormData(this.dom.dataForm);
+                this.state.recordToEdit = Object.fromEntries(formData.entries());
+                const monto = this.state.recordToEdit.cuotas == 1 ? 15000 : 30000;
+                
+                document.getElementById('confirmationData').innerHTML = `
+                    <p><strong>Nombre:</strong> ${this.state.recordToEdit.nombre}</p>
+                    <p><strong>Bonos:</strong> Nro. ${this.state.recordToEdit.bonoNro1} - Nro. ${this.state.recordToEdit.bonoNro2}</p>
+                    <p><strong>Monto:</strong> <span class="font-bold">${this.formatCurrency(monto)}</span></p>
+                `;
+                this.dom.confirmModal.classList.remove('hidden');
+            },
+            
+            handleSaveAndNew() {
+                this.state.currentSessionRecords.push(this.state.recordToEdit);
+                this.dom.confirmModal.classList.add('hidden');
+                this.dom.formSuccessMessage.classList.remove('hidden');
+                setTimeout(() => this.dom.formSuccessMessage.classList.add('hidden'), 2000);
+                
+                const currentDate = document.getElementById('fecha').value;
+                this.dom.dataForm.reset();
+                document.getElementById('fecha').value = currentDate;
+                document.getElementById('bonoNro1').focus();
+            },
+
+            handleSaveAndFinish() {
+                this.state.currentSessionRecords.push(this.state.recordToEdit);
+                this.dom.confirmModal.classList.add('hidden');
+                this.saveSessionToFirestore();
+            },
+
+            // --- HISTORY ACTIONS ---
+            editSession(sessionId) {
+                this.state.sessionToEditId = sessionId;
+                const session = this.state.allSessions.find(s => s.id === sessionId);
+                if (session) {
+                    this.state.sessionToEditRawDate = session.rawDate; 
+                    this.state.currentSessionRecords = JSON.parse(JSON.stringify(session.records)); 
+                    this.displayDetailsScreen(this.state.currentSessionRecords, 'edit');
+                }
+            },
+
+            deleteRecordFromSession(index) {
+                this.state.currentSessionRecords.splice(index, 1);
+                this.displayDetailsScreen(this.state.currentSessionRecords, 'edit');
+            },
+
+            async saveModifiedSession() {
+                this.showLoading(true);
+                const sessionId = this.state.sessionToEditId;
+                const rawDate = this.state.sessionToEditRawDate || this.parseIdToDate(sessionId);
+                const sessionDocRef = doc(this.state.db, "sessions", sessionId);
+                
+                try {
+                    const recordsColRef = collection(sessionDocRef, 'records');
+                    const recordsSnapshot = await getDocs(recordsColRef);
+                    const deleteBatch = writeBatch(this.state.db);
+                    recordsSnapshot.forEach(doc => {
+                        deleteBatch.delete(doc.ref);
+                    });
+                    await deleteBatch.commit();
+                    
+                    if (this.state.currentSessionRecords.length > 0) {
+                        const addBatch = writeBatch(this.state.db);
+                        addBatch.set(sessionDocRef, { id: sessionId, rawDate: rawDate, lastUpdated: new Date() }, { merge: true });
+                        this.state.currentSessionRecords.forEach(record => {
+                            const newRecordRef = doc(recordsColRef);
+                            const { recordId, ...recordData } = record;
+                            addBatch.set(newRecordRef, recordData);
+                        });
+                        await addBatch.commit();
+                        console.log("Session modified successfully.");
+                    } else {
+                        await deleteDoc(sessionDocRef);
+                        console.log("Empty session deleted.");
+                    }
+
+                } catch (error) {
+                    console.error("Error modifying session: ", error);
+                } finally {
+                    this.showLoading(false);
+                    this.showHistoryScreen();
+                }
+            },
+
+            promptDeleteSession(sessionId) {
+                this.state.sessionToDeleteId = sessionId;
+                this.dom.deleteConfirmModal.classList.remove('hidden');
+            },
+
+            async deleteSession() {
+                this.showLoading(true);
+                const sessionId = this.state.sessionToDeleteId;
+                const sessionDocRef = doc(this.state.db, "sessions", sessionId);
+
+                try {
+                    const recordsColRef = collection(sessionDocRef, 'records');
+                    const recordsSnapshot = await getDocs(recordsColRef);
+                    const batch = writeBatch(this.state.db);
+                    recordsSnapshot.forEach(doc => {
+                        batch.delete(doc.ref);
+                    });
+                    await batch.commit();
+                    await deleteDoc(sessionDocRef);
+                    console.log(`Session ${sessionId} and all its records have been deleted.`);
+                } catch (error) {
+                    console.error("Error deleting session: ", error);
+                } finally {
+                    this.dom.deleteConfirmModal.classList.add('hidden');
+                    this.showLoading(false);
+                }
+            },
+
+            // --- SEARCH LOGIC ---
+            findBono() {
+                const searchInput1 = document.getElementById('bonoSearchInput1');
+                const searchInput2 = document.getElementById('bonoSearchInput2');
+                const number1 = parseInt(searchInput1.value, 10);
+                const number2 = parseInt(searchInput2.value, 10);
+                
+                this.state.searchResult = [];
+                this.dom.searchResultContainer.innerHTML = '';
+                this.dom.downloadSearchPdfButton.classList.add('hidden');
+
+                if (isNaN(number1) && isNaN(number2)) {
+                    this.dom.searchResultContainer.innerHTML = '<p class="text-center text-red-500">Por favor, ingrese al menos un número.</p>';
+                    return;
+                }
+
+                const foundRecords = [];
+                for (const session of this.state.allSessions) {
+                    for (const record of session.records) {
+                        const recordNum1 = parseInt(record.bonoNro1, 10);
+                        const recordNum2 = parseInt(record.bonoNro2, 10);
+
+                        let match = false;
+                        if (!isNaN(number1) && !isNaN(number2)) {
+                            if (recordNum1 === number1 && recordNum2 === number2) {
+                                match = true;
+                            }
+                        } 
+                        else if (!isNaN(number1)) {
+                            if (number1 >= recordNum1 && number1 <= recordNum2) {
+                                match = true;
+                            }
+                        }
+                        else if (!isNaN(number2)) {
+                             if (number2 >= recordNum1 && number2 <= recordNum2) {
+                                match = true;
+                            }
+                        }
+                        
+                        if (match) {
+                            foundRecords.push({ ...record, sessionDate: session.id.replace(/-/g, '/') });
+                        }
+                    }
+                }
+
+                this.state.searchResult = foundRecords;
+
+                if (foundRecords.length > 0) {
+                    this.dom.searchResultContainer.innerHTML = foundRecords.map(record => {
+                        const monto = record.cuotas == 1 ? 15000 : 30000;
+                        return `
+                            <div class="p-4 border rounded-md bg-blue-50 space-y-2 mb-2">
+                                <p><strong>Nombre:</strong> ${record.nombre}</p>
+                                <p><strong>Teléfono:</strong> ${record.telefono}</p>
+                                <p><strong>Bonos Comprados:</strong> ${record.bonoNro1} - ${record.bonoNro2}</p>
+                                <p><strong>Fecha de Carga:</strong> ${record.sessionDate}</p>
+                                <p><strong>Tipo de Pago:</strong> ${record.tipoPago}</p>
+                                <p><strong>Cuotas Abonadas:</strong> ${record.cuotas}</p>
+                                <p><strong>Monto:</strong> ${this.formatCurrency(monto)}</p>
+                            </div>
+                        `;
+                    }).join('');
+                    this.dom.downloadSearchPdfButton.classList.remove('hidden');
+                } else {
+                    this.dom.searchResultContainer.innerHTML = '<p class="text-center text-gray-600">No se encontraron registros para los números ingresados.</p>';
+                }
+            },
+
+            downloadSearchPDF() {
+                if (this.state.searchResult.length === 0) return;
+                
+                const doc = new jsPDF();
+                const searchInput1 = document.getElementById('bonoSearchInput1').value;
+                const searchInput2 = document.getElementById('bonoSearchInput2').value;
+                let title = "Detalle de Búsqueda de Bonos";
+                if (searchInput1 && searchInput2) {
+                    title = `Detalle de Bonos ${searchInput1} - ${searchInput2}`;
+                } else if (searchInput1) {
+                    title = `Detalle de Bono N° ${searchInput1}`;
+                } else if (searchInput2) {
+                    title = `Detalle de Bono N° ${searchInput2}`;
+                }
+
+                doc.setFontSize(18);
+                doc.text(title, 14, 22);
+                
+                const tableColumn = ["Nombre", "Teléfono", "Bonos", "Fecha Carga", "Pago", "Cuotas", "Monto"];
+                const tableRows = [];
+
+                this.state.searchResult.forEach(record => {
+                    const monto = record.cuotas == 1 ? 15000 : 30000;
+                    const rowData = [
+                        record.nombre,
+                        record.telefono,
+                        `${record.bonoNro1} - ${record.bonoNro2}`,
+                        record.sessionDate,
+                        record.tipoPago,
+                        record.cuotas,
+                        this.formatCurrency(monto)
+                    ];
+                    tableRows.push(rowData);
+                });
+
+                doc.autoTable({
+                    head: [tableColumn],
+                    body: tableRows,
+                    startY: 30,
+                    theme: 'grid'
+                });
+                
+                doc.save(`busqueda_bonos.pdf`);
+            },
+
+
+            // --- WINNER LOGIC ---
+            findWinner() {
+                const winnerInputs = document.querySelectorAll('.winner-input');
+                this.state.winnersData = [];
+                this.dom.winnerResultContainer.innerHTML = '';
+                this.dom.downloadWinnerPdfButton.classList.add('hidden');
+
+                const numbersToSearch = {};
+                winnerInputs.forEach(input => {
+                    const prize = input.dataset.prize;
+                    const number = parseInt(input.value, 10);
+                    if (!isNaN(number)) {
+                        if (!numbersToSearch[prize]) {
+                            numbersToSearch[prize] = [];
+                        }
+                        numbersToSearch[prize].push(number);
+                    }
+                });
+
+                if (Object.keys(numbersToSearch).length === 0) {
+                    this.dom.winnerResultContainer.innerHTML = '<p class="text-center text-red-500">Por favor, ingrese al menos un número ganador.</p>';
+                    return;
+                }
+                
+                const foundNumbers = new Set();
+
+                for (const prizeLevel in numbersToSearch) {
+                    const winningNumbers = numbersToSearch[prizeLevel];
+                    for (const session of this.state.allSessions) {
+                        for (const record of session.records) {
+                            const from = parseInt(record.bonoNro1, 10);
+                            const to = parseInt(record.bonoNro2, 10);
+                            for (const num of winningNumbers) {
+                                if (num >= from && num <= to && !foundNumbers.has(num)) {
+                                    this.state.winnersData.push({ ...record, winningNumber: num, sessionDate: session.id.replace(/-/g, '/'), prizeLevel });
+                                    foundNumbers.add(num);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (this.state.winnersData.length > 0) {
+                    this.dom.winnerResultContainer.innerHTML = `
+                        <h3 class="text-xl font-bold text-green-600 text-center mb-4">¡Resultados del Sorteo!</h3>
+                        <div class="space-y-3">
+                        ${this.state.winnersData.map(winner => `
+                            <div class="p-3 border rounded-md bg-green-50">
+                                <p class="font-bold text-green-800">${winner.prizeLevel} - N° ${winner.winningNumber}</p>
+                                <p><strong>Nombre:</strong> ${winner.nombre}</p>
+                                <p><strong>Teléfono:</strong> ${winner.telefono}</p>
+                            </div>
+                        `).join('')}
+                        </div>
+                    `;
+                    this.dom.downloadWinnerPdfButton.classList.remove('hidden');
+                } else {
+                    this.dom.winnerResultContainer.innerHTML = '<p class="text-center text-gray-600">No se encontraron ganadores con los números ingresados.</p>';
+                }
+            },
+
+            downloadWinnerPDF() {
+                if (this.state.winnersData.length === 0) return;
+                const doc = new jsPDF();
+
+                doc.setFontSize(22);
+                doc.setTextColor(34, 139, 34);
+                doc.text("Resultados del Sorteo", doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+
+                const tableColumn = ["Premio", "N° Ganador", "Nombre", "Teléfono", "Bonos Comprados"];
+                const tableRows = [];
+
+                this.state.winnersData.forEach(data => {
+                    const rowData = [
+                        data.prizeLevel,
+                        data.winningNumber,
+                        data.nombre,
+                        data.telefono,
+                        `${data.bonoNro1} - ${data.bonoNro2}`
+                    ];
+                    tableRows.push(rowData);
+                });
+
+                doc.autoTable({
+                    head: [tableColumn],
+                    body: tableRows,
+                    startY: 30,
+                    theme: 'grid'
+                });
+                
+                doc.save(`resultados_sorteo.pdf`);
+            },
+
+            // --- UTILITIES ---
+            formatCurrency(amount) {
+                return amount.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+            },
+
+            formatDateForId(dateString, useSafeFormat = false) { // dateString is YYYY-MM-DD
+                if (!dateString || !/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
+                const [year, month, day] = dateString.split('-');
+                const separator = useSafeFormat ? '-' : '/';
+                return `${day}${separator}${month}${separator}${year}`;
+            },
+
+            parseIdToDate(idString) { // idString is DD-MM-YYYY
+                if (!idString || !/^\d{2}-\d{2}-\d{4}$/.test(idString)) return idString;
+                const [day, month, year] = idString.split('-');
+                return `${year}-${month}-${day}`;
+            },
+
+            downloadSessionPDF(sessionId) {
+                const recordsToPrint = sessionId 
+                    ? this.state.allSessions.find(s => s.id === sessionId)?.records 
+                    : this.state.currentSessionRecords;
+                
+                if (!recordsToPrint || recordsToPrint.length === 0) return;
+
+                const doc = new jsPDF();
+                let title;
+                let fileNameDate;
+
+                if (sessionId) {
+                    const displayId = sessionId.replace(/-/g, '/');
+                    title = `Detalle de Carga - ${displayId}`;
+                    fileNameDate = sessionId;
+                } else {
+                    const rawDate = this.state.currentSessionRecords[0].fecha;
+                    const formattedDate = this.formatDateForId(rawDate);
+                    title = `Detalle de Carga - ${formattedDate}`;
+                    fileNameDate = this.formatDateForId(rawDate, true);
+                }
+                
+                doc.setFontSize(18);
+                doc.text(title, 14, 22);
+                
+                const tableColumn = ["Nombre", "Bonos", "Pago", "Cuotas", "Monto"];
+                const tableRows = [];
+                let subtotal = 0, totalEfectivo = 0;
+
+                recordsToPrint.forEach(data => {
+                    const monto = data.cuotas == 1 ? 15000 : 30000;
+                    subtotal += monto;
+                    if (data.tipoPago === 'Efectivo') totalEfectivo += monto;
+                    
+                    const rowData = [data.nombre, `${data.bonoNro1}-${data.bonoNro2}`, data.tipoPago, data.cuotas, this.formatCurrency(monto)];
+                    tableRows.push(rowData);
+                });
+
+                doc.autoTable({
+                    head: [tableColumn],
+                    body: tableRows,
+                    startY: 30,
+                    theme: 'grid',
+                    foot: [
+                        [{ content: 'Subtotal', colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } }, { content: this.formatCurrency(subtotal), styles: { halign: 'right', fontStyle: 'bold' } }],
+                        [{ content: 'Total (Efectivo)', colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } }, { content: this.formatCurrency(totalEfectivo), styles: { halign: 'right', fontStyle: 'bold' } }],
+                    ],
+                    footStyles: { fillColor: [230, 230, 230] }
+                });
+                
+                doc.save(`detalle_bonos_${fileNameDate}.pdf`);
+            }
+        };
+
+        // Start the application
+        window.App.init();
+
+    </script>
+</body>
+</html>
