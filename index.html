@@ -51,9 +51,20 @@
             <div class="loader"></div>
         </div>
 
+        <!-- 0. Login Screen -->
+        <div id="loginScreen" class="screen p-8 space-y-4 bg-white rounded-xl shadow-lg text-center fade-in">
+            <h1 class="text-3xl font-bold text-gray-800">Bienvenido</h1>
+            <p class="text-gray-600">Coloque su clave para ingresar.</p>
+            <form id="loginForm" class="space-y-4 pt-4">
+                <input type="password" id="passwordInput" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" placeholder="Clave">
+                <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">Ingresar</button>
+            </form>
+            <div id="loginError" class="hidden text-sm text-red-600 pt-2">Clave incorrecta.</div>
+        </div>
+
         <!-- 1. Initial Screen -->
-        <div id="initialScreen" class="screen active-screen p-8 space-y-4 bg-white rounded-xl shadow-lg text-center fade-in">
-            <h1 class="text-3xl font-bold text-gray-800">Parroquia San José Bono</h1>
+        <div id="initialScreen" class="screen p-8 space-y-4 bg-white rounded-xl shadow-lg text-center fade-in">
+            <h1 class="text-3xl font-bold text-gray-800">Parroquia San José Bono ⛪</h1>
             <p class="text-xl text-gray-600">"Sembradores de Esperanza"</p>
             <div id="authError" class="hidden p-4 my-4 text-sm text-red-700 bg-red-100 rounded-lg text-left"></div>
             <div id="mainButtons" class="space-y-4">
@@ -69,6 +80,13 @@
                 <button id="goToWinnerButton" class="w-full px-4 py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">
                     Ganador
                 </button>
+                <button id="goToBankButton" class="w-full px-4 py-3 font-semibold text-white bg-cyan-600 rounded-lg hover:bg-cyan-700">
+                    Banco
+                </button>
+                <button id="goToBalanceButton" class="w-full px-4 py-3 font-semibold text-white bg-orange-600 rounded-lg hover:bg-orange-700">
+                    Balance
+                </button>
+                 <button id="logoutButton" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cerrar Sesión</button>
             </div>
         </div>
 
@@ -195,6 +213,44 @@
             <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Volver al Inicio</button>
         </div>
 
+        <!-- 7. Balance Screen -->
+        <div id="balanceScreen" class="screen p-8 bg-white rounded-xl shadow-lg fade-in">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Balance General</h2>
+            <div id="balanceListContainer" class="mb-6 max-h-80 overflow-y-auto p-3 bg-gray-50 rounded-lg border"></div>
+            <div id="balanceSummaryContainer" class="mb-6 p-4 bg-gray-100 rounded-lg space-y-2 text-base"></div>
+            <button id="downloadBalancePdfButton" class="w-full px-4 py-3 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700">Descargar PDF</button>
+            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Volver al Inicio</button>
+        </div>
+        
+        <!-- 8. Bank Screen -->
+        <div id="bankScreen" class="screen p-8 bg-white rounded-xl shadow-lg fade-in">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Gestión de Banco</h2>
+            <form id="bankForm" class="space-y-4 mb-6 p-4 border rounded-lg">
+                <h3 class="text-lg font-semibold text-gray-700" id="bankFormTitle">Nuevo Depósito</h3>
+                <div>
+                    <label for="bankDate" class="block text-sm font-medium text-gray-700">Fecha</label>
+                    <input type="date" id="bankDate" name="bankDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="bankAmount" class="block text-sm font-medium text-gray-700">Importe</label>
+                    <input type="number" id="bankAmount" name="bankAmount" required placeholder="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="bankType" class="block text-sm font-medium text-gray-700">Tipo</label>
+                    <select id="bankType" name="bankType" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Transferencia">Transferencia</option>
+                    </select>
+                </div>
+                <div id="bankFormActions">
+                    <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-cyan-600 rounded-lg hover:bg-cyan-700">Confirmar</button>
+                </div>
+            </form>
+            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Depósitos Registrados</h3>
+            <div id="bankDepositsListContainer" class="mb-6 space-y-3"></div>
+            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Volver al Inicio</button>
+        </div>
+
     </div>
 
     <!-- Modals -->
@@ -214,7 +270,7 @@
     <div id="deleteConfirmModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
         <div class="bg-white p-6 rounded-lg shadow-xl text-center fade-in">
             <h3 class="text-lg font-bold text-gray-900">Confirmar Eliminación</h3>
-            <p class="text-sm text-gray-600 my-4">Esta operación no puede revertirse. Todos los datos de la fecha seleccionada se perderán.</p>
+            <p class="text-sm text-gray-600 my-4">Esta operación no puede revertirse.</p>
             <div class="flex justify-center gap-4">
                 <button id="cancelDeleteButton" class="px-5 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">Volver</button>
                 <button id="confirmDeleteButton" class="px-5 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Confirmar</button>
@@ -227,7 +283,7 @@
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, addDoc, getDocs, deleteDoc, onSnapshot, query, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, addDoc, getDocs, deleteDoc, onSnapshot, query, writeBatch, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- App Initialization ---
         const { jsPDF } = window.jspdf;
@@ -235,24 +291,35 @@
         window.App = {
             // --- STATE ---
             state: {
+                currentUser: null,
                 currentSessionRecords: [],
                 allSessions: [],
+                bankDeposits: [],
                 recordToEdit: null,
+                depositToEditId: null,
+                itemToDelete: { id: null, type: null },
                 sessionToEditId: null,
                 sessionToEditRawDate: null, 
-                sessionToDeleteId: null,
                 winnersData: [],
                 searchResult: [], 
                 db: null,
                 auth: null,
                 userId: null,
                 unsubscribeHistory: null,
+                unsubscribeBank: null,
+                showAllDeposits: false,
             },
 
             // --- INITIALIZATION ---
             async init() {
                 this.cacheDOMElements();
                 this.bindEvents();
+                const savedUser = localStorage.getItem('currentUser');
+                if (savedUser) {
+                    this.login(savedUser);
+                } else {
+                    this.showScreen('loginScreen');
+                }
                 this.showLoading(true);
                 await this.initializeFirebase();
             },
@@ -260,6 +327,9 @@
             cacheDOMElements() {
                 this.dom = {
                     screens: document.querySelectorAll('.screen'),
+                    loginForm: document.getElementById('loginForm'),
+                    passwordInput: document.getElementById('passwordInput'),
+                    loginError: document.getElementById('loginError'),
                     dataForm: document.getElementById('dataForm'),
                     confirmModal: document.getElementById('confirmModal'),
                     deleteConfirmModal: document.getElementById('deleteConfirmModal'),
@@ -280,6 +350,17 @@
                     findWinnerButton: document.getElementById('findWinnerButton'),
                     searchResultContainer: document.getElementById('searchResultContainer'),
                     downloadSearchPdfButton: document.getElementById('downloadSearchPdfButton'),
+                    balanceScreen: document.getElementById('balanceScreen'),
+                    balanceListContainer: document.getElementById('balanceListContainer'),
+                    balanceSummaryContainer: document.getElementById('balanceSummaryContainer'),
+                    downloadBalancePdfButton: document.getElementById('downloadBalancePdfButton'),
+                    goToBalanceButton: document.getElementById('goToBalanceButton'),
+                    logoutButton: document.getElementById('logoutButton'),
+                    bankScreen: document.getElementById('bankScreen'),
+                    bankForm: document.getElementById('bankForm'),
+                    bankFormTitle: document.getElementById('bankFormTitle'),
+                    bankFormActions: document.getElementById('bankFormActions'),
+                    bankDepositsListContainer: document.getElementById('bankDepositsListContainer'),
                 };
             },
 
@@ -302,6 +383,7 @@
                         this.dom.authError.classList.add('hidden');
                         this.dom.mainButtons.classList.remove('hidden');
                         this.loadHistoryFromFirestore();
+                        this.loadBankDepositsFromFirestore();
                     } else {
                         this.state.userId = null;
                         this.showLoading(false);
@@ -326,20 +408,56 @@
             },
 
             bindEvents() {
+                this.dom.loginForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleLogin(); });
                 document.getElementById('goToFormButton').addEventListener('click', () => this.startNewSession());
                 document.getElementById('goToHistoryButton').addEventListener('click', () => this.showHistoryScreen());
                 document.getElementById('goToWinnerButton').addEventListener('click', () => this.showScreen('winnerScreen'));
                 document.getElementById('goToSearchButton').addEventListener('click', () => this.showScreen('searchScreen'));
+                document.getElementById('goToBankButton').addEventListener('click', () => this.showBankScreen());
+                this.dom.goToBalanceButton.addEventListener('click', () => this.showBalanceScreen());
+                this.dom.logoutButton.addEventListener('click', () => this.logout());
                 this.dom.dataForm.addEventListener('submit', (e) => this.handleFormSubmit(e));
                 document.getElementById('saveAndNewButton').addEventListener('click', () => this.handleSaveAndNew());
                 document.getElementById('saveAndCloseButton').addEventListener('click', () => this.handleSaveAndFinish());
                 document.getElementById('goBackButton').addEventListener('click', () => this.dom.confirmModal.classList.add('hidden'));
                 document.getElementById('cancelDeleteButton').addEventListener('click', () => this.dom.deleteConfirmModal.classList.add('hidden'));
-                document.getElementById('confirmDeleteButton').addEventListener('click', () => this.deleteSession());
+                document.getElementById('confirmDeleteButton').addEventListener('click', () => this.deleteItem());
                 this.dom.findWinnerButton.addEventListener('click', () => this.findWinner());
                 this.dom.downloadWinnerPdfButton.addEventListener('click', () => this.downloadWinnerPDF());
                 this.dom.searchBonoButton.addEventListener('click', () => this.findBono());
                 this.dom.downloadSearchPdfButton.addEventListener('click', () => this.downloadSearchPDF());
+                this.dom.downloadBalancePdfButton.addEventListener('click', () => this.downloadBalancePDF());
+                this.dom.bankForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleBankFormSubmit(); });
+            },
+
+            handleLogin() {
+                const password = this.dom.passwordInput.value.toLowerCase().trim();
+                const validUsers = ['javier', 'ana', 'adan', 'jose'];
+                if (validUsers.includes(password)) {
+                    localStorage.setItem('currentUser', password);
+                    this.login(password);
+                    this.dom.loginError.classList.add('hidden');
+                    this.dom.passwordInput.value = '';
+                } else {
+                    this.dom.loginError.classList.remove('hidden');
+                }
+            },
+
+            login(userName) {
+                this.state.currentUser = userName.toLowerCase();
+                this.showScreen('initialScreen');
+            },
+
+            logout() {
+                this.state.currentUser = null;
+                localStorage.removeItem('currentUser');
+                this.showScreen('loginScreen');
+            },
+
+            updateUIForUser() {
+                const user = this.state.currentUser;
+                const isAdmin = user === 'adan' || user === 'jose';
+                this.dom.goToBalanceButton.style.display = isAdmin ? 'block' : 'none';
             },
 
             loadHistoryFromFirestore() {
@@ -400,6 +518,9 @@
             showScreen(screenId) {
                 this.dom.screens.forEach(s => s.classList.remove('active-screen'));
                 document.getElementById(screenId).classList.add('active-screen');
+                if (screenId === 'initialScreen') {
+                    this.updateUIForUser();
+                }
             },
 
             showHistoryScreen() {
@@ -412,7 +533,7 @@
                         const displayId = session.id.replace(/-/g, '/');
                         const sessionDiv = document.createElement('div');
                         sessionDiv.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg border';
-                        sessionDiv.innerHTML = `<span class="font-semibold text-gray-800">Carga del ${displayId}</span><div class="flex gap-2"><button onclick="App.editSession('${session.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.promptDeleteSession('${session.id}')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button><button onclick="App.downloadSessionPDF('${session.id}')" class="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">PDF</button></div>`;
+                        sessionDiv.innerHTML = `<span class="font-semibold text-gray-800">Carga del ${displayId}</span><div class="flex gap-2"><button onclick="App.editSession('${session.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.promptDeleteItem('${session.id}', 'session')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button><button onclick="App.downloadSessionPDF('${session.id}')" class="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">PDF</button></div>`;
                         this.dom.historyListContainer.appendChild(sessionDiv);
                     });
                 }
@@ -527,28 +648,39 @@
                 }
             },
 
-            promptDeleteSession(sessionId) {
-                this.state.sessionToDeleteId = sessionId;
+            promptDeleteItem(id, type) {
+                this.state.itemToDelete = { id, type };
                 this.dom.deleteConfirmModal.classList.remove('hidden');
             },
 
-            async deleteSession() {
+            async deleteItem() {
+                const { id, type } = this.state.itemToDelete;
+                if (!id || !type) return;
+
                 this.showLoading(true);
-                const sessionId = this.state.sessionToDeleteId;
-                const sessionDocRef = doc(this.state.db, "sessions", sessionId);
-                try {
-                    const recordsColRef = collection(sessionDocRef, 'records');
-                    const recordsSnapshot = await getDocs(recordsColRef);
-                    const batch = writeBatch(this.state.db);
-                    recordsSnapshot.forEach(doc => batch.delete(doc.ref));
-                    await batch.commit();
-                    await deleteDoc(sessionDocRef);
-                } catch (error) {
-                    console.error("Error deleting session: ", error);
-                } finally {
-                    this.dom.deleteConfirmModal.classList.add('hidden');
-                    this.showLoading(false);
+                if (type === 'session') {
+                    const sessionDocRef = doc(this.state.db, "sessions", id);
+                    try {
+                        const recordsColRef = collection(sessionDocRef, 'records');
+                        const recordsSnapshot = await getDocs(recordsColRef);
+                        const batch = writeBatch(this.state.db);
+                        recordsSnapshot.forEach(doc => batch.delete(doc.ref));
+                        await batch.commit();
+                        await deleteDoc(sessionDocRef);
+                    } catch (error) {
+                        console.error("Error deleting session: ", error);
+                    }
+                } else if (type === 'deposit') {
+                    try {
+                        await deleteDoc(doc(this.state.db, "bank_deposits", id));
+                    } catch (error) {
+                        console.error("Error deleting bank deposit: ", error);
+                    }
                 }
+                
+                this.dom.deleteConfirmModal.classList.add('hidden');
+                this.showLoading(false);
+                this.state.itemToDelete = { id: null, type: null };
             },
 
             findBono() {
@@ -600,8 +732,9 @@
                     const monto = record.cuotas == 1 ? 15000 : 30000;
                     return [record.nombre, record.telefono, `${record.bonoNro1} - ${record.bonoNro2}`, record.sessionDate, record.tipoPago, record.cuotas, this.formatCurrency(monto)];
                 });
-                doc.autoTable({ head: [tableColumn], body: tableRows, startY: 30, theme: 'grid' });
-                doc.save(`busqueda_bonos.pdf`);
+                doc.autoTable({ head: [tableColumn], body: tableRows, startY: 30, theme: 'grid', headStyles: { fillColor: [67, 56, 202] } });
+                const currentDate = this.getCurrentDateFormatted();
+                doc.save(`busqueda_bonos_${currentDate}.pdf`);
             },
 
             findWinner() {
@@ -638,7 +771,7 @@
                     }
                 }
                 if (this.state.winnersData.length > 0) {
-                    this.dom.winnerResultContainer.innerHTML = `<h3 class="text-xl font-bold text-green-600 text-center mb-4">¡Resultados del Sorteo!</h3><div class="space-y-3">${this.state.winnersData.map(winner => `<div class="p-3 border rounded-md bg-green-50"><p class="font-bold text-green-800">${winner.prizeLevel} - N° ${winner.winningNumber}</p><p><strong>Nombre:</strong> ${winner.nombre}</p><p><strong>Teléfono:</strong> ${winner.telefono}</p></div>`).join('')}</div>`;
+                    this.dom.winnerResultContainer.innerHTML = `<h3 class="text-xl font-bold text-green-600 text-center mb-4">¡Resultados del Sorteo!</h3><div class="space-y-3">${this.state.winnersData.map(winner => `<div class="p-3 border rounded-md bg-green-50"><p class="font-bold text-green-800">${winner.prizeLevel} - N° ${winner.winningNumber}</p><p><strong>Nombre:</strong> ${winner.nombre}</p><p><strong>Teléfono:</strong> ${winner.telefono}</p><p><strong>Bonos:</strong> ${winner.bonoNro1} - ${winner.bonoNro2}</p></div>`).join('')}</div>`;
                     this.dom.downloadWinnerPdfButton.classList.remove('hidden');
                 } else {
                     this.dom.winnerResultContainer.innerHTML = '<p class="text-center text-gray-600">No se encontraron ganadores con los números ingresados.</p>';
@@ -649,16 +782,168 @@
                 if (this.state.winnersData.length === 0) return;
                 const doc = new jsPDF();
                 doc.setFontSize(22);
-                doc.setTextColor(34, 139, 34);
+                doc.setTextColor(22, 163, 74);
                 doc.text("Resultados del Sorteo", doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
                 const tableColumn = ["Premio", "N° Ganador", "Nombre", "Teléfono", "Bonos Comprados"];
                 const tableRows = this.state.winnersData.map(data => [data.prizeLevel, data.winningNumber, data.nombre, data.telefono, `${data.bonoNro1} - ${data.bonoNro2}`]);
-                doc.autoTable({ head: [tableColumn], body: tableRows, startY: 30, theme: 'grid' });
-                doc.save(`resultados_sorteo.pdf`);
+                doc.autoTable({ head: [tableColumn], body: tableRows, startY: 30, theme: 'grid', headStyles: { fillColor: [22, 163, 74] } });
+                const currentDate = this.getCurrentDateFormatted();
+                doc.save(`resultados_sorteo_${currentDate}.pdf`);
+            },
+            
+            showBalanceScreen() {
+                this.dom.balanceListContainer.innerHTML = '';
+                this.dom.balanceSummaryContainer.innerHTML = '';
+                let totalBonosEfectivo = 0, totalBonosTransferencia = 0, totalBonos = 0;
+                let totalBancoEfectivo = 0, totalBancoTransferencia = 0, totalBanco = 0;
+                
+                const allRecords = [];
+                this.state.allSessions.forEach(session => {
+                    session.records.forEach(record => {
+                        allRecords.push({ ...record, sessionDate: session.id.replace(/-/g, '/') });
+                    });
+                });
+                allRecords.sort((a, b) => (this.parseIdToDate(a.sessionDate)).localeCompare(this.parseIdToDate(b.sessionDate))).reverse();
+
+                let balanceHTML = '<div><h3 class="text-lg font-semibold text-gray-700 mb-2 border-b pb-2">Ingresos por Bonos</h3>';
+                if (allRecords.length === 0) {
+                    balanceHTML += '<p class="text-center text-gray-500">No hay registros de bonos.</p>';
+                } else {
+                    allRecords.forEach(record => {
+                        const monto = record.cuotas == 1 ? 15000 : 30000;
+                        totalBonos += monto;
+                        if (record.tipoPago === 'Efectivo') totalBonosEfectivo += monto;
+                        else totalBonosTransferencia += monto;
+                        balanceHTML += `<div class="p-3 mb-2 border rounded-md bg-white grid grid-cols-3 gap-2 items-center text-sm"><div><p class="font-semibold">${record.nombre}</p><p class="text-xs text-gray-500">${record.sessionDate}</p></div><p class="text-center">${record.tipoPago}</p><p class="text-right font-semibold">${this.formatCurrency(monto)}</p></div>`;
+                    });
+                }
+                balanceHTML += '</div>';
+
+                balanceHTML += '<div class="mt-6"><h3 class="text-lg font-semibold text-gray-700 mb-2 border-b pb-2">Depósitos Bancarios</h3>';
+                if (this.state.bankDeposits.length === 0) {
+                    balanceHTML += '<p class="text-center text-gray-500">No hay depósitos bancarios.</p>';
+                } else {
+                    this.state.bankDeposits.forEach(deposit => {
+                        const monto = parseFloat(deposit.amount);
+                        totalBanco += monto;
+                        if (deposit.type === 'Efectivo') totalBancoEfectivo += monto;
+                        else totalBancoTransferencia += monto;
+                        balanceHTML += `<div class="p-3 mb-2 border rounded-md bg-white grid grid-cols-3 gap-2 items-center text-sm"><div><p class="font-semibold">Depósito</p><p class="text-xs text-gray-500">${this.formatDateForId(deposit.date)}</p></div><p class="text-center">${deposit.type}</p><p class="text-right font-semibold">${this.formatCurrency(monto)}</p></div>`;
+                    });
+                }
+                balanceHTML += '</div>';
+                
+                this.dom.balanceListContainer.innerHTML = balanceHTML;
+
+                this.dom.balanceSummaryContainer.innerHTML = `
+                    <div class="p-4 border rounded-lg bg-white mb-4">
+                        <h4 class="font-bold text-lg mb-2 text-gray-800">Resumen de Bonos</h4>
+                        <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Total Efectivo:</span><span class="font-bold text-green-700">${this.formatCurrency(totalBonosEfectivo)}</span></div>
+                        <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Total Transferencia:</span><span class="font-bold text-blue-700">${this.formatCurrency(totalBonosTransferencia)}</span></div>
+                        <hr class="my-2 border-gray-200">
+                        <div class="flex justify-between items-center text-lg"><span class="font-bold text-gray-800">Total Bonos:</span><span class="font-extrabold text-gray-900">${this.formatCurrency(totalBonos)}</span></div>
+                    </div>
+                    <div class="p-4 border rounded-lg bg-white">
+                        <h4 class="font-bold text-lg mb-2 text-gray-800">Resumen de Banco</h4>
+                        <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Total Efectivo:</span><span class="font-bold text-green-700">${this.formatCurrency(totalBancoEfectivo)}</span></div>
+                        <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Total Transferencia:</span><span class="font-bold text-blue-700">${this.formatCurrency(totalBancoTransferencia)}</span></div>
+                        <hr class="my-2 border-gray-200">
+                        <div class="flex justify-between items-center text-lg"><span class="font-bold text-gray-800">Total Banco:</span><span class="font-extrabold text-gray-900">${this.formatCurrency(totalBanco)}</span></div>
+                    </div>
+                `;
+                this.showScreen('balanceScreen');
+            },
+
+            downloadBalancePDF() {
+                const doc = new jsPDF();
+                doc.setFontSize(22);
+                doc.text("Balance General de Ingresos", doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+                
+                let totalBonosEfectivo = 0, totalBonosTransferencia = 0, totalBonos = 0;
+                let totalBancoEfectivo = 0, totalBancoTransferencia = 0, totalBanco = 0;
+
+                const bonoRecords = [];
+                this.state.allSessions.forEach(session => {
+                    session.records.forEach(record => {
+                        bonoRecords.push({ ...record, sessionDate: session.id.replace(/-/g, '/') });
+                    });
+                });
+                bonoRecords.sort((a, b) => (this.parseIdToDate(a.sessionDate)).localeCompare(this.parseIdToDate(b.sessionDate))).reverse();
+
+                const bonoTableRows = bonoRecords.map(record => {
+                    const monto = record.cuotas == 1 ? 15000 : 30000;
+                    totalBonos += monto;
+                    if (record.tipoPago === 'Efectivo') totalBonosEfectivo += monto;
+                    else totalBonosTransferencia += monto;
+                    return [record.sessionDate, record.nombre, `${record.bonoNro1}-${record.bonoNro2}`, record.tipoPago, this.formatCurrency(monto)];
+                });
+                
+                doc.autoTable({
+                    head: [["Fecha", "Nombre", "Bonos", "Tipo de Pago", "Monto"]],
+                    body: bonoTableRows,
+                    startY: 30,
+                    theme: 'grid',
+                    headStyles: { fillColor: [67, 56, 202] },
+                    didDrawPage: (data) => {
+                        doc.setFontSize(14);
+                        doc.text('Ingresos por Bonos', data.settings.margin.left, 28);
+                    }
+                });
+
+                const bankTableRows = this.state.bankDeposits.map(deposit => {
+                    const monto = parseFloat(deposit.amount);
+                    totalBanco += monto;
+                    if (deposit.type === 'Efectivo') totalBancoEfectivo += monto;
+                    else totalBancoTransferencia += monto;
+                    return [this.formatDateForId(deposit.date), 'Depósito Bancario', '-', deposit.type, this.formatCurrency(monto)];
+                });
+
+                doc.autoTable({
+                    head: [["Fecha", "Descripción", "", "Tipo", "Monto"]],
+                    body: bankTableRows,
+                    startY: doc.autoTable.previous.finalY + 15,
+                    theme: 'grid',
+                    headStyles: { fillColor: [8, 145, 178] },
+                     didDrawPage: (data) => {
+                        doc.setFontSize(14);
+                        doc.text('Depósitos Bancarios', data.settings.margin.left, doc.autoTable.previous.finalY + 13);
+                    }
+                });
+                
+                doc.autoTable({
+                    startY: doc.autoTable.previous.finalY + 10,
+                    theme: 'plain',
+                    body: [
+                        ['Resumen de Bonos', ''],
+                        ['Total Efectivo (Bonos):', this.formatCurrency(totalBonosEfectivo)],
+                        ['Total Transferencia (Bonos):', this.formatCurrency(totalBonosTransferencia)],
+                        [{content: 'Total Bonos:', styles: {fontStyle: 'bold'}}, {content: this.formatCurrency(totalBonos), styles: {fontStyle: 'bold'}}],
+                        ['', ''], // Spacer
+                        ['Resumen de Banco', ''],
+                        ['Total Efectivo (Banco):', this.formatCurrency(totalBancoEfectivo)],
+                        ['Total Transferencia (Banco):', this.formatCurrency(totalBancoTransferencia)],
+                        [{content: 'Total Banco:', styles: {fontStyle: 'bold'}}, {content: this.formatCurrency(totalBanco), styles: {fontStyle: 'bold'}}],
+                    ],
+                    columnStyles: {
+                        0: { halign: 'right', fontStyle: 'bold' },
+                        1: { halign: 'right' }
+                    }
+                });
+
+                const currentDate = this.getCurrentDateFormatted();
+                doc.save(`balance_${currentDate}.pdf`);
             },
 
             formatCurrency(amount) {
                 return amount.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+            },
+
+            getCurrentDateFormatted() {
+                const today = new Date();
+                const day = String(today.getDate()).padStart(2, '0');
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const year = today.getFullYear();
+                return `${day}-${month}-${year}`;
             },
 
             formatDateForId(dateString, useSafeFormat = false) {
@@ -669,26 +954,29 @@
             },
 
             parseIdToDate(idString) {
-                if (!idString || !/^\d{2}-\d{2}-\d{4}$/.test(idString)) return idString;
-                const [day, month, year] = idString.split('-');
-                return `${year}-${month}-${day}`;
+                if (!idString || !/^\d{2}[-\/]\d{2}[-\/]\d{4}$/.test(idString)) return idString;
+                const parts = idString.split(/[-\/]/);
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
             },
 
             downloadSessionPDF(sessionId) {
                 const recordsToPrint = sessionId ? this.state.allSessions.find(s => s.id === sessionId)?.records : this.state.currentSessionRecords;
                 if (!recordsToPrint || recordsToPrint.length === 0) return;
                 const doc = new jsPDF();
-                let title, fileNameDate;
+                let title, fileName;
+                const currentDate = this.getCurrentDateFormatted();
+
                 if (sessionId) {
                     const displayId = sessionId.replace(/-/g, '/');
                     title = `Detalle de Carga - ${displayId}`;
-                    fileNameDate = sessionId;
+                    fileName = `cargas_de_bono_${currentDate}.pdf`;
                 } else {
                     const rawDate = this.state.currentSessionRecords[0].fecha;
                     const formattedDate = this.formatDateForId(rawDate);
                     title = `Detalle de Carga - ${formattedDate}`;
-                    fileNameDate = this.formatDateForId(rawDate, true);
+                    fileName = `detalle_bonos_${this.formatDateForId(rawDate, true)}.pdf`;
                 }
+                
                 doc.setFontSize(18);
                 doc.text(title, 14, 22);
                 const tableColumn = ["Nombre", "Bonos", "Pago", "Cuotas", "Monto"];
@@ -705,13 +993,146 @@
                     body: tableRows,
                     startY: 30,
                     theme: 'grid',
+                    headStyles: { fillColor: [107, 114, 128] },
                     foot: [
                         [{ content: 'Subtotal', colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } }, { content: this.formatCurrency(subtotal), styles: { halign: 'right', fontStyle: 'bold' } }],
                         [{ content: 'Total (Efectivo)', colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } }, { content: this.formatCurrency(totalEfectivo), styles: { halign: 'right', fontStyle: 'bold' } }],
                     ],
-                    footStyles: { fillColor: [230, 230, 230] }
+                    footStyles: { fontStyle: 'bold', fillColor: false }
                 });
-                doc.save(`detalle_bonos_${fileNameDate}.pdf`);
+                doc.save(fileName);
+            },
+            
+            // --- BANK LOGIC ---
+            showBankScreen() {
+                this.state.showAllDeposits = false;
+                this.dom.bankForm.reset();
+                document.getElementById('bankDate').valueAsDate = new Date();
+                this.dom.bankFormTitle.textContent = 'Nuevo Depósito';
+                this.dom.bankFormActions.innerHTML = `<button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-cyan-600 rounded-lg hover:bg-cyan-700">Confirmar</button>`;
+                this.state.depositToEditId = null;
+                this.renderBankDeposits();
+                this.showScreen('bankScreen');
+            },
+
+            loadBankDepositsFromFirestore() {
+                if (this.state.unsubscribeBank) this.state.unsubscribeBank();
+                const bankColRef = collection(this.state.db, "bank_deposits");
+                this.state.unsubscribeBank = onSnapshot(query(bankColRef), (snapshot) => {
+                    this.state.bankDeposits = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    this.state.bankDeposits.sort((a, b) => b.date.localeCompare(a.date));
+                    if (document.getElementById('bankScreen').classList.contains('active-screen')) {
+                        this.renderBankDeposits();
+                    }
+                });
+            },
+
+            renderBankDeposits() {
+                this.dom.bankDepositsListContainer.innerHTML = '';
+                const deposits = this.state.bankDeposits;
+                if (deposits.length === 0) {
+                    this.dom.bankDepositsListContainer.innerHTML = '<p class="text-center text-gray-500">No hay depósitos registrados.</p>';
+                    return;
+                }
+
+                const depositsToShow = this.state.showAllDeposits ? deposits : deposits.slice(0, 3);
+
+                depositsToShow.forEach(deposit => {
+                    const depositDiv = document.createElement('div');
+                    depositDiv.className = 'flex justify-between items-center p-3 bg-white rounded-lg border';
+                    depositDiv.innerHTML = `
+                        <div>
+                            <p class="font-semibold">Depósito - ${this.formatDateForId(deposit.date)}</p>
+                            <p class="text-sm text-gray-600">${this.formatCurrency(parseFloat(deposit.amount))} (${deposit.type})</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="App.editBankDeposit('${deposit.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button>
+                            <button onclick="App.promptDeleteItem('${deposit.id}', 'deposit')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button>
+                            <button onclick="App.downloadDepositPDF('${deposit.id}')" class="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">PDF</button>
+                        </div>
+                    `;
+                    this.dom.bankDepositsListContainer.appendChild(depositDiv);
+                });
+
+                if (!this.state.showAllDeposits && deposits.length > 3) {
+                    const seeMoreButton = document.createElement('button');
+                    seeMoreButton.className = 'w-full mt-2 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300';
+                    seeMoreButton.textContent = 'Ver más';
+                    seeMoreButton.onclick = () => {
+                        this.state.showAllDeposits = true;
+                        this.renderBankDeposits();
+                    };
+                    this.dom.bankDepositsListContainer.appendChild(seeMoreButton);
+                }
+            },
+
+            async handleBankFormSubmit() {
+                const formData = new FormData(this.dom.bankForm);
+                const depositData = {
+                    date: formData.get('bankDate'),
+                    amount: parseFloat(formData.get('bankAmount')),
+                    type: formData.get('bankType'),
+                };
+
+                this.showLoading(true);
+                try {
+                    if (this.state.depositToEditId) {
+                        // Update existing
+                        const docRef = doc(this.state.db, "bank_deposits", this.state.depositToEditId);
+                        await updateDoc(docRef, depositData);
+                    } else {
+                        // Add new
+                        await addDoc(collection(this.state.db, "bank_deposits"), depositData);
+                    }
+                    this.showBankScreen(); // Refresh screen
+                } catch (error) {
+                    console.error("Error saving bank deposit:", error);
+                } finally {
+                    this.showLoading(false);
+                }
+            },
+
+            editBankDeposit(depositId) {
+                const deposit = this.state.bankDeposits.find(d => d.id === depositId);
+                if (!deposit) return;
+                
+                this.state.depositToEditId = depositId;
+                document.getElementById('bankDate').value = deposit.date;
+                document.getElementById('bankAmount').value = deposit.amount;
+                document.getElementById('bankType').value = deposit.type;
+
+                this.dom.bankFormTitle.textContent = 'Modificar Depósito';
+                this.dom.bankFormActions.innerHTML = `
+                    <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">Guardar Cambios</button>
+                    <button type="button" onclick="App.showBankScreen()" class="w-full mt-2 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cancelar</button>
+                `;
+                window.scrollTo(0, 0);
+            },
+
+            downloadDepositPDF(depositId) {
+                const deposit = this.state.bankDeposits.find(d => d.id === depositId);
+                if (!deposit) return;
+
+                const doc = new jsPDF();
+                doc.setFontSize(18);
+                doc.text(`Detalle de Depósito`, 14, 22);
+                
+                const tableColumn = ["Campo", "Valor"];
+                const tableRows = [
+                    ["Fecha", this.formatDateForId(deposit.date)],
+                    ["Importe", this.formatCurrency(parseFloat(deposit.amount))],
+                    ["Tipo", deposit.type],
+                ];
+
+                doc.autoTable({
+                    head: [tableColumn],
+                    body: tableRows,
+                    startY: 30,
+                    theme: 'grid',
+                    headStyles: { fillColor: [8, 145, 178] }
+                });
+                
+                doc.save(`deposito_${deposit.id}.pdf`);
             }
         };
 
