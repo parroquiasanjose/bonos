@@ -353,7 +353,7 @@
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, addDoc, getDocs, deleteDoc, onSnapshot, query, writeBatch, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, addDoc, getDocs, deleteDoc, onSnapshot, query, writeBatch, updateDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- App Initialization ---
         const { jsPDF } = window.jspdf;
@@ -462,6 +462,18 @@
                 const app = initializeApp(firebaseConfig);
                 this.state.db = getFirestore(app);
                 this.state.auth = getAuth(app);
+
+                try {
+                    // Habilitar la persistencia offline
+                    await enableIndexedDbPersistence(this.state.db);
+                    console.log("Persistencia offline habilitada.");
+                } catch (err) {
+                    if (err.code == 'failed-precondition') {
+                        console.warn("Múltiples pestañas abiertas, la persistencia offline solo se puede habilitar en una.");
+                    } else if (err.code == 'unimplemented') {
+                        console.warn("El navegador actual no soporta la persistencia offline.");
+                    }
+                }
 
                 onAuthStateChanged(this.state.auth, (user) => {
                     if (user) {
