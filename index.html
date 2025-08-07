@@ -52,7 +52,7 @@
         </div>
 
         <!-- 0. Login Screen -->
-        <div id="loginScreen" class="screen p-8 space-y-4 bg-white rounded-xl shadow-lg text-center fade-in">
+        <div id="loginScreen" class="screen active-screen p-8 space-y-4 bg-white rounded-xl shadow-lg text-center fade-in">
             <h1 class="text-3xl font-bold text-gray-800">Bienvenido</h1>
             <p class="text-gray-600">Coloque su clave para ingresar.</p>
             <form id="loginForm" class="space-y-4 pt-4">
@@ -99,7 +99,7 @@
             <form id="dataForm" class="space-y-4">
                 <div>
                     <label for="fecha" class="block text-sm font-medium text-gray-700">Fecha</label>
-                    <input type="date" id="fecha" name="fecha" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                    <input type="date" id="fecha" name="fecha" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" readonly>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Números de Bonos</label>
@@ -229,7 +229,7 @@
                 <h3 class="text-lg font-semibold text-gray-700" id="bankFormTitle">Nuevo Depósito</h3>
                 <div>
                     <label for="bankDate" class="block text-sm font-medium text-gray-700">Fecha</label>
-                    <input type="date" id="bankDate" name="bankDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                    <input type="date" id="bankDate" name="bankDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" readonly>
                 </div>
                 <div>
                     <label for="bankAmount" class="block text-sm font-medium text-gray-700">Importe</label>
@@ -254,6 +254,21 @@
     </div>
 
     <!-- Modals -->
+    <div id="dateConfirmModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center p-4 z-50">
+        <div class="relative mx-auto p-8 border w-full max-w-md shadow-lg rounded-xl bg-white fade-in">
+            <div class="text-center">
+                <h3 id="dateConfirmTitle" class="text-2xl font-bold text-gray-900">Confirmar Fecha</h3>
+                <div class="mt-4">
+                    <label for="modalDateInput" class="block text-sm font-medium text-gray-700">Fecha</label>
+                    <input type="date" id="modalDateInput" name="modalDateInput" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                </div>
+                <div class="mt-6 space-y-3">
+                    <button id="confirmDateButton" class="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Confirmar</button>
+                    <button id="cancelDateButton" class="w-full px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">Volver</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="confirmModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center p-4 z-50">
         <div class="relative mx-auto p-8 border w-full max-w-md shadow-lg rounded-xl bg-white fade-in">
             <div class="text-center">
@@ -308,6 +323,7 @@
                 unsubscribeHistory: null,
                 unsubscribeBank: null,
                 showAllDeposits: false,
+                datePromptType: null,
             },
 
             // --- INITIALIZATION ---
@@ -333,6 +349,11 @@
                     dataForm: document.getElementById('dataForm'),
                     confirmModal: document.getElementById('confirmModal'),
                     deleteConfirmModal: document.getElementById('deleteConfirmModal'),
+                    dateConfirmModal: document.getElementById('dateConfirmModal'),
+                    dateConfirmTitle: document.getElementById('dateConfirmTitle'),
+                    modalDateInput: document.getElementById('modalDateInput'),
+                    confirmDateButton: document.getElementById('confirmDateButton'),
+                    cancelDateButton: document.getElementById('cancelDateButton'),
                     formSuccessMessage: document.getElementById('formSuccessMessage'),
                     historyListContainer: document.getElementById('historyListContainer'),
                     detailsScreen: document.getElementById('detailsScreen'),
@@ -409,11 +430,11 @@
 
             bindEvents() {
                 this.dom.loginForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleLogin(); });
-                document.getElementById('goToFormButton').addEventListener('click', () => this.startNewSession());
+                document.getElementById('goToFormButton').addEventListener('click', () => this.promptForDate('bono'));
                 document.getElementById('goToHistoryButton').addEventListener('click', () => this.showHistoryScreen());
                 document.getElementById('goToWinnerButton').addEventListener('click', () => this.showScreen('winnerScreen'));
                 document.getElementById('goToSearchButton').addEventListener('click', () => this.showScreen('searchScreen'));
-                document.getElementById('goToBankButton').addEventListener('click', () => this.showBankScreen());
+                document.getElementById('goToBankButton').addEventListener('click', () => this.promptForDate('banco'));
                 this.dom.goToBalanceButton.addEventListener('click', () => this.showBalanceScreen());
                 this.dom.logoutButton.addEventListener('click', () => this.logout());
                 this.dom.dataForm.addEventListener('submit', (e) => this.handleFormSubmit(e));
@@ -428,6 +449,8 @@
                 this.dom.downloadSearchPdfButton.addEventListener('click', () => this.downloadSearchPDF());
                 this.dom.downloadBalancePdfButton.addEventListener('click', () => this.downloadBalancePDF());
                 this.dom.bankForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleBankFormSubmit(); });
+                this.dom.confirmDateButton.addEventListener('click', () => this.handleDateConfirm());
+                this.dom.cancelDateButton.addEventListener('click', () => this.dom.dateConfirmModal.classList.add('hidden'));
             },
 
             handleLogin() {
@@ -561,7 +584,7 @@
                 if (mode === 'new') {
                     const rawDate = this.state.currentSessionRecords[0].fecha;
                     this.dom.detailsTitle.textContent = `Detalle de Carga - ${this.formatDateForId(rawDate)}`;
-                    this.dom.detailsActions.innerHTML = `<button onclick="App.downloadSessionPDF(null)" class="w-full px-4 py-3 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700">Descargar PDF</button><button onclick="App.startNewSession(true)" class="w-full px-4 py-3 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700">Nueva Carga</button><button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-3 font-semibold text-white bg-gray-600 rounded-lg hover:bg-gray-700">Volver al Inicio</button>`;
+                    this.dom.detailsActions.innerHTML = `<button onclick="App.downloadSessionPDF(null)" class="w-full px-4 py-3 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700">Descargar PDF</button><button onclick="App.promptForDate('bono')" class="w-full px-4 py-3 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700">Nueva Carga</button><button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-3 font-semibold text-white bg-gray-600 rounded-lg hover:bg-gray-700">Volver al Inicio</button>`;
                 } else if (mode === 'edit') {
                     this.dom.detailsTitle.textContent = `Modificando Carga del ${this.state.sessionToEditId.replace(/-/g, '/')}`;
                     this.dom.detailsActions.innerHTML = `<button onclick="App.saveModifiedSession()" class="w-full px-4 py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">Guardar Cambios</button><button onclick="App.showHistoryScreen()" class="w-full px-4 py-3 font-semibold text-white bg-gray-600 rounded-lg hover:bg-gray-700">Cancelar</button>`;
@@ -569,10 +592,15 @@
                 this.showScreen('detailsScreen');
             },
 
-            startNewSession(fromFinish = false) {
-                 if (!fromFinish) this.state.currentSessionRecords = [];
+            startNewSession(fromFinish = false, date = null) {
+                if (!fromFinish) this.state.currentSessionRecords = [];
                 this.dom.dataForm.reset();
-                document.getElementById('fecha').valueAsDate = new Date();
+                const dateInput = document.getElementById('fecha');
+                if (date) {
+                    dateInput.value = date;
+                } else {
+                    dateInput.valueAsDate = new Date();
+                }
                 this.showScreen('formScreen');
             },
             
@@ -633,7 +661,8 @@
                         addBatch.set(sessionDocRef, { id: this.formatDateForId(rawDate), rawDate: rawDate, lastUpdated: new Date() }, { merge: true });
                         this.state.currentSessionRecords.forEach(record => {
                             const newRecordRef = doc(recordsColRef);
-                            const { recordId, ...recordData } = record;
+                            const recordData = { ...record };
+                            delete recordData.recordId;
                             addBatch.set(newRecordRef, recordData);
                         });
                         await addBatch.commit();
@@ -1004,10 +1033,15 @@
             },
             
             // --- BANK LOGIC ---
-            showBankScreen() {
+            showBankScreen(date = null) {
                 this.state.showAllDeposits = false;
                 this.dom.bankForm.reset();
-                document.getElementById('bankDate').valueAsDate = new Date();
+                const dateInput = document.getElementById('bankDate');
+                if (date) {
+                    dateInput.value = date;
+                } else {
+                    dateInput.valueAsDate = new Date();
+                }
                 this.dom.bankFormTitle.textContent = 'Nuevo Depósito';
                 this.dom.bankFormActions.innerHTML = `<button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-cyan-600 rounded-lg hover:bg-cyan-700">Confirmar</button>`;
                 this.state.depositToEditId = null;
@@ -1133,6 +1167,34 @@
                 });
                 
                 doc.save(`deposito_${deposit.id}.pdf`);
+            },
+
+            promptForDate(type) {
+                this.state.datePromptType = type;
+                this.dom.modalDateInput.valueAsDate = new Date();
+                if (type === 'bono') {
+                    this.dom.dateConfirmTitle.textContent = 'Confirmar Fecha de Carga';
+                } else if (type === 'banco') {
+                    this.dom.dateConfirmTitle.textContent = 'Confirmar Fecha de Depósito';
+                }
+                this.dom.dateConfirmModal.classList.remove('hidden');
+            },
+
+            handleDateConfirm() {
+                const selectedDate = this.dom.modalDateInput.value;
+                if (!selectedDate) {
+                    alert('Por favor, seleccione una fecha.');
+                    return;
+                }
+
+                if (this.state.datePromptType === 'bono') {
+                    this.startNewSession(false, selectedDate);
+                } else if (this.state.datePromptType === 'banco') {
+                    this.showBankScreen(selectedDate);
+                }
+                
+                this.dom.dateConfirmModal.classList.add('hidden');
+                this.state.datePromptType = null;
             }
         };
 
