@@ -188,7 +188,7 @@
                     </div>
                 </div>
                 <p class="text-xs text-center text-gray-500">Puede buscar por un número o por el rango completo.</p>
-                <button id="findBonoButton" class="w-full px-4 py-3 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700">Buscar</button>
+                <button id="searchBonoButton" class="w-full px-4 py-3 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700">Buscar</button>
             </div>
             <div id="searchResultContainer" class="p-4 bg-gray-50 rounded-lg border min-h-[100px] max-h-80 overflow-y-auto"></div>
             <button id="downloadSearchPdfButton" class="hidden w-full mt-4 px-4 py-3 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700">Descargar PDF</button>
@@ -276,14 +276,14 @@
                     authError: document.getElementById('authError'),
                     mainButtons: document.getElementById('mainButtons'),
                     searchScreen: document.getElementById('searchScreen'),
-                    findBonoButton: document.getElementById('findBonoButton'),
+                    searchBonoButton: document.getElementById('searchBonoButton'),
+                    findWinnerButton: document.getElementById('findWinnerButton'),
                     searchResultContainer: document.getElementById('searchResultContainer'),
                     downloadSearchPdfButton: document.getElementById('downloadSearchPdfButton'),
                 };
             },
 
             async initializeFirebase() {
-                // Your web app's Firebase configuration
                 const firebaseConfig = {
                   apiKey: "AIzaSyAhV7Ri-DfYSQA_tgbDeSSGtpG74UNC10g",
                   authDomain: "bonosparroquia-30762.firebaseapp.com",
@@ -292,8 +292,6 @@
                   messagingSenderId: "24790926044",
                   appId: "1:24790926044:web:a4ee95475ba61c133baa19"
                 };
-
-                // Initialize Firebase
                 const app = initializeApp(firebaseConfig);
                 this.state.db = getFirestore(app);
                 this.state.auth = getAuth(app);
@@ -301,12 +299,10 @@
                 onAuthStateChanged(this.state.auth, (user) => {
                     if (user) {
                         this.state.userId = user.uid;
-                        console.log("User is signed in with UID:", this.state.userId);
                         this.dom.authError.classList.add('hidden');
                         this.dom.mainButtons.classList.remove('hidden');
                         this.loadHistoryFromFirestore();
                     } else {
-                        console.log("User is signed out.");
                         this.state.userId = null;
                         this.showLoading(false);
                     }
@@ -317,69 +313,40 @@
                 } catch (error) {
                     this.showLoading(false);
                     if (error.code === 'auth/configuration-not-found') {
-                        const errorMessage = `
-                            <h4 class="font-bold text-lg mb-2">Error de Configuración de Firebase</h4>
-                            <p class="mb-2">La aplicación no puede conectarse porque el <strong>inicio de sesión anónimo</strong> no está habilitado en tu proyecto de Firebase.</p>
-                            <p class="font-semibold mb-2">Por favor, sigue estos pasos para solucionarlo:</p>
-                            <ol class="text-left text-gray-600 space-y-1 list-decimal list-inside">
-                                <li>Ve a la <a href="https://console.firebase.google.com/" target="_blank" class="text-blue-600 hover:underline">Consola de Firebase</a>.</li>
-                                <li>Selecciona tu proyecto: <strong>bonosparroquia-30762</strong>.</li>
-                                <li>En el menú de la izquierda, ve a <strong>Authentication</strong>.</li>
-                                <li>Haz clic en la pestaña <strong>Sign-in method</strong> (Método de inicio de sesión).</li>
-                                <li>En la lista, haz clic en <strong>Anónimo</strong>.</li>
-                                <li>Activa el interruptor y haz clic en <strong>Guardar</strong>.</li>
-                            </ol>
-                            <p class="mt-4 text-sm text-gray-500">Una vez habilitado, por favor recarga la página.</p>
-                        `;
+                        const errorMessage = `<h4 class="font-bold text-lg mb-2">Error de Configuración</h4><p>El inicio de sesión anónimo no está habilitado. Por favor, actívalo en la Consola de Firebase.</p>`;
                         this.dom.mainButtons.classList.add('hidden');
                         this.dom.authError.innerHTML = errorMessage;
                         this.dom.authError.classList.remove('hidden');
                     } else {
                         console.error("Error signing in anonymously:", error);
-                        this.dom.authError.textContent = "Ocurrió un error inesperado al conectar con la base de datos.";
+                        this.dom.authError.textContent = "Ocurrió un error inesperado al conectar.";
                         this.dom.authError.classList.remove('hidden');
                     }
                 }
             },
 
             bindEvents() {
-                // Main Navigation
                 document.getElementById('goToFormButton').addEventListener('click', () => this.startNewSession());
                 document.getElementById('goToHistoryButton').addEventListener('click', () => this.showHistoryScreen());
                 document.getElementById('goToWinnerButton').addEventListener('click', () => this.showScreen('winnerScreen'));
                 document.getElementById('goToSearchButton').addEventListener('click', () => this.showScreen('searchScreen'));
-                
-                // Form Submission
                 this.dom.dataForm.addEventListener('submit', (e) => this.handleFormSubmit(e));
-
-                // Confirmation Modal (for new records)
                 document.getElementById('saveAndNewButton').addEventListener('click', () => this.handleSaveAndNew());
                 document.getElementById('saveAndCloseButton').addEventListener('click', () => this.handleSaveAndFinish());
                 document.getElementById('goBackButton').addEventListener('click', () => this.dom.confirmModal.classList.add('hidden'));
-
-                // Delete Confirmation Modal
                 document.getElementById('cancelDeleteButton').addEventListener('click', () => this.dom.deleteConfirmModal.classList.add('hidden'));
                 document.getElementById('confirmDeleteButton').addEventListener('click', () => this.deleteSession());
-
-                // Winner Screen
-                document.getElementById('findWinnerButton').addEventListener('click', () => this.findWinner());
+                this.dom.findWinnerButton.addEventListener('click', () => this.findWinner());
                 this.dom.downloadWinnerPdfButton.addEventListener('click', () => this.downloadWinnerPDF());
-                
-                // Search Screen
-                this.dom.findBonoButton.addEventListener('click', () => this.findBono());
+                this.dom.searchBonoButton.addEventListener('click', () => this.findBono());
                 this.dom.downloadSearchPdfButton.addEventListener('click', () => this.downloadSearchPDF());
             },
 
-            // --- FIRESTORE & DATA ---
             loadHistoryFromFirestore() {
-                if (this.state.unsubscribeHistory) {
-                    this.state.unsubscribeHistory(); 
-                }
+                if (this.state.unsubscribeHistory) this.state.unsubscribeHistory();
                 const sessionsColRef = collection(this.state.db, "sessions");
-                
                 this.showLoading(true);
                 this.state.unsubscribeHistory = onSnapshot(query(sessionsColRef), async (snapshot) => {
-                    console.log(`Snapshot received. Found ${snapshot.docs.length} session documents.`); // Debugging log
                     const sessionsPromises = snapshot.docs.map(async (docSnap) => {
                         const sessionDocData = docSnap.data();
                         const sessionData = { 
@@ -392,9 +359,7 @@
                         sessionData.records = recordsSnapshot.docs.map(d => ({...d.data(), recordId: d.id}));
                         return sessionData;
                     });
-                    
                     this.state.allSessions = await Promise.all(sessionsPromises);
-                    console.log("History loaded from Firestore:", this.state.allSessions);
                     this.showLoading(false);
                     if (document.getElementById('historyScreen').classList.contains('active-screen')) {
                         this.showHistoryScreen();
@@ -408,24 +373,18 @@
             async saveSessionToFirestore() {
                 if (this.state.currentSessionRecords.length === 0) return;
                 this.showLoading(true);
-
                 const rawDate = this.state.currentSessionRecords[0].fecha;
-                const sessionId = this.formatDateForId(rawDate, true); // Use safe format for ID
+                const sessionId = this.formatDateForId(rawDate, true);
                 const sessionDocRef = doc(this.state.db, "sessions", sessionId);
                 const recordsColRef = collection(sessionDocRef, 'records');
-
                 try {
                     const batch = writeBatch(this.state.db);
-                    
                     batch.set(sessionDocRef, { id: this.formatDateForId(rawDate), rawDate: rawDate, lastUpdated: new Date() }, { merge: true });
-
                     this.state.currentSessionRecords.forEach(record => {
                         const newRecordRef = doc(recordsColRef);
                         batch.set(newRecordRef, record);
                     });
-
                     await batch.commit();
-                    console.log("Session saved successfully to Firestore.");
                     this.displayDetailsScreen(this.state.currentSessionRecords, 'new');
                 } catch (error) {
                     console.error("Error saving session to Firestore: ", error);
@@ -434,7 +393,6 @@
                 }
             },
 
-            // --- SCREEN & VIEW MANAGEMENT ---
             showLoading(isLoading) {
                 this.dom.loadingIndicator.classList.toggle('hidden', !isLoading);
             },
@@ -445,28 +403,16 @@
             },
 
             showHistoryScreen() {
-                console.log('Rendering history screen with sessions:', this.state.allSessions); // Debugging log
                 this.dom.historyListContainer.innerHTML = '';
                 if (this.state.allSessions.length === 0) {
                     this.dom.historyListContainer.innerHTML = '<p class="text-center text-gray-500">No hay cargas guardadas.</p>';
                 } else {
-                    const sortedSessions = [...this.state.allSessions].sort((a, b) => {
-                        const dateA = a.rawDate || this.parseIdToDate(a.id);
-                        const dateB = b.rawDate || this.parseIdToDate(b.id);
-                        return dateB.localeCompare(dateA);
-                    });
+                    const sortedSessions = [...this.state.allSessions].sort((a, b) => (a.rawDate || this.parseIdToDate(a.id)).localeCompare(b.rawDate || this.parseIdToDate(b.id))).reverse();
                     sortedSessions.forEach(session => {
-                        const displayId = session.id.replace(/-/g, '/'); // Show with slashes
+                        const displayId = session.id.replace(/-/g, '/');
                         const sessionDiv = document.createElement('div');
                         sessionDiv.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg border';
-                        sessionDiv.innerHTML = `
-                            <span class="font-semibold text-gray-800">Carga del ${displayId}</span>
-                            <div class="flex gap-2">
-                                <button onclick="App.editSession('${session.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button>
-                                <button onclick="App.promptDeleteSession('${session.id}')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button>
-                                <button onclick="App.downloadSessionPDF('${session.id}')" class="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">PDF</button>
-                            </div>
-                        `;
+                        sessionDiv.innerHTML = `<span class="font-semibold text-gray-800">Carga del ${displayId}</span><div class="flex gap-2"><button onclick="App.editSession('${session.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.promptDeleteSession('${session.id}')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button><button onclick="App.downloadSessionPDF('${session.id}')" class="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">PDF</button></div>`;
                         this.dom.historyListContainer.appendChild(sessionDiv);
                     });
                 }
@@ -476,64 +422,34 @@
             displayDetailsScreen(records, mode = 'new') {
                 this.dom.detailsListContainer.innerHTML = '';
                 this.dom.summaryContainer.innerHTML = '';
-                
                 if (!records || records.length === 0) {
                     this.dom.detailsListContainer.innerHTML = '<p class="text-center text-gray-500">No hay registros.</p>';
                     return;
                 }
-
                 let subtotal = 0, totalEfectivo = 0;
-
                 records.forEach((data, index) => {
                     const monto = data.cuotas == 1 ? 15000 : 30000;
                     subtotal += monto;
                     if (data.tipoPago === 'Efectivo') totalEfectivo += monto;
-
                     const detailDiv = document.createElement('div');
                     detailDiv.className = 'p-3 mb-2 border rounded-md bg-white grid grid-cols-4 gap-2 items-center';
-                    detailDiv.innerHTML = `
-                        <div class="col-span-3">
-                            <p class="font-bold text-indigo-700">${data.nombre}</p>
-                            <p class="text-sm text-gray-600">Bonos: ${data.bonoNro1}-${data.bonoNro2} | ${data.tipoPago}</p>
-                        </div>
-                        <p class="col-span-1 text-right font-semibold text-gray-800">${this.formatCurrency(monto)}</p>
-                        ${mode === 'edit' ? `
-                        <div class="col-span-4 text-right">
-                             <button onclick="App.deleteRecordFromSession(${index})" class="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Eliminar Registro</button>
-                        </div>` : ''}
-                    `;
+                    detailDiv.innerHTML = `<div class="col-span-3"><p class="font-bold text-indigo-700">${data.nombre}</p><p class="text-sm text-gray-600">Bonos: ${data.bonoNro1}-${data.bonoNro2} | ${data.tipoPago}</p></div><p class="col-span-1 text-right font-semibold text-gray-800">${this.formatCurrency(monto)}</p>${mode === 'edit' ? `<div class="col-span-4 text-right"><button onclick="App.deleteRecordFromSession(${index})" class="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Eliminar Registro</button></div>` : ''}`;
                     this.dom.detailsListContainer.appendChild(detailDiv);
                 });
-
-                this.dom.summaryContainer.innerHTML = `
-                    <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Subtotal:</span><span class="font-bold text-gray-900">${this.formatCurrency(subtotal)}</span></div>
-                    <div class="flex justify-between items-center text-green-700"><span class="font-medium">Total (Efectivo):</span><span class="font-bold">${this.formatCurrency(totalEfectivo)}</span></div>
-                `;
-
+                this.dom.summaryContainer.innerHTML = `<div class="flex justify-between items-center"><span class="font-medium text-gray-600">Subtotal:</span><span class="font-bold text-gray-900">${this.formatCurrency(subtotal)}</span></div><div class="flex justify-between items-center text-green-700"><span class="font-medium">Total (Efectivo):</span><span class="font-bold">${this.formatCurrency(totalEfectivo)}</span></div>`;
                 if (mode === 'new') {
                     const rawDate = this.state.currentSessionRecords[0].fecha;
                     this.dom.detailsTitle.textContent = `Detalle de Carga - ${this.formatDateForId(rawDate)}`;
-                    this.dom.detailsActions.innerHTML = `
-                        <button onclick="App.downloadSessionPDF(null)" class="w-full px-4 py-3 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700">Descargar PDF</button>
-                        <button onclick="App.startNewSession(true)" class="w-full px-4 py-3 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700">Nueva Carga</button>
-                        <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-3 font-semibold text-white bg-gray-600 rounded-lg hover:bg-gray-700">Volver al Inicio</button>
-                    `;
+                    this.dom.detailsActions.innerHTML = `<button onclick="App.downloadSessionPDF(null)" class="w-full px-4 py-3 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700">Descargar PDF</button><button onclick="App.startNewSession(true)" class="w-full px-4 py-3 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700">Nueva Carga</button><button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-3 font-semibold text-white bg-gray-600 rounded-lg hover:bg-gray-700">Volver al Inicio</button>`;
                 } else if (mode === 'edit') {
                     this.dom.detailsTitle.textContent = `Modificando Carga del ${this.state.sessionToEditId.replace(/-/g, '/')}`;
-                    this.dom.detailsActions.innerHTML = `
-                        <button onclick="App.saveModifiedSession()" class="w-full px-4 py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">Guardar Cambios</button>
-                        <button onclick="App.showHistoryScreen()" class="w-full px-4 py-3 font-semibold text-white bg-gray-600 rounded-lg hover:bg-gray-700">Cancelar</button>
-                    `;
+                    this.dom.detailsActions.innerHTML = `<button onclick="App.saveModifiedSession()" class="w-full px-4 py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">Guardar Cambios</button><button onclick="App.showHistoryScreen()" class="w-full px-4 py-3 font-semibold text-white bg-gray-600 rounded-lg hover:bg-gray-700">Cancelar</button>`;
                 }
-
                 this.showScreen('detailsScreen');
             },
 
-            // --- CORE LOGIC & EVENT HANDLERS ---
             startNewSession(fromFinish = false) {
-                 if (!fromFinish) {
-                    this.state.currentSessionRecords = [];
-                 }
+                 if (!fromFinish) this.state.currentSessionRecords = [];
                 this.dom.dataForm.reset();
                 document.getElementById('fecha').valueAsDate = new Date();
                 this.showScreen('formScreen');
@@ -544,12 +460,7 @@
                 const formData = new FormData(this.dom.dataForm);
                 this.state.recordToEdit = Object.fromEntries(formData.entries());
                 const monto = this.state.recordToEdit.cuotas == 1 ? 15000 : 30000;
-                
-                document.getElementById('confirmationData').innerHTML = `
-                    <p><strong>Nombre:</strong> ${this.state.recordToEdit.nombre}</p>
-                    <p><strong>Bonos:</strong> Nro. ${this.state.recordToEdit.bonoNro1} - Nro. ${this.state.recordToEdit.bonoNro2}</p>
-                    <p><strong>Monto:</strong> <span class="font-bold">${this.formatCurrency(monto)}</span></p>
-                `;
+                document.getElementById('confirmationData').innerHTML = `<p><strong>Nombre:</strong> ${this.state.recordToEdit.nombre}</p><p><strong>Bonos:</strong> Nro. ${this.state.recordToEdit.bonoNro1} - Nro. ${this.state.recordToEdit.bonoNro2}</p><p><strong>Monto:</strong> <span class="font-bold">${this.formatCurrency(monto)}</span></p>`;
                 this.dom.confirmModal.classList.remove('hidden');
             },
             
@@ -558,7 +469,6 @@
                 this.dom.confirmModal.classList.add('hidden');
                 this.dom.formSuccessMessage.classList.remove('hidden');
                 setTimeout(() => this.dom.formSuccessMessage.classList.add('hidden'), 2000);
-                
                 const currentDate = document.getElementById('fecha').value;
                 this.dom.dataForm.reset();
                 document.getElementById('fecha').value = currentDate;
@@ -571,7 +481,6 @@
                 this.saveSessionToFirestore();
             },
 
-            // --- HISTORY ACTIONS ---
             editSession(sessionId) {
                 this.state.sessionToEditId = sessionId;
                 const session = this.state.allSessions.find(s => s.id === sessionId);
@@ -592,31 +501,24 @@
                 const sessionId = this.state.sessionToEditId;
                 const rawDate = this.state.sessionToEditRawDate || this.parseIdToDate(sessionId);
                 const sessionDocRef = doc(this.state.db, "sessions", sessionId);
-                
                 try {
                     const recordsColRef = collection(sessionDocRef, 'records');
                     const recordsSnapshot = await getDocs(recordsColRef);
                     const deleteBatch = writeBatch(this.state.db);
-                    recordsSnapshot.forEach(doc => {
-                        deleteBatch.delete(doc.ref);
-                    });
+                    recordsSnapshot.forEach(doc => deleteBatch.delete(doc.ref));
                     await deleteBatch.commit();
-                    
                     if (this.state.currentSessionRecords.length > 0) {
                         const addBatch = writeBatch(this.state.db);
-                        addBatch.set(sessionDocRef, { id: sessionId, rawDate: rawDate, lastUpdated: new Date() }, { merge: true });
+                        addBatch.set(sessionDocRef, { id: this.formatDateForId(rawDate), rawDate: rawDate, lastUpdated: new Date() }, { merge: true });
                         this.state.currentSessionRecords.forEach(record => {
                             const newRecordRef = doc(recordsColRef);
                             const { recordId, ...recordData } = record;
                             addBatch.set(newRecordRef, recordData);
                         });
                         await addBatch.commit();
-                        console.log("Session modified successfully.");
                     } else {
                         await deleteDoc(sessionDocRef);
-                        console.log("Empty session deleted.");
                     }
-
                 } catch (error) {
                     console.error("Error modifying session: ", error);
                 } finally {
@@ -634,17 +536,13 @@
                 this.showLoading(true);
                 const sessionId = this.state.sessionToDeleteId;
                 const sessionDocRef = doc(this.state.db, "sessions", sessionId);
-
                 try {
                     const recordsColRef = collection(sessionDocRef, 'records');
                     const recordsSnapshot = await getDocs(recordsColRef);
                     const batch = writeBatch(this.state.db);
-                    recordsSnapshot.forEach(doc => {
-                        batch.delete(doc.ref);
-                    });
+                    recordsSnapshot.forEach(doc => batch.delete(doc.ref));
                     await batch.commit();
                     await deleteDoc(sessionDocRef);
-                    console.log(`Session ${sessionId} and all its records have been deleted.`);
                 } catch (error) {
                     console.error("Error deleting session: ", error);
                 } finally {
@@ -653,67 +551,33 @@
                 }
             },
 
-            // --- SEARCH LOGIC ---
             findBono() {
                 const searchInput1 = document.getElementById('bonoSearchInput1');
                 const searchInput2 = document.getElementById('bonoSearchInput2');
                 const number1 = parseInt(searchInput1.value, 10);
-                const number2 = parseInt(searchInput2.value, 10);
-                
+                const number2 = parseInt(searchInput2.value, 10) || number1;
                 this.state.searchResult = [];
                 this.dom.searchResultContainer.innerHTML = '';
                 this.dom.downloadSearchPdfButton.classList.add('hidden');
-
-                if (isNaN(number1) && isNaN(number2)) {
-                    this.dom.searchResultContainer.innerHTML = '<p class="text-center text-red-500">Por favor, ingrese al menos un número.</p>';
+                if (isNaN(number1)) {
+                    this.dom.searchResultContainer.innerHTML = '<p class="text-center text-red-500">Por favor, ingrese un número en el primer campo.</p>';
                     return;
                 }
-
                 const foundRecords = [];
                 for (const session of this.state.allSessions) {
                     for (const record of session.records) {
                         const recordNum1 = parseInt(record.bonoNro1, 10);
                         const recordNum2 = parseInt(record.bonoNro2, 10);
-
-                        let match = false;
-                        if (!isNaN(number1) && !isNaN(number2)) {
-                            if (recordNum1 === number1 && recordNum2 === number2) {
-                                match = true;
-                            }
-                        } 
-                        else if (!isNaN(number1)) {
-                            if (number1 >= recordNum1 && number1 <= recordNum2) {
-                                match = true;
-                            }
-                        }
-                        else if (!isNaN(number2)) {
-                             if (number2 >= recordNum1 && number2 <= recordNum2) {
-                                match = true;
-                            }
-                        }
-                        
-                        if (match) {
+                        if (Math.max(number1, recordNum1) <= Math.min(number2, recordNum2)) {
                             foundRecords.push({ ...record, sessionDate: session.id.replace(/-/g, '/') });
                         }
                     }
                 }
-
                 this.state.searchResult = foundRecords;
-
                 if (foundRecords.length > 0) {
                     this.dom.searchResultContainer.innerHTML = foundRecords.map(record => {
                         const monto = record.cuotas == 1 ? 15000 : 30000;
-                        return `
-                            <div class="p-4 border rounded-md bg-blue-50 space-y-2 mb-2">
-                                <p><strong>Nombre:</strong> ${record.nombre}</p>
-                                <p><strong>Teléfono:</strong> ${record.telefono}</p>
-                                <p><strong>Bonos Comprados:</strong> ${record.bonoNro1} - ${record.bonoNro2}</p>
-                                <p><strong>Fecha de Carga:</strong> ${record.sessionDate}</p>
-                                <p><strong>Tipo de Pago:</strong> ${record.tipoPago}</p>
-                                <p><strong>Cuotas Abonadas:</strong> ${record.cuotas}</p>
-                                <p><strong>Monto:</strong> ${this.formatCurrency(monto)}</p>
-                            </div>
-                        `;
+                        return `<div class="p-4 border rounded-md bg-blue-50 space-y-2 mb-2"><p><strong>Nombre:</strong> ${record.nombre}</p><p><strong>Teléfono:</strong> ${record.telefono}</p><p><strong>Bonos Comprados:</strong> ${record.bonoNro1} - ${record.bonoNro2}</p><p><strong>Fecha de Carga:</strong> ${record.sessionDate}</p><p><strong>Tipo de Pago:</strong> ${record.tipoPago}</p><p><strong>Cuotas Abonadas:</strong> ${record.cuotas}</p><p><strong>Monto:</strong> ${this.formatCurrency(monto)}</p></div>`;
                     }).join('');
                     this.dom.downloadSearchPdfButton.classList.remove('hidden');
                 } else {
@@ -723,83 +587,48 @@
 
             downloadSearchPDF() {
                 if (this.state.searchResult.length === 0) return;
-                
                 const doc = new jsPDF();
                 const searchInput1 = document.getElementById('bonoSearchInput1').value;
                 const searchInput2 = document.getElementById('bonoSearchInput2').value;
                 let title = "Detalle de Búsqueda de Bonos";
-                if (searchInput1 && searchInput2) {
-                    title = `Detalle de Bonos ${searchInput1} - ${searchInput2}`;
-                } else if (searchInput1) {
-                    title = `Detalle de Bono N° ${searchInput1}`;
-                } else if (searchInput2) {
-                    title = `Detalle de Bono N° ${searchInput2}`;
-                }
-
+                if (searchInput1 && searchInput2) title = `Detalle de Bonos ${searchInput1} - ${searchInput2}`;
+                else if (searchInput1) title = `Detalle de Bono N° ${searchInput1}`;
                 doc.setFontSize(18);
                 doc.text(title, 14, 22);
-                
                 const tableColumn = ["Nombre", "Teléfono", "Bonos", "Fecha Carga", "Pago", "Cuotas", "Monto"];
-                const tableRows = [];
-
-                this.state.searchResult.forEach(record => {
+                const tableRows = this.state.searchResult.map(record => {
                     const monto = record.cuotas == 1 ? 15000 : 30000;
-                    const rowData = [
-                        record.nombre,
-                        record.telefono,
-                        `${record.bonoNro1} - ${record.bonoNro2}`,
-                        record.sessionDate,
-                        record.tipoPago,
-                        record.cuotas,
-                        this.formatCurrency(monto)
-                    ];
-                    tableRows.push(rowData);
+                    return [record.nombre, record.telefono, `${record.bonoNro1} - ${record.bonoNro2}`, record.sessionDate, record.tipoPago, record.cuotas, this.formatCurrency(monto)];
                 });
-
-                doc.autoTable({
-                    head: [tableColumn],
-                    body: tableRows,
-                    startY: 30,
-                    theme: 'grid'
-                });
-                
+                doc.autoTable({ head: [tableColumn], body: tableRows, startY: 30, theme: 'grid' });
                 doc.save(`busqueda_bonos.pdf`);
             },
 
-
-            // --- WINNER LOGIC ---
             findWinner() {
                 const winnerInputs = document.querySelectorAll('.winner-input');
                 this.state.winnersData = [];
                 this.dom.winnerResultContainer.innerHTML = '';
                 this.dom.downloadWinnerPdfButton.classList.add('hidden');
-
                 const numbersToSearch = {};
                 winnerInputs.forEach(input => {
                     const prize = input.dataset.prize;
                     const number = parseInt(input.value, 10);
                     if (!isNaN(number)) {
-                        if (!numbersToSearch[prize]) {
-                            numbersToSearch[prize] = [];
-                        }
+                        if (!numbersToSearch[prize]) numbersToSearch[prize] = [];
                         numbersToSearch[prize].push(number);
                     }
                 });
-
                 if (Object.keys(numbersToSearch).length === 0) {
                     this.dom.winnerResultContainer.innerHTML = '<p class="text-center text-red-500">Por favor, ingrese al menos un número ganador.</p>';
                     return;
                 }
-                
                 const foundNumbers = new Set();
-
                 for (const prizeLevel in numbersToSearch) {
-                    const winningNumbers = numbersToSearch[prizeLevel];
                     for (const session of this.state.allSessions) {
                         for (const record of session.records) {
                             const from = parseInt(record.bonoNro1, 10);
                             const to = parseInt(record.bonoNro2, 10);
-                            for (const num of winningNumbers) {
+                            for (const num of numbersToSearch[prizeLevel]) {
                                 if (num >= from && num <= to && !foundNumbers.has(num)) {
                                     this.state.winnersData.push({ ...record, winningNumber: num, sessionDate: session.id.replace(/-/g, '/'), prizeLevel });
                                     foundNumbers.add(num);
@@ -808,20 +637,8 @@
                         }
                     }
                 }
-
                 if (this.state.winnersData.length > 0) {
-                    this.dom.winnerResultContainer.innerHTML = `
-                        <h3 class="text-xl font-bold text-green-600 text-center mb-4">¡Resultados del Sorteo!</h3>
-                        <div class="space-y-3">
-                        ${this.state.winnersData.map(winner => `
-                            <div class="p-3 border rounded-md bg-green-50">
-                                <p class="font-bold text-green-800">${winner.prizeLevel} - N° ${winner.winningNumber}</p>
-                                <p><strong>Nombre:</strong> ${winner.nombre}</p>
-                                <p><strong>Teléfono:</strong> ${winner.telefono}</p>
-                            </div>
-                        `).join('')}
-                        </div>
-                    `;
+                    this.dom.winnerResultContainer.innerHTML = `<h3 class="text-xl font-bold text-green-600 text-center mb-4">¡Resultados del Sorteo!</h3><div class="space-y-3">${this.state.winnersData.map(winner => `<div class="p-3 border rounded-md bg-green-50"><p class="font-bold text-green-800">${winner.prizeLevel} - N° ${winner.winningNumber}</p><p><strong>Nombre:</strong> ${winner.nombre}</p><p><strong>Teléfono:</strong> ${winner.telefono}</p></div>`).join('')}</div>`;
                     this.dom.downloadWinnerPdfButton.classList.remove('hidden');
                 } else {
                     this.dom.winnerResultContainer.innerHTML = '<p class="text-center text-gray-600">No se encontraron ganadores con los números ingresados.</p>';
@@ -831,64 +648,37 @@
             downloadWinnerPDF() {
                 if (this.state.winnersData.length === 0) return;
                 const doc = new jsPDF();
-
                 doc.setFontSize(22);
                 doc.setTextColor(34, 139, 34);
                 doc.text("Resultados del Sorteo", doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
-
                 const tableColumn = ["Premio", "N° Ganador", "Nombre", "Teléfono", "Bonos Comprados"];
-                const tableRows = [];
-
-                this.state.winnersData.forEach(data => {
-                    const rowData = [
-                        data.prizeLevel,
-                        data.winningNumber,
-                        data.nombre,
-                        data.telefono,
-                        `${data.bonoNro1} - ${data.bonoNro2}`
-                    ];
-                    tableRows.push(rowData);
-                });
-
-                doc.autoTable({
-                    head: [tableColumn],
-                    body: tableRows,
-                    startY: 30,
-                    theme: 'grid'
-                });
-                
+                const tableRows = this.state.winnersData.map(data => [data.prizeLevel, data.winningNumber, data.nombre, data.telefono, `${data.bonoNro1} - ${data.bonoNro2}`]);
+                doc.autoTable({ head: [tableColumn], body: tableRows, startY: 30, theme: 'grid' });
                 doc.save(`resultados_sorteo.pdf`);
             },
 
-            // --- UTILITIES ---
             formatCurrency(amount) {
                 return amount.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
             },
 
-            formatDateForId(dateString, useSafeFormat = false) { // dateString is YYYY-MM-DD
+            formatDateForId(dateString, useSafeFormat = false) {
                 if (!dateString || !/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
                 const [year, month, day] = dateString.split('-');
                 const separator = useSafeFormat ? '-' : '/';
                 return `${day}${separator}${month}${separator}${year}`;
             },
 
-            parseIdToDate(idString) { // idString is DD-MM-YYYY
+            parseIdToDate(idString) {
                 if (!idString || !/^\d{2}-\d{2}-\d{4}$/.test(idString)) return idString;
                 const [day, month, year] = idString.split('-');
                 return `${year}-${month}-${day}`;
             },
 
             downloadSessionPDF(sessionId) {
-                const recordsToPrint = sessionId 
-                    ? this.state.allSessions.find(s => s.id === sessionId)?.records 
-                    : this.state.currentSessionRecords;
-                
+                const recordsToPrint = sessionId ? this.state.allSessions.find(s => s.id === sessionId)?.records : this.state.currentSessionRecords;
                 if (!recordsToPrint || recordsToPrint.length === 0) return;
-
                 const doc = new jsPDF();
-                let title;
-                let fileNameDate;
-
+                let title, fileNameDate;
                 if (sessionId) {
                     const displayId = sessionId.replace(/-/g, '/');
                     title = `Detalle de Carga - ${displayId}`;
@@ -899,23 +689,17 @@
                     title = `Detalle de Carga - ${formattedDate}`;
                     fileNameDate = this.formatDateForId(rawDate, true);
                 }
-                
                 doc.setFontSize(18);
                 doc.text(title, 14, 22);
-                
                 const tableColumn = ["Nombre", "Bonos", "Pago", "Cuotas", "Monto"];
                 const tableRows = [];
                 let subtotal = 0, totalEfectivo = 0;
-
                 recordsToPrint.forEach(data => {
                     const monto = data.cuotas == 1 ? 15000 : 30000;
                     subtotal += monto;
                     if (data.tipoPago === 'Efectivo') totalEfectivo += monto;
-                    
-                    const rowData = [data.nombre, `${data.bonoNro1}-${data.bonoNro2}`, data.tipoPago, data.cuotas, this.formatCurrency(monto)];
-                    tableRows.push(rowData);
+                    tableRows.push([data.nombre, `${data.bonoNro1}-${data.bonoNro2}`, data.tipoPago, data.cuotas, this.formatCurrency(monto)]);
                 });
-
                 doc.autoTable({
                     head: [tableColumn],
                     body: tableRows,
@@ -927,7 +711,6 @@
                     ],
                     footStyles: { fillColor: [230, 230, 230] }
                 });
-                
                 doc.save(`detalle_bonos_${fileNameDate}.pdf`);
             }
         };
