@@ -995,7 +995,7 @@
 
             downloadBalancePDF() {
                 const doc = new jsPDF();
-                const startY = this.addPdfHeader(doc, "Balance General");
+                let startY = this.addPdfHeader(doc, "Balance General");
                 
                 let totalBonosEfectivo = 0, totalBonosTransferencia = 0, totalBonos = 0;
                 let totalExpenses = 0;
@@ -1016,16 +1016,14 @@
                     return [record.sessionDate, record.nombre, `${record.bonoNro1}-${record.bonoNro2}`, record.tipoPago, this.formatCurrency(monto)];
                 });
                 
+                doc.setFontSize(14);
+                doc.text('Ingresos por Bonos', 14, startY);
                 doc.autoTable({
                     head: [["Fecha", "Nombre", "Bonos", "Tipo de Pago", "Monto"]],
                     body: bonoTableRows,
-                    startY: startY,
+                    startY: startY + 7,
                     theme: 'grid',
                     headStyles: { fillColor: [67, 56, 202] },
-                    didDrawPage: (data) => {
-                        doc.setFontSize(14);
-                        doc.text('Ingresos por Bonos', data.settings.margin.left, data.cursor.y - 5);
-                    }
                 });
 
                 const expenseTableRows = this.state.expenses.map(expense => {
@@ -1033,17 +1031,16 @@
                     totalExpenses += monto;
                     return [this.formatDateForId(expense.date), expense.description, expense.type, `-${this.formatCurrency(monto)}`];
                 });
-
+                
+                let finalY = doc.autoTable.previous.finalY + 15;
+                doc.setFontSize(14);
+                doc.text('Egresos', 14, finalY);
                 doc.autoTable({
                     head: [["Fecha", "Descripción", "Tipo de Pago", "Monto"]],
                     body: expenseTableRows,
-                    startY: doc.autoTable.previous.finalY + 15,
+                    startY: finalY + 7,
                     theme: 'grid',
                     headStyles: { fillColor: [220, 38, 38] },
-                     didDrawPage: (data) => {
-                        doc.setFontSize(14);
-                        doc.text('Egresos', data.settings.margin.left, doc.autoTable.previous.finalY + 13);
-                    }
                 });
                 
                 doc.autoTable({
