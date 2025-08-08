@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -64,7 +64,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+<body class="bg-gray-100 dark:bg-gray-900 flex items-center justify-center min-h-screen p-4">
 
     <div id="toastContainer" class="fixed top-5 right-5 z-50 space-y-2"></div>
 
@@ -75,23 +75,23 @@
         </div>
 
         <!-- 0. Login Screen -->
-        <div id="loginScreen" class="screen p-8 space-y-4 bg-white rounded-xl shadow-lg text-center fade-in">
-            <h1 class="text-3xl font-bold text-gray-800">Bienvenido</h1>
-            <p class="text-gray-600">Coloque su clave para ingresar.</p>
+        <div id="loginScreen" class="screen p-8 space-y-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg text-center fade-in">
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200">Bienvenido</h1>
+            <p class="text-gray-600 dark:text-gray-400">Coloque su clave para ingresar.</p>
             <form id="loginForm" class="space-y-4 pt-4">
-                <input type="password" id="passwordInput" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" placeholder="Clave">
+                <input type="password" id="passwordInput" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" placeholder="Clave">
                 <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">Ingresar</button>
             </form>
         </div>
 
         <!-- 1. Initial Screen -->
-        <div id="initialScreen" class="screen p-8 space-y-4 bg-white rounded-xl shadow-lg text-center fade-in">
-            <h1 class="text-3xl font-bold text-gray-800">Parroquia San José Bono ⛪</h1>
-            <p class="text-xl text-gray-600">"Sembradores de Esperanza"</p>
+        <div id="initialScreen" class="screen p-8 space-y-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg text-center fade-in">
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200">Parroquia San José Bono ⛪</h1>
+            <p class="text-xl text-gray-600 dark:text-gray-400">"Sembradores de Esperanza"</p>
             
             <!-- Admin Dashboard -->
-            <div id="adminDashboard" class="hidden my-4 p-4 border rounded-lg bg-gray-50 text-left space-y-3">
-                <h3 class="text-xl font-bold text-gray-800 text-center mb-2">Panel de Administrador</h3>
+            <div id="adminDashboard" class="hidden my-4 p-4 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-left space-y-3">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 text-center mb-2">Panel de Administrador</h3>
                 <div>
                     <div class="flex justify-between items-center text-green-600">
                         <span class="font-semibold">Ingresos del Mes:</span>
@@ -104,9 +104,9 @@
                         <span id="monthlyExpenses" class="font-bold text-lg"></span>
                     </div>
                 </div>
-                 <hr>
+                 <hr class="dark:border-gray-700">
                 <div>
-                    <div class="flex justify-between items-center text-gray-800">
+                    <div class="flex justify-between items-center text-gray-800 dark:text-gray-200">
                         <span class="font-semibold text-lg">Balance General:</span>
                         <span id="totalBalance" class="font-extrabold text-xl"></span>
                     </div>
@@ -136,159 +136,162 @@
                 <button id="goToBalanceButton" class="w-full px-4 py-3 font-semibold text-white bg-orange-600 rounded-lg hover:bg-orange-700">
                     Balance
                 </button>
-                 <button id="logoutButton" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cerrar Sesión</button>
+                <div class="flex gap-2">
+                    <button id="logoutButton" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Cerrar Sesión</button>
+                    <button id="themeToggleButton" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Cambiar Tema</button>
+                </div>
             </div>
         </div>
 
         <!-- 2. Data Entry Form Screen -->
-        <div id="formScreen" class="screen p-8 bg-white rounded-xl shadow-lg fade-in">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Cargar Datos del Bono</h2>
+        <div id="formScreen" class="screen p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg fade-in">
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6 text-center">Cargar Datos del Bono</h2>
             <form id="dataForm" class="space-y-4">
                 <div>
-                    <label for="fecha" class="block text-sm font-medium text-gray-700">Fecha</label>
-                    <input type="date" id="fecha" name="fecha" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" readonly>
+                    <label for="fecha" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Fecha</label>
+                    <input type="date" id="fecha" name="fecha" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" readonly>
                 </div>
                 <div>
-                    <label for="vendedor" class="block text-sm font-medium text-gray-700">Vendedor</label>
-                    <input type="text" id="vendedor" name="vendedor" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" placeholder="Nombre del Vendedor">
+                    <label for="vendedor" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Vendedor</label>
+                    <input type="text" id="vendedor" name="vendedor" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" placeholder="Nombre del Vendedor">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Números de Bonos</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Números de Bonos</label>
                     <div class="flex items-center gap-4 mt-1">
                         <div class="w-1/2">
-                            <label for="bonoNro1" class="text-xs text-gray-500">Nro. 1</label>
-                            <input type="number" id="bonoNro1" name="bonoNro1" required placeholder="000" oninput="this.value = this.value.slice(0, 3);" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                            <label for="bonoNro1" class="text-xs text-gray-500 dark:text-gray-400">Nro. 1</label>
+                            <input type="number" id="bonoNro1" name="bonoNro1" required placeholder="000" oninput="this.value = this.value.slice(0, 3);" class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
                         </div>
                         <div class="w-1/2">
-                            <label for="bonoNro2" class="text-xs text-gray-500">Nro. 2</label>
-                            <input type="number" id="bonoNro2" name="bonoNro2" required placeholder="999" oninput="this.value = this.value.slice(0, 3);" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                            <label for="bonoNro2" class="text-xs text-gray-500 dark:text-gray-400">Nro. 2</label>
+                            <input type="number" id="bonoNro2" name="bonoNro2" required placeholder="999" oninput="this.value = this.value.slice(0, 3);" class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
                         </div>
                     </div>
                 </div>
                 <div>
-                    <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre y Apellido</label>
-                    <input type="text" id="nombre" name="nombre" required placeholder="Juan Pérez" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                    <label for="nombre" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre y Apellido</label>
+                    <input type="text" id="nombre" name="nombre" required placeholder="Juan Pérez" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
                 </div>
                 <div>
-                    <label for="telefono" class="block text-sm font-medium text-gray-700">Teléfono</label>
-                    <input type="tel" id="telefono" name="telefono" required placeholder="3772..." class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                    <label for="telefono" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Teléfono</label>
+                    <input type="tel" id="telefono" name="telefono" required placeholder="3772..." class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
                 </div>
                 <div>
-                    <label for="tipoPago" class="block text-sm font-medium text-gray-700">Tipo de Pago</label>
-                    <select id="tipoPago" name="tipoPago" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                    <label for="tipoPago" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Pago</label>
+                    <select id="tipoPago" name="tipoPago" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
                         <option value="Efectivo">Efectivo</option>
                         <option value="Transferencia">Transferencia</option>
                     </select>
                 </div>
                 <div>
-                    <label for="cuotas" class="block text-sm font-medium text-gray-700">Cuotas Abonadas</label>
-                    <select id="cuotas" name="cuotas" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                    <label for="cuotas" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Cuotas Abonadas</label>
+                    <select id="cuotas" name="cuotas" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
                         <option value="1">1</option>
                         <option value="2">2</option>
                     </select>
                 </div>
                 <button type="submit" class="w-full px-4 py-3 mt-4 font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">Revisar Datos</button>
-                <button type="button" onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Volver al Inicio</button>
+                <button type="button" onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Volver al Inicio</button>
             </form>
         </div>
 
         <!-- 3. Final Details Screen -->
-        <div id="detailsScreen" class="screen p-8 bg-white rounded-xl shadow-lg fade-in">
-            <h2 id="detailsTitle" class="text-2xl font-bold text-gray-800 mb-4 text-center">Detalle de Carga</h2>
-            <div id="detailsListContainer" class="mb-6 max-h-80 overflow-y-auto p-3 bg-gray-50 rounded-lg border"></div>
-            <div id="summaryContainer" class="mb-6 p-4 bg-gray-100 rounded-lg space-y-2 text-lg"></div>
+        <div id="detailsScreen" class="screen p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg fade-in">
+            <h2 id="detailsTitle" class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4 text-center">Detalle de Carga</h2>
+            <div id="detailsListContainer" class="mb-6 max-h-80 overflow-y-auto p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border dark:border-gray-700"></div>
+            <div id="summaryContainer" class="mb-6 p-4 bg-gray-100 dark:bg-gray-900 rounded-lg space-y-2 text-lg"></div>
             <div id="detailsActions" class="space-y-3"></div>
         </div>
         
         <!-- 4. History Screen -->
-        <div id="historyScreen" class="screen p-8 bg-white rounded-xl shadow-lg fade-in">
-             <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Historial de Cargas</h2>
+        <div id="historyScreen" class="screen p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg fade-in">
+             <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4 text-center">Historial de Cargas</h2>
              <div id="historyListContainer" class="mb-6 max-h-96 overflow-y-auto space-y-3"></div>
              <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-3 font-semibold text-white bg-gray-600 rounded-lg hover:bg-gray-700">Volver al Inicio</button>
         </div>
 
         <!-- 5. Winner Screen -->
-        <div id="winnerScreen" class="screen p-8 bg-white rounded-xl shadow-lg fade-in">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Buscar Ganador</h2>
+        <div id="winnerScreen" class="screen p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg fade-in">
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6 text-center">Buscar Ganador</h2>
             <div class="space-y-6 mb-6">
                 <!-- Prize 1 -->
-                <div class="p-3 border rounded-lg">
-                    <h3 class="font-bold text-lg text-gray-700 mb-2">Primer Premio</h3>
+                <div class="p-3 border dark:border-gray-700 rounded-lg">
+                    <h3 class="font-bold text-lg text-gray-700 dark:text-gray-300 mb-2">Primer Premio</h3>
                     <div class="grid grid-cols-2 gap-3">
-                        <input type="number" data-prize="1er Premio" class="winner-input w-full text-center p-3 border rounded-md" placeholder="000" oninput="this.value = this.value.slice(0, 3);">
-                        <input type="number" data-prize="1er Premio" class="winner-input w-full text-center p-3 border rounded-md" placeholder="000" oninput="this.value = this.value.slice(0, 3);">
+                        <input type="number" data-prize="1er Premio" class="winner-input w-full text-center p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md" placeholder="000" oninput="this.value = this.value.slice(0, 3);">
+                        <input type="number" data-prize="1er Premio" class="winner-input w-full text-center p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md" placeholder="000" oninput="this.value = this.value.slice(0, 3);">
                     </div>
                 </div>
                 <!-- Prize 2 -->
-                <div class="p-3 border rounded-lg">
-                    <h3 class="font-bold text-lg text-gray-700 mb-2">2do Premio</h3>
+                <div class="p-3 border dark:border-gray-700 rounded-lg">
+                    <h3 class="font-bold text-lg text-gray-700 dark:text-gray-300 mb-2">2do Premio</h3>
                     <div class="grid grid-cols-2 gap-3">
-                        <input type="number" data-prize="2do Premio" class="winner-input w-full text-center p-3 border rounded-md" placeholder="000" oninput="this.value = this.value.slice(0, 3);">
-                        <input type="number" data-prize="2do Premio" class="winner-input w-full text-center p-3 border rounded-md" placeholder="000" oninput="this.value = this.value.slice(0, 3);">
+                        <input type="number" data-prize="2do Premio" class="winner-input w-full text-center p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md" placeholder="000" oninput="this.value = this.value.slice(0, 3);">
+                        <input type="number" data-prize="2do Premio" class="winner-input w-full text-center p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md" placeholder="000" oninput="this.value = this.value.slice(0, 3);">
                     </div>
                 </div>
                 <!-- Prize 3 -->
-                <div class="p-3 border rounded-lg">
-                    <h3 class="font-bold text-lg text-gray-700 mb-2">3er Premio</h3>
+                <div class="p-3 border dark:border-gray-700 rounded-lg">
+                    <h3 class="font-bold text-lg text-gray-700 dark:text-gray-300 mb-2">3er Premio</h3>
                     <div class="grid grid-cols-2 gap-3">
-                        <input type="number" data-prize="3er Premio" class="winner-input w-full text-center p-3 border rounded-md" placeholder="000" oninput="this.value = this.value.slice(0, 3);">
-                        <input type="number" data-prize="3er Premio" class="winner-input w-full text-center p-3 border rounded-md" placeholder="000" oninput="this.value = this.value.slice(0, 3);">
+                        <input type="number" data-prize="3er Premio" class="winner-input w-full text-center p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md" placeholder="000" oninput="this.value = this.value.slice(0, 3);">
+                        <input type="number" data-prize="3er Premio" class="winner-input w-full text-center p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md" placeholder="000" oninput="this.value = this.value.slice(0, 3);">
                     </div>
                 </div>
             </div>
             <button id="findWinnerButton" class="w-full px-4 py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 mb-4">Buscar Ganadores</button>
-            <div id="winnerResultContainer" class="p-4 bg-gray-50 rounded-lg border min-h-[100px]"></div>
+            <div id="winnerResultContainer" class="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border dark:border-gray-700 min-h-[100px]"></div>
             <button id="downloadWinnerPdfButton" class="hidden w-full mt-4 px-4 py-3 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700">Descargar PDF de Ganadores</button>
-            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Volver al Inicio</button>
+            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Volver al Inicio</button>
         </div>
         
         <!-- 6. Search Bono Screen -->
-        <div id="searchScreen" class="screen p-8 bg-white rounded-xl shadow-lg fade-in">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Buscar Bono</h2>
+        <div id="searchScreen" class="screen p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg fade-in">
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6 text-center">Buscar Bono</h2>
             <div class="space-y-4 mb-6">
                 <div class="flex items-center gap-4 mt-1">
                     <div class="w-1/2">
-                        <label for="bonoSearchInput1" class="block text-sm font-medium text-gray-700">Desde Nro.</label>
-                        <input type="number" id="bonoSearchInput1" placeholder="000" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                        <label for="bonoSearchInput1" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Desde Nro.</label>
+                        <input type="number" id="bonoSearchInput1" placeholder="000" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
                     </div>
                     <div class="w-1/2">
-                        <label for="bonoSearchInput2" class="block text-sm font-medium text-gray-700">Hasta Nro.</label>
-                        <input type="number" id="bonoSearchInput2" placeholder="999" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                        <label for="bonoSearchInput2" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Hasta Nro.</label>
+                        <input type="number" id="bonoSearchInput2" placeholder="999" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
                     </div>
                 </div>
-                <p class="text-xs text-center text-gray-500">Puede buscar por un número o por el rango completo.</p>
+                <p class="text-xs text-center text-gray-500 dark:text-gray-400">Puede buscar por un número o por el rango completo.</p>
                 <button id="searchBonoButton" class="w-full px-4 py-3 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700">Buscar</button>
             </div>
-            <div id="searchResultContainer" class="p-4 bg-gray-50 rounded-lg border min-h-[100px] max-h-80 overflow-y-auto"></div>
+            <div id="searchResultContainer" class="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border dark:border-gray-700 min-h-[100px] max-h-80 overflow-y-auto"></div>
             <button id="downloadSearchPdfButton" class="hidden w-full mt-4 px-4 py-3 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700">Descargar PDF</button>
-            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Volver al Inicio</button>
+            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Volver al Inicio</button>
         </div>
 
         <!-- 7. Balance Screen -->
-        <div id="balanceScreen" class="screen p-8 bg-white rounded-xl shadow-lg fade-in">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Balance General</h2>
-            <div id="balanceListContainer" class="mb-6 max-h-80 overflow-y-auto p-3 bg-gray-50 rounded-lg border"></div>
-            <div id="balanceSummaryContainer" class="mb-6 p-4 bg-gray-100 rounded-lg space-y-2 text-base"></div>
+        <div id="balanceScreen" class="screen p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg fade-in">
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4 text-center">Balance General</h2>
+            <div id="balanceListContainer" class="mb-6 max-h-80 overflow-y-auto p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border dark:border-gray-700"></div>
+            <div id="balanceSummaryContainer" class="mb-6 p-4 bg-gray-100 dark:bg-gray-900 rounded-lg space-y-2 text-base"></div>
             <button id="downloadBalancePdfButton" class="w-full px-4 py-3 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700">Descargar PDF</button>
-            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Volver al Inicio</button>
+            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Volver al Inicio</button>
         </div>
         
         <!-- 8. Bank Screen -->
-        <div id="bankScreen" class="screen p-8 bg-white rounded-xl shadow-lg fade-in">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Gestión de Banco</h2>
-            <form id="bankForm" class="space-y-4 mb-6 p-4 border rounded-lg">
-                <h3 class="text-lg font-semibold text-gray-700" id="bankFormTitle">Nuevo Depósito</h3>
+        <div id="bankScreen" class="screen p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg fade-in">
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6 text-center">Gestión de Banco</h2>
+            <form id="bankForm" class="space-y-4 mb-6 p-4 border dark:border-gray-700 rounded-lg">
+                <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300" id="bankFormTitle">Nuevo Depósito</h3>
                 <div>
-                    <label for="bankDate" class="block text-sm font-medium text-gray-700">Fecha</label>
-                    <input type="date" id="bankDate" name="bankDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" readonly>
+                    <label for="bankDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Fecha</label>
+                    <input type="date" id="bankDate" name="bankDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" readonly>
                 </div>
                 <div>
-                    <label for="bankAmount" class="block text-sm font-medium text-gray-700">Importe</label>
-                    <input type="number" id="bankAmount" name="bankAmount" required placeholder="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                    <label for="bankAmount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Importe</label>
+                    <input type="number" id="bankAmount" name="bankAmount" required placeholder="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
                 </div>
                 <div>
-                    <label for="bankType" class="block text-sm font-medium text-gray-700">Tipo</label>
-                    <select id="bankType" name="bankType" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                    <label for="bankType" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo</label>
+                    <select id="bankType" name="bankType" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
                         <option value="Efectivo">Efectivo</option>
                         <option value="Transferencia">Transferencia</option>
                     </select>
@@ -297,31 +300,31 @@
                     <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-cyan-600 rounded-lg hover:bg-cyan-700">Confirmar</button>
                 </div>
             </form>
-            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Depósitos Registrados</h3>
+            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 text-center">Depósitos Registrados</h3>
             <div id="bankDepositsListContainer" class="mb-6 space-y-3"></div>
-            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Volver al Inicio</button>
+            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Volver al Inicio</button>
         </div>
 
         <!-- 9. Expense Screen -->
-        <div id="expenseScreen" class="screen p-8 bg-white rounded-xl shadow-lg fade-in">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Gestión de Egresos</h2>
-            <form id="expenseForm" class="space-y-4 mb-6 p-4 border rounded-lg">
-                <h3 class="text-lg font-semibold text-gray-700" id="expenseFormTitle">Nuevo Egreso</h3>
+        <div id="expenseScreen" class="screen p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg fade-in">
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6 text-center">Gestión de Egresos</h2>
+            <form id="expenseForm" class="space-y-4 mb-6 p-4 border dark:border-gray-700 rounded-lg">
+                <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300" id="expenseFormTitle">Nuevo Egreso</h3>
                 <div>
-                    <label for="expenseDate" class="block text-sm font-medium text-gray-700">Fecha</label>
-                    <input type="date" id="expenseDate" name="expenseDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                    <label for="expenseDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Fecha</label>
+                    <input type="date" id="expenseDate" name="expenseDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
                 </div>
                 <div>
-                    <label for="expenseDescription" class="block text-sm font-medium text-gray-700">Descripción</label>
-                    <input type="text" id="expenseDescription" name="expenseDescription" required placeholder="Ej: Compra de insumos" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                    <label for="expenseDescription" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descripción</label>
+                    <input type="text" id="expenseDescription" name="expenseDescription" required placeholder="Ej: Compra de insumos" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
                 </div>
                 <div>
-                    <label for="expenseAmount" class="block text-sm font-medium text-gray-700">Importe</label>
-                    <input type="number" id="expenseAmount" name="expenseAmount" required placeholder="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                    <label for="expenseAmount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Importe</label>
+                    <input type="number" id="expenseAmount" name="expenseAmount" required placeholder="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
                 </div>
                 <div>
-                    <label for="expenseType" class="block text-sm font-medium text-gray-700">Tipo de Pago</label>
-                    <select id="expenseType" name="expenseType" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                    <label for="expenseType" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Pago</label>
+                    <select id="expenseType" name="expenseType" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
                         <option value="Efectivo">Efectivo</option>
                         <option value="Transferencia">Transferencia</option>
                     </select>
@@ -330,21 +333,21 @@
                     <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700">Confirmar Egreso</button>
                 </div>
             </form>
-            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Egresos Registrados</h3>
+            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 text-center">Egresos Registrados</h3>
             <div id="expenseListContainer" class="mb-6 space-y-3"></div>
-            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Volver al Inicio</button>
+            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Volver al Inicio</button>
         </div>
 
     </div>
 
     <!-- Modals -->
     <div id="dateConfirmModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center p-4 z-50">
-        <div class="relative mx-auto p-8 border w-full max-w-md shadow-lg rounded-xl bg-white fade-in">
+        <div class="relative mx-auto p-8 border w-full max-w-md shadow-lg rounded-xl bg-white dark:bg-gray-800 fade-in">
             <div class="text-center">
-                <h3 id="dateConfirmTitle" class="text-2xl font-bold text-gray-900">Confirmar Fecha</h3>
+                <h3 id="dateConfirmTitle" class="text-2xl font-bold text-gray-900 dark:text-gray-200">Confirmar Fecha</h3>
                 <div class="mt-4">
-                    <label for="modalDateInput" class="block text-sm font-medium text-gray-700">Fecha</label>
-                    <input type="date" id="modalDateInput" name="modalDateInput" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                    <label for="modalDateInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Fecha</label>
+                    <input type="date" id="modalDateInput" name="modalDateInput" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
                 </div>
                 <div class="mt-6 space-y-3">
                     <button id="confirmDateButton" class="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Confirmar</button>
@@ -354,10 +357,10 @@
         </div>
     </div>
     <div id="confirmModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center p-4 z-50">
-        <div class="relative mx-auto p-8 border w-full max-w-md shadow-lg rounded-xl bg-white fade-in">
+        <div class="relative mx-auto p-8 border w-full max-w-md shadow-lg rounded-xl bg-white dark:bg-gray-800 fade-in">
             <div class="text-center">
-                <h3 class="text-2xl font-bold text-gray-900">Confirmar Información</h3>
-                <div id="confirmationData" class="mt-4 text-left space-y-2 text-gray-700"></div>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-200">Confirmar Información</h3>
+                <div id="confirmationData" class="mt-4 text-left space-y-2 text-gray-700 dark:text-gray-300"></div>
                 <div class="mt-6 space-y-3">
                     <button id="saveAndNewButton" class="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Guardar y Cargar Otro</button>
                     <button id="saveAndCloseButton" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Confirmar y Finalizar</button>
@@ -367,11 +370,11 @@
         </div>
     </div>
     <div id="deleteConfirmModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
-        <div class="bg-white p-6 rounded-lg shadow-xl text-center fade-in">
-            <h3 class="text-lg font-bold text-gray-900">Confirmar Eliminación</h3>
-            <p class="text-sm text-gray-600 my-4">Esta operación no puede revertirse.</p>
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl text-center fade-in">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-200">Confirmar Eliminación</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 my-4">Esta operación no puede revertirse.</p>
             <div class="flex justify-center gap-4">
-                <button id="cancelDeleteButton" class="px-5 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">Volver</button>
+                <button id="cancelDeleteButton" class="px-5 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">Volver</button>
                 <button id="confirmDeleteButton" class="px-5 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Confirmar</button>
             </div>
         </div>
@@ -418,6 +421,7 @@
             async init() {
                 this.cacheDOMElements();
                 this.bindEvents();
+                this.loadTheme();
                 const savedUser = localStorage.getItem('currentUser');
                 if (savedUser) {
                     this.login(savedUser);
@@ -430,6 +434,7 @@
 
             cacheDOMElements() {
                 this.dom = {
+                    html: document.documentElement,
                     screens: document.querySelectorAll('.screen'),
                     loginForm: document.getElementById('loginForm'),
                     passwordInput: document.getElementById('passwordInput'),
@@ -480,6 +485,7 @@
                     monthlyIncome: document.getElementById('monthlyIncome'),
                     monthlyExpenses: document.getElementById('monthlyExpenses'),
                     totalBalance: document.getElementById('totalBalance'),
+                    themeToggleButton: document.getElementById('themeToggleButton'),
                 };
             },
 
@@ -563,6 +569,7 @@
                 this.dom.expenseForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleExpenseFormSubmit(); });
                 this.dom.confirmDateButton.addEventListener('click', () => this.handleDateConfirm());
                 this.dom.cancelDateButton.addEventListener('click', () => this.dom.dateConfirmModal.classList.add('hidden'));
+                this.dom.themeToggleButton.addEventListener('click', () => this.toggleTheme());
             },
 
             handleLogin() {
@@ -674,8 +681,8 @@
                     sortedSessions.forEach(session => {
                         const displayId = session.id.replace(/-/g, '/');
                         const sessionDiv = document.createElement('div');
-                        sessionDiv.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg border';
-                        sessionDiv.innerHTML = `<span class="font-semibold text-gray-800">Carga del ${displayId}</span><div class="flex gap-2"><button onclick="App.editSession('${session.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.promptDeleteItem('${session.id}', 'session')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button><button onclick="App.downloadSessionPDF('${session.id}')" class="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">PDF</button></div>`;
+                        sessionDiv.className = 'flex justify-between items-center p-3 bg-gray-100 dark:bg-gray-700 rounded-lg border dark:border-gray-600';
+                        sessionDiv.innerHTML = `<span class="font-semibold text-gray-800 dark:text-gray-200">Carga del ${displayId}</span><div class="flex gap-2"><button onclick="App.editSession('${session.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.promptDeleteItem('${session.id}', 'session')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button><button onclick="App.downloadSessionPDF('${session.id}')" class="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">PDF</button></div>`;
                         this.dom.historyListContainer.appendChild(sessionDiv);
                     });
                 }
@@ -695,11 +702,11 @@
                     subtotal += monto;
                     if (data.tipoPago === 'Efectivo') totalEfectivo += monto;
                     const detailDiv = document.createElement('div');
-                    detailDiv.className = 'p-3 mb-2 border rounded-md bg-white grid grid-cols-4 gap-2 items-center';
-                    detailDiv.innerHTML = `<div class="col-span-3"><p class="font-bold text-indigo-700">${data.nombre}</p><p class="text-sm text-gray-600">Bonos: ${data.bonoNro1}-${data.bonoNro2} | ${data.tipoPago}</p></div><p class="col-span-1 text-right font-semibold text-gray-800">${this.formatCurrency(monto)}</p>${mode === 'edit' ? `<div class="col-span-4 text-right"><button onclick="App.deleteRecordFromSession(${index})" class="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Eliminar Registro</button></div>` : ''}`;
+                    detailDiv.className = 'p-3 mb-2 border dark:border-gray-700 rounded-md bg-white dark:bg-gray-700 grid grid-cols-4 gap-2 items-center';
+                    detailDiv.innerHTML = `<div class="col-span-3"><p class="font-bold text-indigo-700 dark:text-indigo-400">${data.nombre}</p><p class="text-sm text-gray-600 dark:text-gray-400">Bonos: ${data.bonoNro1}-${data.bonoNro2} | ${data.tipoPago}</p></div><p class="col-span-1 text-right font-semibold text-gray-800 dark:text-gray-200">${this.formatCurrency(monto)}</p>${mode === 'edit' ? `<div class="col-span-4 text-right"><button onclick="App.deleteRecordFromSession(${index})" class="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Eliminar Registro</button></div>` : ''}`;
                     this.dom.detailsListContainer.appendChild(detailDiv);
                 });
-                this.dom.summaryContainer.innerHTML = `<div class="flex justify-between items-center"><span class="font-medium text-gray-600">Subtotal:</span><span class="font-bold text-gray-900">${this.formatCurrency(subtotal)}</span></div><div class="flex justify-between items-center text-green-700"><span class="font-medium">Total (Efectivo):</span><span class="font-bold">${this.formatCurrency(totalEfectivo)}</span></div>`;
+                this.dom.summaryContainer.innerHTML = `<div class="flex justify-between items-center"><span class="font-medium text-gray-600 dark:text-gray-300">Subtotal:</span><span class="font-bold text-gray-900 dark:text-gray-100">${this.formatCurrency(subtotal)}</span></div><div class="flex justify-between items-center text-green-700 dark:text-green-400"><span class="font-medium">Total (Efectivo):</span><span class="font-bold">${this.formatCurrency(totalEfectivo)}</span></div>`;
                 if (mode === 'new') {
                     const rawDate = this.state.currentSessionRecords[0].fecha;
                     this.dom.detailsTitle.textContent = `Detalle de Carga - ${this.formatDateForId(rawDate)}`;
@@ -890,11 +897,11 @@
                 if (foundRecords.length > 0) {
                     this.dom.searchResultContainer.innerHTML = foundRecords.map(record => {
                         const monto = record.cuotas == 1 ? 15000 : 30000;
-                        return `<div class="p-4 border rounded-md bg-blue-50 space-y-2 mb-2"><p><strong>Nombre:</strong> ${record.nombre}</p><p><strong>Teléfono:</strong> ${record.telefono}</p><p><strong>Bonos Comprados:</strong> ${record.bonoNro1} - ${record.bonoNro2}</p><p><strong>Vendedor:</strong> ${record.vendedor || 'No especificado'}</p><p><strong>Fecha de Carga:</strong> ${record.sessionDate}</p><p><strong>Tipo de Pago:</strong> ${record.tipoPago}</p><p><strong>Cuotas Abonadas:</strong> ${record.cuotas}</p><p><strong>Monto:</strong> ${this.formatCurrency(monto)}</p></div>`;
+                        return `<div class="p-4 border rounded-md bg-blue-50 dark:bg-gray-700 dark:border-gray-600 space-y-2 mb-2"><p><strong>Nombre:</strong> ${record.nombre}</p><p><strong>Teléfono:</strong> ${record.telefono}</p><p><strong>Bonos Comprados:</strong> ${record.bonoNro1} - ${record.bonoNro2}</p><p><strong>Vendedor:</strong> ${record.vendedor || 'No especificado'}</p><p><strong>Fecha de Carga:</strong> ${record.sessionDate}</p><p><strong>Tipo de Pago:</strong> ${record.tipoPago}</p><p><strong>Cuotas Abonadas:</strong> ${record.cuotas}</p><p><strong>Monto:</strong> ${this.formatCurrency(monto)}</p></div>`;
                     }).join('');
                     this.dom.downloadSearchPdfButton.classList.remove('hidden');
                 } else {
-                    this.dom.searchResultContainer.innerHTML = '<p class="text-center text-gray-600">No se encontraron registros para los números ingresados.</p>';
+                    this.dom.searchResultContainer.innerHTML = '<p class="text-center text-gray-600 dark:text-gray-400">No se encontraron registros para los números ingresados.</p>';
                 }
             },
 
@@ -951,10 +958,10 @@
                     }
                 }
                 if (this.state.winnersData.length > 0) {
-                    this.dom.winnerResultContainer.innerHTML = `<h3 class="text-xl font-bold text-green-600 text-center mb-4">¡Resultados del Sorteo!</h3><div class="space-y-3">${this.state.winnersData.map(winner => `<div class="p-3 border rounded-md bg-green-50"><p class="font-bold text-green-800">${winner.prizeLevel} - N° ${winner.winningNumber}</p><p><strong>Nombre:</strong> ${winner.nombre}</p><p><strong>Teléfono:</strong> ${winner.telefono}</p><p><strong>Bonos:</strong> ${winner.bonoNro1} - ${winner.bonoNro2}</p><p><strong>Vendido por:</strong> ${winner.vendedor || 'No especificado'}</p></div>`).join('')}</div>`;
+                    this.dom.winnerResultContainer.innerHTML = `<h3 class="text-xl font-bold text-green-600 text-center mb-4">¡Resultados del Sorteo!</h3><div class="space-y-3">${this.state.winnersData.map(winner => `<div class="p-3 border rounded-md bg-green-50 dark:bg-green-900/50 dark:border-green-700"><p class="font-bold text-green-800 dark:text-green-300">${winner.prizeLevel} - N° ${winner.winningNumber}</p><p><strong>Nombre:</strong> ${winner.nombre}</p><p><strong>Teléfono:</strong> ${winner.telefono}</p><p><strong>Bonos:</strong> ${winner.bonoNro1} - ${winner.bonoNro2}</p><p><strong>Vendido por:</strong> ${winner.vendedor || 'No especificado'}</p></div>`).join('')}</div>`;
                     this.dom.downloadWinnerPdfButton.classList.remove('hidden');
                 } else {
-                    this.dom.winnerResultContainer.innerHTML = '<p class="text-center text-gray-600">No se encontraron ganadores con los números ingresados.</p>';
+                    this.dom.winnerResultContainer.innerHTML = '<p class="text-center text-gray-600 dark:text-gray-400">No se encontraron ganadores con los números ingresados.</p>';
                 }
             },
 
@@ -984,9 +991,9 @@
                 });
                 allRecords.sort((a, b) => (this.parseIdToDate(a.sessionDate)).localeCompare(this.parseIdToDate(b.sessionDate))).reverse();
 
-                let balanceHTML = '<div><h3 class="text-lg font-semibold text-gray-700 mb-2 border-b pb-2">Ingresos por Bonos</h3>';
+                let balanceHTML = '<div><h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2 border-b dark:border-gray-700 pb-2">Ingresos por Bonos</h3>';
                 if (allRecords.length === 0) {
-                    balanceHTML += '<p class="text-center text-gray-500">No hay registros de bonos.</p>';
+                    balanceHTML += '<p class="text-center text-gray-500 dark:text-gray-400">No hay registros de bonos.</p>';
                 } else {
                     allRecords.forEach(record => {
                         const monto = record.cuotas == 1 ? 15000 : 30000;
@@ -998,19 +1005,19 @@
                             salesByVendedor[record.vendedor] = (salesByVendedor[record.vendedor] || 0) + monto;
                         }
 
-                        balanceHTML += `<div class="p-3 mb-2 border rounded-md bg-white grid grid-cols-3 gap-2 items-center text-sm"><div><p class="font-semibold">${record.nombre}</p><p class="text-xs text-gray-500">${record.sessionDate}</p></div><p class="text-center">${record.tipoPago}</p><p class="text-right font-semibold">${this.formatCurrency(monto)}</p></div>`;
+                        balanceHTML += `<div class="p-3 mb-2 border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 grid grid-cols-3 gap-2 items-center text-sm"><div><p class="font-semibold">${record.nombre}</p><p class="text-xs text-gray-500 dark:text-gray-400">${record.sessionDate}</p></div><p class="text-center">${record.tipoPago}</p><p class="text-right font-semibold">${this.formatCurrency(monto)}</p></div>`;
                     });
                 }
                 balanceHTML += '</div>';
 
-                balanceHTML += '<div class="mt-6"><h3 class="text-lg font-semibold text-red-700 mb-2 border-b border-red-200 pb-2">Egresos</h3>';
+                balanceHTML += '<div class="mt-6"><h3 class="text-lg font-semibold text-red-700 dark:text-red-400 mb-2 border-b border-red-200 dark:border-red-800 pb-2">Egresos</h3>';
                 if (this.state.expenses.length === 0) {
-                    balanceHTML += '<p class="text-center text-gray-500">No hay egresos registrados.</p>';
+                    balanceHTML += '<p class="text-center text-gray-500 dark:text-gray-400">No hay egresos registrados.</p>';
                 } else {
                     this.state.expenses.forEach(expense => {
                         const monto = parseFloat(expense.amount);
                         totalExpenses += monto;
-                        balanceHTML += `<div class="p-3 mb-2 border rounded-md bg-white grid grid-cols-3 gap-2 items-center text-sm"><div><p class="font-semibold">${expense.description}</p><p class="text-xs text-gray-500">${this.formatDateForId(expense.date)}</p></div><p class="text-center">${expense.type}</p><p class="text-right font-semibold text-red-600">-${this.formatCurrency(monto)}</p></div>`;
+                        balanceHTML += `<div class="p-3 mb-2 border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 grid grid-cols-3 gap-2 items-center text-sm"><div><p class="font-semibold">${expense.description}</p><p class="text-xs text-gray-500 dark:text-gray-400">${this.formatDateForId(expense.date)}</p></div><p class="text-center">${expense.type}</p><p class="text-right font-semibold text-red-600">-${this.formatCurrency(monto)}</p></div>`;
                     });
                 }
                 balanceHTML += '</div>';
@@ -1019,25 +1026,25 @@
 
                 let salesSummaryHTML = '';
                 if (Object.keys(salesByVendedor).length > 0) {
-                    salesSummaryHTML += '<div class="p-4 border rounded-lg bg-white mb-4"><h4 class="font-bold text-lg mb-2 text-gray-800">Resumen de Ventas por Vendedor</h4>';
+                    salesSummaryHTML += '<div class="p-4 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 mb-4"><h4 class="font-bold text-lg mb-2 text-gray-800 dark:text-gray-200">Resumen de Ventas por Vendedor</h4>';
                     for (const vendedor in salesByVendedor) {
-                        salesSummaryHTML += `<div class="flex justify-between items-center"><span class="font-medium text-gray-600">${vendedor}:</span><span class="font-bold text-gray-800">${this.formatCurrency(salesByVendedor[vendedor])}</span></div>`;
+                        salesSummaryHTML += `<div class="flex justify-between items-center"><span class="font-medium text-gray-600 dark:text-gray-300">${vendedor}:</span><span class="font-bold text-gray-800 dark:text-gray-200">${this.formatCurrency(salesByVendedor[vendedor])}</span></div>`;
                     }
                     salesSummaryHTML += '</div>';
                 }
 
                 this.dom.balanceSummaryContainer.innerHTML = `
-                    <div class="p-4 border rounded-lg bg-white mb-4">
-                        <h4 class="font-bold text-lg mb-2 text-gray-800">Resumen de Ingresos (Bonos)</h4>
-                        <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Total Efectivo:</span><span class="font-bold text-green-700">${this.formatCurrency(totalBonosEfectivo)}</span></div>
-                        <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Total Transferencia:</span><span class="font-bold text-blue-700">${this.formatCurrency(totalBonosTransferencia)}</span></div>
-                        <hr class="my-2 border-gray-200">
-                        <div class="flex justify-between items-center text-lg"><span class="font-bold text-gray-800">Total Bonos:</span><span class="font-extrabold text-gray-900">${this.formatCurrency(totalBonos)}</span></div>
+                    <div class="p-4 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 mb-4">
+                        <h4 class="font-bold text-lg mb-2 text-gray-800 dark:text-gray-200">Resumen de Ingresos (Bonos)</h4>
+                        <div class="flex justify-between items-center"><span class="font-medium text-gray-600 dark:text-gray-300">Total Efectivo:</span><span class="font-bold text-green-700 dark:text-green-400">${this.formatCurrency(totalBonosEfectivo)}</span></div>
+                        <div class="flex justify-between items-center"><span class="font-medium text-gray-600 dark:text-gray-300">Total Transferencia:</span><span class="font-bold text-blue-700 dark:text-blue-400">${this.formatCurrency(totalBonosTransferencia)}</span></div>
+                        <hr class="my-2 border-gray-200 dark:border-gray-700">
+                        <div class="flex justify-between items-center text-lg"><span class="font-bold text-gray-800 dark:text-gray-200">Total Bonos:</span><span class="font-extrabold text-gray-900 dark:text-white">${this.formatCurrency(totalBonos)}</span></div>
                     </div>
                     ${salesSummaryHTML}
-                     <div class="p-4 border rounded-lg bg-white mb-4">
-                        <h4 class="font-bold text-lg mb-2 text-gray-800">Resumen de Egresos</h4>
-                        <div class="flex justify-between items-center text-lg"><span class="font-bold text-gray-800">Total Egresos:</span><span class="font-extrabold text-red-600">-${this.formatCurrency(totalExpenses)}</span></div>
+                     <div class="p-4 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 mb-4">
+                        <h4 class="font-bold text-lg mb-2 text-gray-800 dark:text-gray-200">Resumen de Egresos</h4>
+                        <div class="flex justify-between items-center text-lg"><span class="font-bold text-gray-800 dark:text-gray-200">Total Egresos:</span><span class="font-extrabold text-red-600">-${this.formatCurrency(totalExpenses)}</span></div>
                     </div>
                     <div class="p-4 border rounded-lg bg-gray-800 text-white">
                         <h4 class="font-bold text-xl mb-2">Balance Final</h4>
@@ -1228,20 +1235,20 @@
                 this.dom.bankDepositsListContainer.innerHTML = '';
                 const deposits = this.state.bankDeposits;
                 if (deposits.length === 0) {
-                    this.dom.bankDepositsListContainer.innerHTML = '<p class="text-center text-gray-500">No hay depósitos registrados.</p>';
+                    this.dom.bankDepositsListContainer.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">No hay depósitos registrados.</p>';
                     return;
                 }
                 const depositsToShow = this.state.showAllDeposits ? deposits : deposits.slice(0, 3);
                 depositsToShow.forEach(deposit => {
                     const depositDiv = document.createElement('div');
-                    depositDiv.className = 'flex justify-between items-center p-3 bg-white rounded-lg border';
-                    depositDiv.innerHTML = `<div><p class="font-semibold">Depósito - ${this.formatDateForId(deposit.date)}</p><p class="text-sm text-gray-600">${this.formatCurrency(parseFloat(deposit.amount))} (${deposit.type})</p></div><div class="flex gap-2"><button onclick="App.editBankDeposit('${deposit.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.promptDeleteItem('${deposit.id}', 'deposit')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button><button onclick="App.downloadDepositPDF('${deposit.id}')" class="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">PDF</button></div>`;
+                    depositDiv.className = 'flex justify-between items-center p-3 bg-white dark:bg-gray-700 rounded-lg border dark:border-gray-600';
+                    depositDiv.innerHTML = `<div><p class="font-semibold">${'Depósito'} - ${this.formatDateForId(deposit.date)}</p><p class="text-sm text-gray-600 dark:text-gray-400">${this.formatCurrency(parseFloat(deposit.amount))} (${deposit.type})</p></div><div class="flex gap-2"><button onclick="App.editBankDeposit('${deposit.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.promptDeleteItem('${deposit.id}', 'deposit')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button><button onclick="App.downloadDepositPDF('${deposit.id}')" class="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">PDF</button></div>`;
                     this.dom.bankDepositsListContainer.appendChild(depositDiv);
                 }
                 );
                 if (!this.state.showAllDeposits && deposits.length > 3) {
                     const seeMoreButton = document.createElement('button');
-                    seeMoreButton.className = 'w-full mt-2 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300';
+                    seeMoreButton.className = 'w-full mt-2 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600';
                     seeMoreButton.textContent = 'Ver más';
                     seeMoreButton.onclick = () => { this.state.showAllDeposits = true; this.renderBankDeposits(); };
                     this.dom.bankDepositsListContainer.appendChild(seeMoreButton);
@@ -1342,19 +1349,19 @@
                 this.dom.expenseListContainer.innerHTML = '';
                 const expenses = this.state.expenses;
                 if (expenses.length === 0) {
-                    this.dom.expenseListContainer.innerHTML = '<p class="text-center text-gray-500">No hay egresos registrados.</p>';
+                    this.dom.expenseListContainer.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">No hay egresos registrados.</p>';
                     return;
                 }
                 const expensesToShow = this.state.showAllExpenses ? expenses : expenses.slice(0, 3);
                 expensesToShow.forEach(expense => {
                     const expenseDiv = document.createElement('div');
-                    expenseDiv.className = 'flex justify-between items-center p-3 bg-white rounded-lg border';
-                    expenseDiv.innerHTML = `<div><p class="font-semibold">${expense.description}</p><p class="text-sm text-gray-600">${this.formatDateForId(expense.date)} - ${this.formatCurrency(parseFloat(expense.amount))} (${expense.type})</p></div><div class="flex gap-2"><button onclick="App.editExpense('${expense.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.promptDeleteItem('${expense.id}', 'expense')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button></div>`;
+                    expenseDiv.className = 'flex justify-between items-center p-3 bg-white dark:bg-gray-700 rounded-lg border dark:border-gray-600';
+                    expenseDiv.innerHTML = `<div><p class="font-semibold">${expense.description}</p><p class="text-sm text-gray-600 dark:text-gray-400">${this.formatDateForId(expense.date)} - ${this.formatCurrency(parseFloat(expense.amount))} (${expense.type})</p></div><div class="flex gap-2"><button onclick="App.editExpense('${expense.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.promptDeleteItem('${expense.id}', 'expense')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button></div>`;
                     this.dom.expenseListContainer.appendChild(expenseDiv);
                 });
                 if (!this.state.showAllExpenses && expenses.length > 3) {
                     const seeMoreButton = document.createElement('button');
-                    seeMoreButton.className = 'w-full mt-2 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300';
+                    seeMoreButton.className = 'w-full mt-2 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600';
                     seeMoreButton.textContent = 'Ver más';
                     seeMoreButton.onclick = () => { this.state.showAllExpenses = true; this.renderExpenses(); };
                     this.dom.expenseListContainer.appendChild(seeMoreButton);
@@ -1484,6 +1491,26 @@
                 this.dom.monthlyIncome.textContent = this.formatCurrency(monthlyIncome);
                 this.dom.monthlyExpenses.textContent = `-${this.formatCurrency(monthlyExpenses)}`;
                 this.dom.totalBalance.textContent = this.formatCurrency(totalIncome - totalExpenses);
+            },
+
+            toggleTheme() {
+                const currentTheme = this.dom.html.classList.contains('dark') ? 'dark' : 'light';
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                localStorage.setItem('theme', newTheme);
+                this.applyTheme(newTheme);
+            },
+
+            applyTheme(theme) {
+                if (theme === 'dark') {
+                    this.dom.html.classList.add('dark');
+                } else {
+                    this.dom.html.classList.remove('dark');
+                }
+            },
+
+            loadTheme() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                this.applyTheme(savedTheme);
             }
         };
 
