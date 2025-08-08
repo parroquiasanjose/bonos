@@ -88,6 +88,31 @@
         <div id="initialScreen" class="screen p-8 space-y-4 bg-white rounded-xl shadow-lg text-center fade-in">
             <h1 class="text-3xl font-bold text-gray-800">Parroquia San José Bono ⛪</h1>
             <p class="text-xl text-gray-600">"Sembradores de Esperanza"</p>
+            
+            <!-- Admin Dashboard -->
+            <div id="adminDashboard" class="hidden my-4 p-4 border rounded-lg bg-gray-50 text-left space-y-3">
+                <h3 class="text-xl font-bold text-gray-800 text-center mb-2">Panel de Administrador</h3>
+                <div>
+                    <div class="flex justify-between items-center text-green-600">
+                        <span class="font-semibold">Ingresos del Mes:</span>
+                        <span id="monthlyIncome" class="font-bold text-lg"></span>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center text-red-600">
+                        <span class="font-semibold">Egresos del Mes:</span>
+                        <span id="monthlyExpenses" class="font-bold text-lg"></span>
+                    </div>
+                </div>
+                 <hr>
+                <div>
+                    <div class="flex justify-between items-center text-gray-800">
+                        <span class="font-semibold text-lg">Balance General:</span>
+                        <span id="totalBalance" class="font-extrabold text-xl"></span>
+                    </div>
+                </div>
+            </div>
+
             <div id="authError" class="hidden p-4 my-4 text-sm text-red-700 bg-red-100 rounded-lg text-left"></div>
             <div id="mainButtons" class="space-y-4">
                 <button id="goToFormButton" class="w-full px-4 py-3 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700">
@@ -122,6 +147,10 @@
                 <div>
                     <label for="fecha" class="block text-sm font-medium text-gray-700">Fecha</label>
                     <input type="date" id="fecha" name="fecha" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" readonly>
+                </div>
+                <div>
+                    <label for="vendedor" class="block text-sm font-medium text-gray-700">Vendedor</label>
+                    <input type="text" id="vendedor" name="vendedor" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 bg-gray-100" readonly>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Números de Bonos</label>
@@ -447,6 +476,10 @@
                     expenseListContainer: document.getElementById('expenseListContainer'),
                     toastContainer: document.getElementById('toastContainer'),
                     goToExpenseButton: document.getElementById('goToExpenseButton'),
+                    adminDashboard: document.getElementById('adminDashboard'),
+                    monthlyIncome: document.getElementById('monthlyIncome'),
+                    monthlyExpenses: document.getElementById('monthlyExpenses'),
+                    totalBalance: document.getElementById('totalBalance'),
                 };
             },
 
@@ -560,6 +593,10 @@
                 const isAdmin = user === 'adan' || user === 'jose';
                 this.dom.goToBalanceButton.style.display = isAdmin ? 'block' : 'none';
                 this.dom.goToExpenseButton.style.display = isAdmin ? 'block' : 'none';
+                this.dom.adminDashboard.style.display = isAdmin ? 'block' : 'none';
+                if (isAdmin) {
+                    this.updateDashboard();
+                }
             },
 
             loadHistoryFromFirestore() {
@@ -584,6 +621,7 @@
                     if (document.getElementById('historyScreen').classList.contains('active-screen')) {
                         this.showHistoryScreen();
                     }
+                    this.updateDashboard();
                 }, (error) => {
                     console.error("Error listening to history changes:", error);
                     this.showLoading(false);
@@ -682,6 +720,7 @@
                 } else {
                     dateInput.valueAsDate = new Date();
                 }
+                document.getElementById('vendedor').value = this.state.currentUser;
                 this.showScreen('formScreen');
             },
             
@@ -733,6 +772,7 @@
                 const currentDate = document.getElementById('fecha').value;
                 this.dom.dataForm.reset();
                 document.getElementById('fecha').value = currentDate;
+                document.getElementById('vendedor').value = this.state.currentUser;
                 document.getElementById('bonoNro1').focus();
             },
 
@@ -852,7 +892,7 @@
                 if (foundRecords.length > 0) {
                     this.dom.searchResultContainer.innerHTML = foundRecords.map(record => {
                         const monto = record.cuotas == 1 ? 15000 : 30000;
-                        return `<div class="p-4 border rounded-md bg-blue-50 space-y-2 mb-2"><p><strong>Nombre:</strong> ${record.nombre}</p><p><strong>Teléfono:</strong> ${record.telefono}</p><p><strong>Bonos Comprados:</strong> ${record.bonoNro1} - ${record.bonoNro2}</p><p><strong>Fecha de Carga:</strong> ${record.sessionDate}</p><p><strong>Tipo de Pago:</strong> ${record.tipoPago}</p><p><strong>Cuotas Abonadas:</strong> ${record.cuotas}</p><p><strong>Monto:</strong> ${this.formatCurrency(monto)}</p></div>`;
+                        return `<div class="p-4 border rounded-md bg-blue-50 space-y-2 mb-2"><p><strong>Nombre:</strong> ${record.nombre}</p><p><strong>Teléfono:</strong> ${record.telefono}</p><p><strong>Bonos Comprados:</strong> ${record.bonoNro1} - ${record.bonoNro2}</p><p><strong>Vendedor:</strong> ${record.vendedor || 'No especificado'}</p><p><strong>Fecha de Carga:</strong> ${record.sessionDate}</p><p><strong>Tipo de Pago:</strong> ${record.tipoPago}</p><p><strong>Cuotas Abonadas:</strong> ${record.cuotas}</p><p><strong>Monto:</strong> ${this.formatCurrency(monto)}</p></div>`;
                     }).join('');
                     this.dom.downloadSearchPdfButton.classList.remove('hidden');
                 } else {
@@ -869,10 +909,10 @@
                 if (searchInput1 && searchInput2) title = `Detalle de Bonos ${searchInput1} - ${searchInput2}`;
                 else if (searchInput1) title = `Detalle de Bono N° ${searchInput1}`;
                 const startY = this.addPdfHeader(doc, title);
-                const tableColumn = ["Nombre", "Teléfono", "Bonos", "Fecha Carga", "Pago", "Cuotas", "Monto"];
+                const tableColumn = ["Nombre", "Teléfono", "Bonos", "Vendedor", "Fecha Carga", "Pago", "Cuotas", "Monto"];
                 const tableRows = this.state.searchResult.map(record => {
                     const monto = record.cuotas == 1 ? 15000 : 30000;
-                    return [record.nombre, record.telefono, `${record.bonoNro1} - ${record.bonoNro2}`, record.sessionDate, record.tipoPago, record.cuotas, this.formatCurrency(monto)];
+                    return [record.nombre, record.telefono, `${record.bonoNro1} - ${record.bonoNro2}`, record.vendedor || 'N/A', record.sessionDate, record.tipoPago, record.cuotas, this.formatCurrency(monto)];
                 });
                 doc.autoTable({ head: [tableColumn], body: tableRows, startY: startY, theme: 'grid', headStyles: { fillColor: [67, 56, 202] } });
                 const currentDate = this.getCurrentDateFormatted();
@@ -913,7 +953,7 @@
                     }
                 }
                 if (this.state.winnersData.length > 0) {
-                    this.dom.winnerResultContainer.innerHTML = `<h3 class="text-xl font-bold text-green-600 text-center mb-4">¡Resultados del Sorteo!</h3><div class="space-y-3">${this.state.winnersData.map(winner => `<div class="p-3 border rounded-md bg-green-50"><p class="font-bold text-green-800">${winner.prizeLevel} - N° ${winner.winningNumber}</p><p><strong>Nombre:</strong> ${winner.nombre}</p><p><strong>Teléfono:</strong> ${winner.telefono}</p><p><strong>Bonos:</strong> ${winner.bonoNro1} - ${winner.bonoNro2}</p></div>`).join('')}</div>`;
+                    this.dom.winnerResultContainer.innerHTML = `<h3 class="text-xl font-bold text-green-600 text-center mb-4">¡Resultados del Sorteo!</h3><div class="space-y-3">${this.state.winnersData.map(winner => `<div class="p-3 border rounded-md bg-green-50"><p class="font-bold text-green-800">${winner.prizeLevel} - N° ${winner.winningNumber}</p><p><strong>Nombre:</strong> ${winner.nombre}</p><p><strong>Teléfono:</strong> ${winner.telefono}</p><p><strong>Bonos:</strong> ${winner.bonoNro1} - ${winner.bonoNro2}</p><p><strong>Vendido por:</strong> ${winner.vendedor || 'No especificado'}</p></div>`).join('')}</div>`;
                     this.dom.downloadWinnerPdfButton.classList.remove('hidden');
                 } else {
                     this.dom.winnerResultContainer.innerHTML = '<p class="text-center text-gray-600">No se encontraron ganadores con los números ingresados.</p>';
@@ -924,8 +964,8 @@
                 if (this.state.winnersData.length === 0) return;
                 const doc = new jsPDF();
                 const startY = this.addPdfHeader(doc, "Resultados del Sorteo");
-                const tableColumn = ["Premio", "N° Ganador", "Nombre", "Teléfono", "Bonos Comprados"];
-                const tableRows = this.state.winnersData.map(data => [data.prizeLevel, data.winningNumber, data.nombre, data.telefono, `${data.bonoNro1} - ${data.bonoNro2}`]);
+                const tableColumn = ["Premio", "N° Ganador", "Nombre", "Teléfono", "Bonos Comprados", "Vendedor"];
+                const tableRows = this.state.winnersData.map(data => [data.prizeLevel, data.winningNumber, data.nombre, data.telefono, `${data.bonoNro1} - ${data.bonoNro2}`, data.vendedor || 'N/A']);
                 doc.autoTable({ head: [tableColumn], body: tableRows, startY: startY, theme: 'grid', headStyles: { fillColor: [22, 163, 74] } });
                 const currentDate = this.getCurrentDateFormatted();
                 doc.save(`resultados_sorteo_${currentDate}.pdf`);
@@ -936,6 +976,7 @@
                 this.dom.balanceSummaryContainer.innerHTML = '';
                 let totalBonosEfectivo = 0, totalBonosTransferencia = 0, totalBonos = 0;
                 let totalExpenses = 0;
+                let salesByVendedor = {};
                 
                 const allRecords = [];
                 this.state.allSessions.forEach(session => {
@@ -954,6 +995,11 @@
                         totalBonos += monto;
                         if (record.tipoPago === 'Efectivo') totalBonosEfectivo += monto;
                         else totalBonosTransferencia += monto;
+
+                        if (record.vendedor) {
+                            salesByVendedor[record.vendedor] = (salesByVendedor[record.vendedor] || 0) + monto;
+                        }
+
                         balanceHTML += `<div class="p-3 mb-2 border rounded-md bg-white grid grid-cols-3 gap-2 items-center text-sm"><div><p class="font-semibold">${record.nombre}</p><p class="text-xs text-gray-500">${record.sessionDate}</p></div><p class="text-center">${record.tipoPago}</p><p class="text-right font-semibold">${this.formatCurrency(monto)}</p></div>`;
                     });
                 }
@@ -973,6 +1019,15 @@
                 
                 this.dom.balanceListContainer.innerHTML = balanceHTML;
 
+                let salesSummaryHTML = '';
+                if (Object.keys(salesByVendedor).length > 0) {
+                    salesSummaryHTML += '<div class="p-4 border rounded-lg bg-white mb-4"><h4 class="font-bold text-lg mb-2 text-gray-800">Resumen de Ventas por Vendedor</h4>';
+                    for (const vendedor in salesByVendedor) {
+                        salesSummaryHTML += `<div class="flex justify-between items-center"><span class="font-medium text-gray-600">${vendedor}:</span><span class="font-bold text-gray-800">${this.formatCurrency(salesByVendedor[vendedor])}</span></div>`;
+                    }
+                    salesSummaryHTML += '</div>';
+                }
+
                 this.dom.balanceSummaryContainer.innerHTML = `
                     <div class="p-4 border rounded-lg bg-white mb-4">
                         <h4 class="font-bold text-lg mb-2 text-gray-800">Resumen de Ingresos (Bonos)</h4>
@@ -981,6 +1036,7 @@
                         <hr class="my-2 border-gray-200">
                         <div class="flex justify-between items-center text-lg"><span class="font-bold text-gray-800">Total Bonos:</span><span class="font-extrabold text-gray-900">${this.formatCurrency(totalBonos)}</span></div>
                     </div>
+                    ${salesSummaryHTML}
                      <div class="p-4 border rounded-lg bg-white mb-4">
                         <h4 class="font-bold text-lg mb-2 text-gray-800">Resumen de Egresos</h4>
                         <div class="flex justify-between items-center text-lg"><span class="font-bold text-gray-800">Total Egresos:</span><span class="font-extrabold text-red-600">-${this.formatCurrency(totalExpenses)}</span></div>
@@ -999,6 +1055,7 @@
                 
                 let totalBonosEfectivo = 0, totalBonosTransferencia = 0, totalBonos = 0;
                 let totalExpenses = 0;
+                let salesByVendedor = {};
 
                 const bonoRecords = [];
                 this.state.allSessions.forEach(session => {
@@ -1013,6 +1070,9 @@
                     totalBonos += monto;
                     if (record.tipoPago === 'Efectivo') totalBonosEfectivo += monto;
                     else totalBonosTransferencia += monto;
+                    if (record.vendedor) {
+                        salesByVendedor[record.vendedor] = (salesByVendedor[record.vendedor] || 0) + monto;
+                    }
                     return [record.sessionDate, record.nombre, `${record.bonoNro1}-${record.bonoNro2}`, record.tipoPago, this.formatCurrency(monto)];
                 });
                 
@@ -1043,6 +1103,8 @@
                     headStyles: { fillColor: [220, 38, 38] },
                 });
                 
+                const salesSummaryRows = Object.keys(salesByVendedor).map(vendedor => [vendedor, this.formatCurrency(salesByVendedor[vendedor])]);
+
                 doc.autoTable({
                     startY: doc.autoTable.previous.finalY + 10,
                     theme: 'plain',
@@ -1051,6 +1113,9 @@
                         ['Total Efectivo (Bonos):', this.formatCurrency(totalBonosEfectivo)],
                         ['Total Transferencia (Bonos):', this.formatCurrency(totalBonosTransferencia)],
                         [{content: 'Total Bonos:', styles: {fontStyle: 'bold'}}, {content: this.formatCurrency(totalBonos), styles: {fontStyle: 'bold'}}],
+                        ['', ''], // Spacer
+                        ['Resumen de Ventas por Vendedor', ''],
+                        ...salesSummaryRows,
                         ['', ''], // Spacer
                         ['Resumen de Egresos', ''],
                         [{content: 'Total Egresos:', styles: {fontStyle: 'bold'}}, {content: `-${this.formatCurrency(totalExpenses)}`, styles: {fontStyle: 'bold'}}],
@@ -1271,6 +1336,7 @@
                     if (document.getElementById('expenseScreen').classList.contains('active-screen')) {
                         this.renderExpenses();
                     }
+                    this.updateDashboard();
                 });
             },
 
@@ -1377,6 +1443,50 @@
 
                 return 45; // Return the start Y position for the table
             },
+
+            updateDashboard() {
+                if (!this.state.currentUser || (this.state.currentUser !== 'adan' && this.state.currentUser !== 'jose')) {
+                    return;
+                }
+
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                const currentMonth = now.getMonth();
+
+                let monthlyIncome = 0;
+                this.state.allSessions.forEach(session => {
+                    const sessionDate = new Date(session.rawDate);
+                    if (sessionDate.getFullYear() === currentYear && sessionDate.getMonth() === currentMonth) {
+                        session.records.forEach(record => {
+                            monthlyIncome += record.cuotas == 1 ? 15000 : 30000;
+                        });
+                    }
+                });
+
+                let monthlyExpenses = 0;
+                this.state.expenses.forEach(expense => {
+                    const expenseDate = new Date(expense.date);
+                    if (expenseDate.getFullYear() === currentYear && expenseDate.getMonth() === currentMonth) {
+                        monthlyExpenses += parseFloat(expense.amount);
+                    }
+                });
+
+                let totalIncome = 0;
+                this.state.allSessions.forEach(session => {
+                    session.records.forEach(record => {
+                        totalIncome += record.cuotas == 1 ? 15000 : 30000;
+                    });
+                });
+
+                let totalExpenses = 0;
+                this.state.expenses.forEach(expense => {
+                    totalExpenses += parseFloat(expense.amount);
+                });
+
+                this.dom.monthlyIncome.textContent = this.formatCurrency(monthlyIncome);
+                this.dom.monthlyExpenses.textContent = `-${this.formatCurrency(monthlyExpenses)}`;
+                this.dom.totalBalance.textContent = this.formatCurrency(totalIncome - totalExpenses);
+            }
         };
 
         // Start the application
