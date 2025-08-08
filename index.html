@@ -720,7 +720,6 @@
                 } else {
                     dateInput.valueAsDate = new Date();
                 }
-                document.getElementById('vendedor').value = this.state.currentUser;
                 this.showScreen('formScreen');
             },
             
@@ -772,7 +771,6 @@
                 const currentDate = document.getElementById('fecha').value;
                 this.dom.dataForm.reset();
                 document.getElementById('fecha').value = currentDate;
-                document.getElementById('vendedor').value = this.state.currentUser;
                 document.getElementById('bonoNro1').focus();
             },
 
