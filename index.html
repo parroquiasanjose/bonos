@@ -432,20 +432,19 @@
             async init() {
                 this.cacheDOMElements();
                 this.bindEvents();
-                const savedUser = localStorage.getItem('currentUser');
                 
-                window.addEventListener('load', () => {
-                    const params = new URLSearchParams(window.location.search);
-                    const accessCode = params.get('access_code');
-                    if (accessCode) {
-                        this.handleLogin(accessCode);
-                    } else if (savedUser) {
-                        this.login(savedUser);
-                    } else {
-                        this.showScreen('loginScreen');
-                    }
-                });
+                const params = new URLSearchParams(window.location.search);
+                const accessCode = params.get('access_code');
+                const savedUser = localStorage.getItem('currentUser');
 
+                if (accessCode) {
+                    this.handleLogin(accessCode);
+                } else if (savedUser) {
+                    this.login(savedUser);
+                } else {
+                    this.showScreen('loginScreen');
+                }
+                
                 this.showLoading(true);
                 await this.initializeFirebase();
             },
@@ -644,7 +643,7 @@
                         };
                         const recordsColRef = collection(docSnap.ref, 'records');
                         const recordsSnapshot = await getDocs(recordsColRef);
-                        sessionData.records = recordsSnapshot.docs.map(d => ({...d.data(), recordId: d.id}));
+                        sessionData.records = recordsSnapshot.docs.map(d => Object.assign({recordId: d.id}, d.data()));
                         return sessionData;
                     });
                     this.state.allSessions = await Promise.all(sessionsPromises);
@@ -850,7 +849,7 @@
                         addBatch.set(sessionDocRef, { id: this.formatDateForId(rawDate), rawDate: rawDate, lastUpdated: new Date() }, { merge: true });
                         this.state.currentSessionRecords.forEach(record => {
                             const newRecordRef = doc(recordsColRef);
-                            const recordData = { ...record };
+                            const recordData = Object.assign({}, record);
                             delete recordData.recordId;
                             addBatch.set(newRecordRef, recordData);
                         });
@@ -921,7 +920,7 @@
                         const recordNum1 = parseInt(record.bonoNro1, 10);
                         const recordNum2 = parseInt(record.bonoNro2, 10);
                         if (Math.max(number1, recordNum1) <= Math.min(number2, recordNum2)) {
-                            foundRecords.push({ ...record, sessionDate: session.id.replace(/-/g, '/') });
+                            foundRecords.push(Object.assign({ sessionDate: session.id.replace(/-/g, '/') }, record));
                         }
                     }
                 }
@@ -982,7 +981,7 @@
                             const to = parseInt(record.bonoNro2, 10);
                             for (const num of numbersToSearch[prizeLevel]) {
                                 if (num >= from && num <= to && !foundNumbers.has(num)) {
-                                    this.state.winnersData.push({ ...record, winningNumber: num, sessionDate: session.id.replace(/-/g, '/'), prizeLevel });
+                                    this.state.winnersData.push(Object.assign({ winningNumber: num, sessionDate: session.id.replace(/-/g, '/'), prizeLevel }, record));
                                     foundNumbers.add(num);
                                 }
                             }
@@ -1018,7 +1017,7 @@
                 const allRecords = [];
                 this.state.allSessions.forEach(session => {
                     session.records.forEach(record => {
-                        allRecords.push({ ...record, sessionDate: session.id.replace(/-/g, '/') });
+                        allRecords.push(Object.assign({ sessionDate: session.id.replace(/-/g, '/') }, record));
                     });
                 });
                 allRecords.sort((a, b) => (this.parseIdToDate(a.sessionDate)).localeCompare(this.parseIdToDate(b.sessionDate))).reverse();
@@ -1097,7 +1096,7 @@
                 const bonoRecords = [];
                 this.state.allSessions.forEach(session => {
                     session.records.forEach(record => {
-                        bonoRecords.push({ ...record, sessionDate: session.id.replace(/-/g, '/') });
+                        bonoRecords.push(Object.assign({ sessionDate: session.id.replace(/-/g, '/') }, record));
                     });
                 });
                 bonoRecords.sort((a, b) => (this.parseIdToDate(a.sessionDate)).localeCompare(this.parseIdToDate(b.sessionDate))).reverse();
