@@ -144,9 +144,11 @@
             </div>
         </div>
 
-        <!-- 2. Data Entry Form Screen -->
-        <div id="formScreen" class="screen p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg fade-in">
+        <!-- 2. Data Entry Form Screen (REESTRUCTURADO) -->
+        <div id="formScreen" class="screen p-6 sm:p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg fade-in">
             <h2 id="formTitle" class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6 text-center">Cargar Datos del Bono</h2>
+            
+            <!-- Formulario de Carga -->
             <form id="dataForm" class="space-y-4">
                 <div>
                     <label for="fecha" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Fecha</label>
@@ -191,9 +193,37 @@
                         <option value="2">2</option>
                     </select>
                 </div>
-                <div id="formActions"></div>
+
+                <!-- Botones de Acción del Formulario -->
+                <div id="formActions" class="pt-4 grid grid-cols-2 gap-4">
+                    <!-- Estos botones se actualizarán dinámicamente con JS -->
+                </div>
             </form>
+
+            <!-- Línea divisoria -->
+            <hr class="my-6 border-gray-200 dark:border-gray-700">
+
+            <!-- Sección de Resumen en Vivo -->
+            <div>
+                <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 text-center">Resumen de Carga Actual</h3>
+                <div id="liveSummaryContainer" class="space-y-3 max-h-60 overflow-y-auto p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border dark:border-gray-700 min-h-[80px]">
+                    <!-- Los bonos cargados aparecerán aquí -->
+                </div>
+                <div id="liveSummaryTotals" class="mt-4 text-right font-semibold text-gray-800 dark:text-gray-200">
+                     <!-- Los totales se mostrarán aquí -->
+                </div>
+            </div>
+
+            <!-- Línea divisoria -->
+            <hr class="my-6 border-gray-200 dark:border-gray-700">
+
+            <!-- Acciones Finales de la Sesión -->
+            <div id="sessionActions" class="space-y-3">
+                <button id="confirmAllButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 rounded-lg">Confirmar Todo y Guardar</button>
+                <button id="clearAndReturnButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 rounded-lg">Borrar Todo y Volver</button>
+            </div>
         </div>
+
 
         <!-- 3. Final Details Screen -->
         <div id="detailsScreen" class="screen p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg fade-in">
@@ -356,15 +386,14 @@
             </div>
         </div>
     </div>
-    <div id="confirmModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center p-4 z-50">
+    <div id="confirmAllModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center p-4 z-50">
         <div class="relative mx-auto p-8 border w-full max-w-md shadow-lg rounded-xl bg-white dark:bg-gray-800 fade-in">
             <div class="text-center">
-                <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-200">Confirmar Información</h3>
-                <div id="confirmationData" class="mt-4 text-left space-y-2 text-gray-700 dark:text-gray-300"></div>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-200">Confirmar Carga Final</h3>
+                <div id="finalConfirmationData" class="mt-4 text-center space-y-2 text-gray-700 dark:text-gray-300"></div>
                 <div class="mt-6 space-y-3">
-                    <button id="saveAndNewButton" class="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Guardar y Cargar Otro</button>
-                    <button id="saveAndCloseButton" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Confirmar y Finalizar</button>
-                    <button id="goBackButton" class="w-full px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">Volver</button>
+                    <button id="saveAndFinishButton" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Confirmar y Guardar</button>
+                    <button id="goBackToFormButton" class="w-full px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">Volver</button>
                 </div>
             </div>
         </div>
@@ -372,20 +401,19 @@
     <div id="deleteConfirmModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl text-center fade-in">
             <h3 class="text-lg font-bold text-gray-900 dark:text-gray-200">Confirmar Eliminación</h3>
-            <p class="text-sm text-gray-600 dark:text-gray-400 my-4">Esta operación no puede revertirse.</p>
+            <p id="deleteConfirmMessage" class="text-sm text-gray-600 dark:text-gray-400 my-4">Esta operación no puede revertirse.</p>
             <div class="flex justify-center gap-4">
                 <button id="cancelDeleteButton" class="px-5 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">Volver</button>
                 <button id="confirmDeleteButton" class="px-5 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Confirmar</button>
             </div>
         </div>
     </div>
-     <div id="saveChangesConfirmModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+    <div id="overlapModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl text-center fade-in">
-            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-200">Confirmar Cambios</h3>
-            <p class="text-sm text-gray-600 dark:text-gray-400 my-4">¿Desea guardar los cambios realizados?</p>
+            <h3 class="text-lg font-bold text-red-600 dark:text-red-400">Estos números ya fueron cargados</h3>
+            <div id="overlapDetails" class="text-sm text-gray-600 dark:text-gray-400 my-4 text-left space-y-1"></div>
             <div class="flex justify-center gap-4">
-                <button id="confirmSaveChangesButton" class="px-5 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Sí</button>
-                <button id="cancelSaveChangesButton" class="px-5 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">No</button>
+                <button id="closeOverlapModalButton" class="px-5 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">Volver</button>
             </div>
         </div>
     </div>
@@ -408,11 +436,10 @@
                 allSessions: [],
                 bankDeposits: [],
                 expenses: [],
-                recordToEdit: null,
-                recordToEditIndex: null,
+                recordToEditIndex: null, // Used for live summary editing
                 depositToEditId: null,
                 expenseToEditId: null,
-                itemToDelete: { id: null, type: null },
+                itemToDelete: { id: null, type: null, index: null }, // Added index for summary deletion
                 sessionToEditId: null,
                 sessionToEditRawDate: null, 
                 winnersData: [],
@@ -458,17 +485,20 @@
                     dataForm: document.getElementById('dataForm'),
                     formTitle: document.getElementById('formTitle'),
                     formActions: document.getElementById('formActions'),
-                    confirmModal: document.getElementById('confirmModal'),
+                    confirmAllModal: document.getElementById('confirmAllModal'),
+                    finalConfirmationData: document.getElementById('finalConfirmationData'),
+                    saveAndFinishButton: document.getElementById('saveAndFinishButton'),
+                    goBackToFormButton: document.getElementById('goBackToFormButton'),
                     deleteConfirmModal: document.getElementById('deleteConfirmModal'),
+                    deleteConfirmMessage: document.getElementById('deleteConfirmMessage'),
                     dateConfirmModal: document.getElementById('dateConfirmModal'),
                     dateConfirmTitle: document.getElementById('dateConfirmTitle'),
                     modalDateInput: document.getElementById('modalDateInput'),
                     confirmDateButton: document.getElementById('confirmDateButton'),
                     cancelDateButton: document.getElementById('cancelDateButton'),
-                    saveChangesConfirmModal: document.getElementById('saveChangesConfirmModal'),
-                    confirmSaveChangesButton: document.getElementById('confirmSaveChangesButton'),
-                    cancelSaveChangesButton: document.getElementById('cancelSaveChangesButton'),
-                    formSuccessMessage: document.getElementById('formSuccessMessage'),
+                    overlapModal: document.getElementById('overlapModal'),
+                    overlapDetails: document.getElementById('overlapDetails'),
+                    closeOverlapModalButton: document.getElementById('closeOverlapModalButton'),
                     historyListContainer: document.getElementById('historyListContainer'),
                     detailsScreen: document.getElementById('detailsScreen'),
                     detailsListContainer: document.getElementById('detailsListContainer'),
@@ -508,17 +538,21 @@
                     monthlyExpenses: document.getElementById('monthlyExpenses'),
                     totalBalance: document.getElementById('totalBalance'),
                     vendedoresList: document.getElementById('vendedoresList'),
+                    liveSummaryContainer: document.getElementById('liveSummaryContainer'),
+                    liveSummaryTotals: document.getElementById('liveSummaryTotals'),
+                    confirmAllButton: document.getElementById('confirmAllButton'),
+                    clearAndReturnButton: document.getElementById('clearAndReturnButton'),
                 };
             },
 
             async initializeFirebase() {
                 const firebaseConfig = {
-                  apiKey: "AIzaSyAhV7Ri-DfYSQA_tgbDeSSGtpG74UNC10g",
-                  authDomain: "bonosparroquia-30762.firebaseapp.com",
-                  projectId: "bonosparroquia-30762",
-                  storageBucket: "bonosparroquia-30762.appspot.com",
-                  messagingSenderId: "24790926044",
-                  appId: "1:24790926044:web:a4ee95475ba61c133baa19"
+                    apiKey: "AIzaSyAhV7Ri-DfYSQA_tgbDeSSGtpG74UNC10g",
+                    authDomain: "bonosparroquia-30762.firebaseapp.com",
+                    projectId: "bonosparroquia-30762",
+                    storageBucket: "bonosparroquia-30762.appspot.com",
+                    messagingSenderId: "24790926044",
+                    appId: "1:24790926044:web:a4ee95475ba61c133baa19"
                 };
                 const app = initializeApp(firebaseConfig);
                 this.state.db = getFirestore(app);
@@ -576,10 +610,9 @@
                 this.dom.goToExpenseButton.addEventListener('click', () => this.showExpenseScreen());
                 this.dom.goToBalanceButton.addEventListener('click', () => this.showBalanceScreen());
                 this.dom.logoutButton.addEventListener('click', () => this.logout());
-                this.dom.dataForm.addEventListener('submit', (e) => this.handleFormSubmit(e));
-                document.getElementById('saveAndNewButton').addEventListener('click', () => this.handleSaveAndNew());
-                document.getElementById('saveAndCloseButton').addEventListener('click', () => this.handleSaveAndFinish());
-                document.getElementById('goBackButton').addEventListener('click', () => this.dom.confirmModal.classList.add('hidden'));
+                this.dom.dataForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleAddOrUpdateRecord(); });
+                this.dom.saveAndFinishButton.addEventListener('click', () => this.handleSaveAndFinish());
+                this.dom.goBackToFormButton.addEventListener('click', () => this.dom.confirmAllModal.classList.add('hidden'));
                 document.getElementById('cancelDeleteButton').addEventListener('click', () => this.dom.deleteConfirmModal.classList.add('hidden'));
                 document.getElementById('confirmDeleteButton').addEventListener('click', () => this.deleteItem());
                 this.dom.findWinnerButton.addEventListener('click', () => this.findWinner());
@@ -591,10 +624,12 @@
                 this.dom.expenseForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleExpenseFormSubmit(); });
                 this.dom.confirmDateButton.addEventListener('click', () => this.handleDateConfirm());
                 this.dom.cancelDateButton.addEventListener('click', () => this.dom.dateConfirmModal.classList.add('hidden'));
-                this.dom.confirmSaveChangesButton.addEventListener('click', () => this.confirmSaveChanges());
-                this.dom.cancelSaveChangesButton.addEventListener('click', () => this.dom.saveChangesConfirmModal.classList.add('hidden'));
+                this.dom.closeOverlapModalButton.addEventListener('click', () => this.dom.overlapModal.classList.add('hidden'));
+                this.dom.confirmAllButton.addEventListener('click', () => this.handleConfirmAll());
+                this.dom.clearAndReturnButton.addEventListener('click', () => this.handleClearAndReturn());
             },
 
+            // --- AUTH & NAVIGATION ---
             handleLogin(password) {
                 const key = password.toLowerCase().trim();
                 const validUsers = ['javier', 'ana', 'adan', 'jose'];
@@ -618,6 +653,14 @@
                 this.showScreen('loginScreen');
             },
 
+            showScreen(screenId) {
+                this.dom.screens.forEach(s => s.classList.remove('active-screen'));
+                document.getElementById(screenId).classList.add('active-screen');
+                if (screenId === 'initialScreen') {
+                    this.updateUIForUser();
+                }
+            },
+
             updateUIForUser() {
                 const user = this.state.currentUser;
                 const isAdmin = user === 'adan' || user === 'jose';
@@ -629,6 +672,205 @@
                 }
             },
 
+            // --- NEW DATA ENTRY WORKFLOW (REESTRUCTURADO) ---
+
+            startNewSession(date) {
+                this.state.currentSessionRecords = [];
+                this.state.recordToEditIndex = null;
+                this.dom.dataForm.reset();
+                document.getElementById('fecha').value = date;
+                this.renderLiveSummary();
+                this.setFormMode('add');
+                this.showScreen('formScreen');
+            },
+
+            setFormMode(mode) {
+                if (mode === 'add') {
+                    this.dom.formTitle.textContent = 'Cargar Datos del Bono';
+                    this.dom.formActions.innerHTML = `
+                        <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-indigo-500 to-indigo-700 hover:from-indigo-600 hover:to-indigo-800 rounded-lg">Cargar Otro</button>
+                        <button type="button" onclick="App.clearForm()" class="w-full px-4 py-3 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Borrar Campos</button>
+                    `;
+                } else if (mode === 'edit') {
+                    this.dom.formTitle.textContent = 'Modificando Registro';
+                    this.dom.formActions.innerHTML = `
+                        <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 rounded-lg">Guardar Cambios</button>
+                        <button type="button" onclick="App.cancelEdit()" class="w-full px-4 py-3 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Cancelar</button>
+                    `;
+                }
+            },
+            
+            handleAddOrUpdateRecord() {
+                const formData = new FormData(this.dom.dataForm);
+                const record = Object.fromEntries(formData.entries());
+
+                // Basic validation
+                if (!record.bonoNro1 || !record.bonoNro2 || !record.nombre || !record.telefono) {
+                    this.showToast('Por favor, complete todos los campos requeridos.', 'error');
+                    return;
+                }
+                const phoneRegex = /^\d{6,12}$/;
+                if (!phoneRegex.test(record.telefono)) {
+                    this.showToast('Teléfono inválido (6-12 dígitos).', 'error');
+                    return;
+                }
+                
+                // Check for overlap, excluding the record being edited
+                const overlap = this.checkForOverlap(record.bonoNro1, record.bonoNro2, this.state.recordToEditIndex);
+                if (overlap) {
+                    this.dom.overlapDetails.innerHTML = overlap;
+                    this.dom.overlapModal.classList.remove('hidden');
+                    return;
+                }
+
+                if (this.state.recordToEditIndex !== null) {
+                    // Update existing record
+                    this.state.currentSessionRecords[this.state.recordToEditIndex] = record;
+                    this.showToast('Registro modificado en el resumen.');
+                    this.state.recordToEditIndex = null;
+                    this.setFormMode('add');
+                } else {
+                    // Add new record
+                    this.state.currentSessionRecords.push(record);
+                    this.showToast('Bono añadido al resumen.');
+                }
+
+                this.renderLiveSummary();
+                this.clearForm(false); // Clear form but keep date and vendedor
+            },
+
+            clearForm(clearAll = true) {
+                const currentDate = document.getElementById('fecha').value;
+                const currentVendedor = document.getElementById('vendedor').value;
+                this.dom.dataForm.reset();
+                document.getElementById('fecha').value = currentDate;
+                if (!clearAll) {
+                    document.getElementById('vendedor').value = currentVendedor;
+                }
+                document.getElementById('bonoNro1').focus();
+            },
+
+            renderLiveSummary() {
+                this.dom.liveSummaryContainer.innerHTML = '';
+                let subtotal = 0;
+                let totalEfectivo = 0;
+
+                if (this.state.currentSessionRecords.length === 0) {
+                    this.dom.liveSummaryContainer.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">Aún no hay bonos en esta carga.</p>';
+                    this.dom.liveSummaryTotals.innerHTML = '';
+                    return;
+                }
+
+                this.state.currentSessionRecords.forEach((record, index) => {
+                    const monto = record.cuotas == 1 ? 15000 : 30000;
+                    subtotal += monto;
+                    if (record.tipoPago === 'Efectivo') totalEfectivo += monto;
+                    
+                    const recordDiv = document.createElement('div');
+                    recordDiv.className = 'p-3 border dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 grid grid-cols-[1fr_auto] gap-2 items-center';
+                    recordDiv.innerHTML = `
+                        <div>
+                            <p class="font-bold text-indigo-700 dark:text-indigo-400">${record.nombre}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Bonos: ${record.bonoNro1}-${record.bonoNro2} | ${this.formatCurrency(monto)}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="App.editRecordFromSummary(${index})" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button>
+                            <button onclick="App.promptDeleteItem(null, 'summaryRecord', ${index})" class="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Eliminar</button>
+                        </div>
+                    `;
+                    this.dom.liveSummaryContainer.appendChild(recordDiv);
+                });
+
+                this.dom.liveSummaryTotals.innerHTML = `
+                    <p>Subtotal: <span class="font-bold">${this.formatCurrency(subtotal)}</span></p>
+                    <p class="text-green-700 dark:text-green-400">Total Efectivo: <span class="font-bold">${this.formatCurrency(totalEfectivo)}</span></p>
+                `;
+            },
+
+            editRecordFromSummary(index) {
+                const record = this.state.currentSessionRecords[index];
+                if (!record) return;
+
+                this.state.recordToEditIndex = index;
+                
+                // Populate form
+                document.getElementById('vendedor').value = record.vendedor;
+                document.getElementById('bonoNro1').value = record.bonoNro1;
+                document.getElementById('bonoNro2').value = record.bonoNro2;
+                document.getElementById('nombre').value = record.nombre;
+                document.getElementById('telefono').value = record.telefono;
+                document.getElementById('tipoPago').value = record.tipoPago;
+                document.getElementById('cuotas').value = record.cuotas;
+
+                this.setFormMode('edit');
+                window.scrollTo(0, 0);
+            },
+
+            cancelEdit() {
+                this.state.recordToEditIndex = null;
+                this.clearForm();
+                this.setFormMode('add');
+            },
+
+            handleConfirmAll() {
+                if (this.state.currentSessionRecords.length === 0) {
+                    this.showToast('No hay bonos en el resumen para guardar.', 'error');
+                    return;
+                }
+                
+                let subtotal = 0;
+                this.state.currentSessionRecords.forEach(r => subtotal += (r.cuotas == 1 ? 15000 : 30000));
+
+                this.dom.finalConfirmationData.innerHTML = `
+                    <p>Vas a guardar una sesión con <strong>${this.state.currentSessionRecords.length} registros</strong>.</p>
+                    <p>El monto total es de <strong>${this.formatCurrency(subtotal)}</strong>.</p>
+                    <p class="mt-4">¿Estás seguro de que quieres continuar?</p>
+                `;
+                this.dom.confirmAllModal.classList.remove('hidden');
+            },
+
+            handleClearAndReturn() {
+                this.state.currentSessionRecords = [];
+                this.renderLiveSummary();
+                this.showScreen('initialScreen');
+            },
+
+            handleSaveAndFinish() {
+                this.dom.confirmAllModal.classList.add('hidden');
+                this.saveSessionToFirestore();
+            },
+            
+            checkForOverlap(bonoNro1, bonoNro2, editIndex = null) {
+                const num1 = parseInt(bonoNro1, 10);
+                const num2 = parseInt(bonoNro2, 10);
+                let overlapInfo = '';
+
+                // Check against already saved sessions
+                for (const session of this.state.allSessions) {
+                    for (const record of session.records) {
+                        const existingNum1 = parseInt(record.bonoNro1, 10);
+                        const existingNum2 = parseInt(record.bonoNro2, 10);
+                        if (Math.max(num1, existingNum1) <= Math.min(num2, existingNum2)) {
+                            overlapInfo = `<p><strong>Comprador:</strong> ${record.nombre}</p><p><strong>Rango existente:</strong> ${record.bonoNro1} - ${record.bonoNro2}</p><p><strong>Fecha de Carga:</strong> ${session.id.replace(/-/g, '/')}</p>`;
+                            return overlapInfo;
+                        }
+                    }
+                }
+                // Check against records in the current live summary, excluding the one being edited
+                for (let i = 0; i < this.state.currentSessionRecords.length; i++) {
+                    if (i === editIndex) continue; // Skip self-check during edit
+                    const record = this.state.currentSessionRecords[i];
+                    const existingNum1 = parseInt(record.bonoNro1, 10);
+                    const existingNum2 = parseInt(record.bonoNro2, 10);
+                    if (Math.max(num1, existingNum1) <= Math.min(num2, existingNum2)) {
+                         overlapInfo = `<p><strong>Comprador:</strong> ${record.nombre}</p><p><strong>Rango existente:</strong> ${record.bonoNro1} - ${record.bonoNro2}</p><p><strong>Estado:</strong> En el resumen actual.</p>`;
+                         return overlapInfo;
+                    }
+                }
+                return null;
+            },
+
+            // --- FIRESTORE & DATA HANDLING ---
             loadHistoryFromFirestore() {
                 if (this.state.unsubscribeHistory) this.state.unsubscribeHistory();
                 const sessionsColRef = collection(this.state.db, "sessions");
@@ -687,15 +929,7 @@
             showLoading(isLoading) {
                 this.dom.loadingIndicator.classList.toggle('hidden', !isLoading);
             },
-
-            showScreen(screenId) {
-                this.dom.screens.forEach(s => s.classList.remove('active-screen'));
-                document.getElementById(screenId).classList.add('active-screen');
-                if (screenId === 'initialScreen') {
-                    this.updateUIForUser();
-                }
-            },
-
+            
             showHistoryScreen() {
                 this.dom.historyListContainer.innerHTML = '';
                 if (this.state.allSessions.length === 0) {
@@ -741,84 +975,7 @@
                 }
                 this.showScreen('detailsScreen');
             },
-
-            startNewSession(fromFinish = false, date = null) {
-                if (!fromFinish) this.state.currentSessionRecords = [];
-                this.dom.dataForm.reset();
-                this.state.recordToEditIndex = null;
-                const dateInput = document.getElementById('fecha');
-                if (date) {
-                    dateInput.value = date;
-                } else {
-                    dateInput.valueAsDate = new Date();
-                }
-                this.dom.formTitle.textContent = 'Cargar Datos del Bono';
-                this.dom.formActions.innerHTML = `<button type="submit" class="w-full px-4 py-3 mt-4 font-semibold text-white bg-gradient-to-r from-indigo-500 to-indigo-700 hover:from-indigo-600 hover:to-indigo-800 rounded-lg">Revisar Datos</button><button type="button" onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Volver al Inicio</button>`;
-                this.showScreen('formScreen');
-            },
             
-            handleFormSubmit(event) {
-                event.preventDefault();
-                if (this.state.recordToEditIndex !== null) {
-                    this.promptSaveChanges();
-                    return;
-                }
-
-                const formData = new FormData(this.dom.dataForm);
-                const newRecord = Object.fromEntries(formData.entries());
-
-                const phoneRegex = /^\d{6,12}$/;
-                if (!phoneRegex.test(newRecord.telefono)) {
-                    this.showToast('Teléfono inválido (6-12 dígitos).', 'error');
-                    return;
-                }
-
-                const newBono1 = parseInt(newRecord.bonoNro1, 10);
-                const newBono2 = parseInt(newRecord.bonoNro2, 10);
-
-                if (newBono1 > newBono2) {
-                    this.showToast('El primer número del bono no puede ser mayor que el segundo.', 'error');
-                    return;
-                }
-
-                let isOverlap = false;
-                for (const session of this.state.allSessions) {
-                    for (const record of session.records) {
-                        const existingBono1 = parseInt(record.bonoNro1, 10);
-                        const existingBono2 = parseInt(record.bonoNro2, 10);
-                        if (Math.max(newBono1, existingBono1) <= Math.min(newBono2, existingBono2)) {
-                            isOverlap = true;
-                            this.showToast(`El rango de bonos se superpone con el de ${record.nombre}.`, 'error');
-                            break;
-                        }
-                    }
-                    if (isOverlap) break;
-                }
-
-                if (isOverlap) return;
-
-                this.state.recordToEdit = newRecord;
-                const monto = this.state.recordToEdit.cuotas == 1 ? 15000 : 30000;
-                document.getElementById('confirmationData').innerHTML = `<p><strong>Nombre:</strong> ${this.state.recordToEdit.nombre}</p><p><strong>Bonos:</strong> Nro. ${this.state.recordToEdit.bonoNro1} - Nro. ${this.state.recordToEdit.bonoNro2}</p><p><strong>Monto:</strong> <span class="font-bold">${this.formatCurrency(monto)}</span></p>`;
-                this.dom.confirmModal.classList.remove('hidden');
-            },
-            
-            handleSaveAndNew() {
-                this.state.currentSessionRecords.push(this.state.recordToEdit);
-                this.dom.confirmModal.classList.add('hidden');
-                this.showToast('Bono guardado.');
-                const currentDate = document.getElementById('fecha').value;
-                this.dom.dataForm.reset();
-                document.getElementById('fecha').value = currentDate;
-                document.getElementById('bonoNro1').focus();
-            },
-
-            handleSaveAndFinish() {
-                this.state.currentSessionRecords.push(this.state.recordToEdit);
-                this.dom.confirmModal.classList.add('hidden');
-                this.saveSessionToFirestore();
-            },
-
             editSession(sessionId) {
                 this.state.sessionToEditId = sessionId;
                 const session = this.state.allSessions.find(s => s.id === sessionId);
@@ -868,13 +1025,28 @@
                 }
             },
 
-            promptDeleteItem(id, type) {
-                this.state.itemToDelete = { id, type };
+            promptDeleteItem(id, type, index = null) {
+                this.state.itemToDelete = { id, type, index };
+                if (type === 'summaryRecord') {
+                    this.dom.deleteConfirmMessage.textContent = '¿Seguro que quieres eliminar este registro del resumen?';
+                } else {
+                    this.dom.deleteConfirmMessage.textContent = 'Esta operación no puede revertirse.';
+                }
                 this.dom.deleteConfirmModal.classList.remove('hidden');
             },
 
             async deleteItem() {
-                const { id, type } = this.state.itemToDelete;
+                const { id, type, index } = this.state.itemToDelete;
+                this.dom.deleteConfirmModal.classList.add('hidden');
+
+                if (type === 'summaryRecord' && index !== null) {
+                    this.state.currentSessionRecords.splice(index, 1);
+                    this.renderLiveSummary();
+                    this.showToast('Registro eliminado del resumen.');
+                    this.state.itemToDelete = { id: null, type: null, index: null };
+                    return;
+                }
+
                 if (!id || !type) return;
 
                 this.showLoading(true);
@@ -897,12 +1069,13 @@
                     console.error(`Error deleting ${type}:`, error);
                     this.showToast('Error al eliminar el registro.', 'error');
                 } finally {
-                    this.dom.deleteConfirmModal.classList.add('hidden');
                     this.showLoading(false);
-                    this.state.itemToDelete = { id: null, type: null };
+                    this.state.itemToDelete = { id: null, type: null, index: null };
                 }
             },
-
+            
+            // Other functions (findBono, downloadSearchPDF, findWinner, etc.) remain unchanged
+            // ... [All other functions from the original script are here] ...
             findBono() {
                 const searchInput1 = document.getElementById('bonoSearchInput1');
                 const searchInput2 = document.getElementById('bonoSearchInput2');
@@ -1347,7 +1520,7 @@
                     this.showToast('Por favor, seleccione una fecha.', 'error');
                     return;
                 }
-                if (this.state.datePromptType === 'bono') this.startNewSession(false, selectedDate);
+                if (this.state.datePromptType === 'bono') this.startNewSession(selectedDate);
                 else if (this.state.datePromptType === 'banco') this.showBankScreen(selectedDate);
                 this.dom.dateConfirmModal.classList.add('hidden');
                 this.state.datePromptType = null;
