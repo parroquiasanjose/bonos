@@ -745,6 +745,7 @@
             startNewSession(fromFinish = false, date = null) {
                 if (!fromFinish) this.state.currentSessionRecords = [];
                 this.dom.dataForm.reset();
+                this.state.recordToEditIndex = null;
                 const dateInput = document.getElementById('fecha');
                 if (date) {
                     dateInput.value = date;
