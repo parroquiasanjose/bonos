@@ -206,8 +206,11 @@
             <!-- Sección de Resumen en Vivo -->
             <div>
                 <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 text-center">Resumen de Carga Actual</h3>
-                <div id="liveSummaryContainer" class="space-y-3 max-h-60 overflow-y-auto p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border dark:border-gray-700 min-h-[80px]">
+                <div id="liveSummaryContainer" class="space-y-3 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border dark:border-gray-700 min-h-[210px]">
                     <!-- Los bonos cargados aparecerán aquí -->
+                </div>
+                <div id="liveSummaryPagination" class="mt-4 flex justify-center items-center gap-4">
+                    <!-- La paginación se renderizará aquí -->
                 </div>
                 <div id="liveSummaryTotals" class="mt-4 text-right font-semibold text-gray-800 dark:text-gray-200">
                      <!-- Los totales se mostrarán aquí -->
@@ -219,8 +222,9 @@
 
             <!-- Acciones Finales de la Sesión -->
             <div id="sessionActions" class="space-y-3">
-                <button id="confirmAllButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 rounded-lg">Confirmar Todo y Guardar</button>
-                <button id="clearAndReturnButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 rounded-lg">Borrar Todo y Volver</button>
+                <button id="confirmAllButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 rounded-lg">Confirmar carga de bonos</button>
+                <button id="clearAllButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 rounded-lg">Borrar Todo</button>
+                <button id="goBackToInitialScreenButton" class="w-full px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Volver</button>
             </div>
         </div>
 
@@ -408,15 +412,6 @@
             </div>
         </div>
     </div>
-    <div id="overlapModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl text-center fade-in">
-            <h3 class="text-lg font-bold text-red-600 dark:text-red-400">Estos números ya fueron cargados</h3>
-            <div id="overlapDetails" class="text-sm text-gray-600 dark:text-gray-400 my-4 text-left space-y-1"></div>
-            <div class="flex justify-center gap-4">
-                <button id="closeOverlapModalButton" class="px-5 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">Volver</button>
-            </div>
-        </div>
-    </div>
     
     <!-- Firebase SDK -->
     <script type="module">
@@ -453,6 +448,8 @@
                 showAllDeposits: false,
                 showAllExpenses: false,
                 datePromptType: null,
+                liveSummaryPage: 1,
+                recordsPerPage: 3,
             },
 
             // --- INITIALIZATION ---
@@ -496,9 +493,6 @@
                     modalDateInput: document.getElementById('modalDateInput'),
                     confirmDateButton: document.getElementById('confirmDateButton'),
                     cancelDateButton: document.getElementById('cancelDateButton'),
-                    overlapModal: document.getElementById('overlapModal'),
-                    overlapDetails: document.getElementById('overlapDetails'),
-                    closeOverlapModalButton: document.getElementById('closeOverlapModalButton'),
                     historyListContainer: document.getElementById('historyListContainer'),
                     detailsScreen: document.getElementById('detailsScreen'),
                     detailsListContainer: document.getElementById('detailsListContainer'),
@@ -539,9 +533,11 @@
                     totalBalance: document.getElementById('totalBalance'),
                     vendedoresList: document.getElementById('vendedoresList'),
                     liveSummaryContainer: document.getElementById('liveSummaryContainer'),
+                    liveSummaryPagination: document.getElementById('liveSummaryPagination'),
                     liveSummaryTotals: document.getElementById('liveSummaryTotals'),
                     confirmAllButton: document.getElementById('confirmAllButton'),
-                    clearAndReturnButton: document.getElementById('clearAndReturnButton'),
+                    clearAllButton: document.getElementById('clearAllButton'),
+                    goBackToInitialScreenButton: document.getElementById('goBackToInitialScreenButton'),
                 };
             },
 
@@ -624,9 +620,9 @@
                 this.dom.expenseForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleExpenseFormSubmit(); });
                 this.dom.confirmDateButton.addEventListener('click', () => this.handleDateConfirm());
                 this.dom.cancelDateButton.addEventListener('click', () => this.dom.dateConfirmModal.classList.add('hidden'));
-                this.dom.closeOverlapModalButton.addEventListener('click', () => this.dom.overlapModal.classList.add('hidden'));
                 this.dom.confirmAllButton.addEventListener('click', () => this.handleConfirmAll());
-                this.dom.clearAndReturnButton.addEventListener('click', () => this.handleClearAndReturn());
+                this.dom.clearAllButton.addEventListener('click', () => this.handleClearAll());
+                this.dom.goBackToInitialScreenButton.addEventListener('click', () => this.showScreen('initialScreen'));
             },
 
             // --- AUTH & NAVIGATION ---
@@ -677,6 +673,7 @@
             startNewSession(date) {
                 this.state.currentSessionRecords = [];
                 this.state.recordToEditIndex = null;
+                this.state.liveSummaryPage = 1;
                 this.dom.dataForm.reset();
                 document.getElementById('fecha').value = date;
                 this.renderLiveSummary();
@@ -715,14 +712,6 @@
                     return;
                 }
                 
-                // Check for overlap, excluding the record being edited
-                const overlap = this.checkForOverlap(record.bonoNro1, record.bonoNro2, this.state.recordToEditIndex);
-                if (overlap) {
-                    this.dom.overlapDetails.innerHTML = overlap;
-                    this.dom.overlapModal.classList.remove('hidden');
-                    return;
-                }
-
                 if (this.state.recordToEditIndex !== null) {
                     // Update existing record
                     this.state.currentSessionRecords[this.state.recordToEditIndex] = record;
@@ -732,6 +721,7 @@
                 } else {
                     // Add new record
                     this.state.currentSessionRecords.push(record);
+                    this.state.liveSummaryPage = Math.ceil(this.state.currentSessionRecords.length / this.state.recordsPerPage);
                     this.showToast('Bono añadido al resumen.');
                 }
 
@@ -752,6 +742,7 @@
 
             renderLiveSummary() {
                 this.dom.liveSummaryContainer.innerHTML = '';
+                this.dom.liveSummaryPagination.innerHTML = '';
                 let subtotal = 0;
                 let totalEfectivo = 0;
 
@@ -761,10 +752,16 @@
                     return;
                 }
 
-                this.state.currentSessionRecords.forEach((record, index) => {
+                // Pagination logic
+                const page = this.state.liveSummaryPage;
+                const recordsPerPage = this.state.recordsPerPage;
+                const startIndex = (page - 1) * recordsPerPage;
+                const endIndex = startIndex + recordsPerPage;
+                const paginatedRecords = this.state.currentSessionRecords.slice(startIndex, endIndex);
+
+                paginatedRecords.forEach((record, index) => {
+                    const originalIndex = startIndex + index;
                     const monto = record.cuotas == 1 ? 15000 : 30000;
-                    subtotal += monto;
-                    if (record.tipoPago === 'Efectivo') totalEfectivo += monto;
                     
                     const recordDiv = document.createElement('div');
                     recordDiv.className = 'p-3 border dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 grid grid-cols-[1fr_auto] gap-2 items-center';
@@ -774,17 +771,49 @@
                             <p class="text-sm text-gray-600 dark:text-gray-400">Bonos: ${record.bonoNro1}-${record.bonoNro2} | ${this.formatCurrency(monto)}</p>
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="App.editRecordFromSummary(${index})" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button>
-                            <button onclick="App.promptDeleteItem(null, 'summaryRecord', ${index})" class="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Eliminar</button>
+                            <button onclick="App.editRecordFromSummary(${originalIndex})" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button>
+                            <button onclick="App.promptDeleteItem(null, 'summaryRecord', ${originalIndex})" class="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Eliminar</button>
                         </div>
                     `;
                     this.dom.liveSummaryContainer.appendChild(recordDiv);
+                });
+
+                // Calculate totals for the entire session, not just the page
+                this.state.currentSessionRecords.forEach(record => {
+                    const monto = record.cuotas == 1 ? 15000 : 30000;
+                    subtotal += monto;
+                    if (record.tipoPago === 'Efectivo') totalEfectivo += monto;
                 });
 
                 this.dom.liveSummaryTotals.innerHTML = `
                     <p>Subtotal: <span class="font-bold">${this.formatCurrency(subtotal)}</span></p>
                     <p class="text-green-700 dark:text-green-400">Total Efectivo: <span class="font-bold">${this.formatCurrency(totalEfectivo)}</span></p>
                 `;
+
+                // Render pagination controls
+                const totalPages = Math.ceil(this.state.currentSessionRecords.length / recordsPerPage);
+                if (totalPages > 1) {
+                    this.dom.liveSummaryPagination.innerHTML = `
+                        <button onclick="App.prevPage()" class="px-3 py-1 rounded-md bg-gray-200 dark:bg-gray-600" ${page === 1 ? 'disabled' : ''}>&lt;</button>
+                        <span class="font-semibold text-gray-700 dark:text-gray-300">Página ${page} de ${totalPages}</span>
+                        <button onclick="App.nextPage()" class="px-3 py-1 rounded-md bg-gray-200 dark:bg-gray-600" ${page === totalPages ? 'disabled' : ''}>&gt;</button>
+                    `;
+                }
+            },
+            
+            nextPage() {
+                const totalPages = Math.ceil(this.state.currentSessionRecords.length / this.state.recordsPerPage);
+                if (this.state.liveSummaryPage < totalPages) {
+                    this.state.liveSummaryPage++;
+                    this.renderLiveSummary();
+                }
+            },
+
+            prevPage() {
+                if (this.state.liveSummaryPage > 1) {
+                    this.state.liveSummaryPage--;
+                    this.renderLiveSummary();
+                }
             },
 
             editRecordFromSummary(index) {
@@ -829,45 +858,17 @@
                 this.dom.confirmAllModal.classList.remove('hidden');
             },
 
-            handleClearAndReturn() {
-                this.state.currentSessionRecords = [];
-                this.renderLiveSummary();
-                this.showScreen('initialScreen');
+            handleClearAll() {
+                if (this.state.currentSessionRecords.length > 0) {
+                    this.promptDeleteItem(null, 'clearAllSummary');
+                } else {
+                    this.showToast('El resumen ya está vacío.', 'error');
+                }
             },
 
             handleSaveAndFinish() {
                 this.dom.confirmAllModal.classList.add('hidden');
                 this.saveSessionToFirestore();
-            },
-            
-            checkForOverlap(bonoNro1, bonoNro2, editIndex = null) {
-                const num1 = parseInt(bonoNro1, 10);
-                const num2 = parseInt(bonoNro2, 10);
-                let overlapInfo = '';
-
-                // Check against already saved sessions
-                for (const session of this.state.allSessions) {
-                    for (const record of session.records) {
-                        const existingNum1 = parseInt(record.bonoNro1, 10);
-                        const existingNum2 = parseInt(record.bonoNro2, 10);
-                        if (Math.max(num1, existingNum1) <= Math.min(num2, existingNum2)) {
-                            overlapInfo = `<p><strong>Comprador:</strong> ${record.nombre}</p><p><strong>Rango existente:</strong> ${record.bonoNro1} - ${record.bonoNro2}</p><p><strong>Fecha de Carga:</strong> ${session.id.replace(/-/g, '/')}</p>`;
-                            return overlapInfo;
-                        }
-                    }
-                }
-                // Check against records in the current live summary, excluding the one being edited
-                for (let i = 0; i < this.state.currentSessionRecords.length; i++) {
-                    if (i === editIndex) continue; // Skip self-check during edit
-                    const record = this.state.currentSessionRecords[i];
-                    const existingNum1 = parseInt(record.bonoNro1, 10);
-                    const existingNum2 = parseInt(record.bonoNro2, 10);
-                    if (Math.max(num1, existingNum1) <= Math.min(num2, existingNum2)) {
-                         overlapInfo = `<p><strong>Comprador:</strong> ${record.nombre}</p><p><strong>Rango existente:</strong> ${record.bonoNro1} - ${record.bonoNro2}</p><p><strong>Estado:</strong> En el resumen actual.</p>`;
-                         return overlapInfo;
-                    }
-                }
-                return null;
             },
 
             // --- FIRESTORE & DATA HANDLING ---
@@ -1029,7 +1030,10 @@
                 this.state.itemToDelete = { id, type, index };
                 if (type === 'summaryRecord') {
                     this.dom.deleteConfirmMessage.textContent = '¿Seguro que quieres eliminar este registro del resumen?';
-                } else {
+                } else if (type === 'clearAllSummary') {
+                    this.dom.deleteConfirmMessage.textContent = '¿Seguro que quieres borrar todos los registros del resumen actual? Esta acción no se puede deshacer.';
+                }
+                else {
                     this.dom.deleteConfirmMessage.textContent = 'Esta operación no puede revertirse.';
                 }
                 this.dom.deleteConfirmModal.classList.remove('hidden');
@@ -1041,8 +1045,21 @@
 
                 if (type === 'summaryRecord' && index !== null) {
                     this.state.currentSessionRecords.splice(index, 1);
+                    const totalPages = Math.ceil(this.state.currentSessionRecords.length / this.state.recordsPerPage);
+                    if (this.state.liveSummaryPage > totalPages) {
+                        this.state.liveSummaryPage = totalPages > 0 ? totalPages : 1;
+                    }
                     this.renderLiveSummary();
                     this.showToast('Registro eliminado del resumen.');
+                    this.state.itemToDelete = { id: null, type: null, index: null };
+                    return;
+                }
+                
+                if (type === 'clearAllSummary') {
+                    this.state.currentSessionRecords = [];
+                    this.state.liveSummaryPage = 1;
+                    this.renderLiveSummary();
+                    this.showToast('Resumen de carga borrado.');
                     this.state.itemToDelete = { id: null, type: null, index: null };
                     return;
                 }
