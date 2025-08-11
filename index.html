@@ -76,22 +76,36 @@
         </div>
 
         <!-- 0. Login Screen -->
-        <div id="loginScreen" class="screen p-8 space-y-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg text-center fade-in">
-            <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-300">Bono "Sembradores de Esperanza"</h2>
-            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200">Bienvenido</h1>
-            <p class="text-gray-600 dark:text-gray-400">Coloque su clave para ingresar.</p>
-            <div class="pt-4 max-w-xs mx-auto">
+        <div id="loginScreen" class="screen p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg fade-in flex flex-col items-center justify-center">
+            <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">Bono "Sembradores de Esperanza"</h2>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200 mb-1">Bienvenido</h1>
+            <p class="text-gray-600 dark:text-gray-400 mb-6">Ingrese sus credenciales para continuar.</p>
+            <div class="w-full max-w-xs">
                 <form id="loginForm" class="space-y-4">
-                    <input type="password" id="passwordInput" class="w-full text-center px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" placeholder="Clave">
+                    <input type="email" id="emailInput" class="w-full text-center px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" placeholder="Correo Electrónico" required>
+                    <div class="relative">
+                        <input type="password" id="passwordInput" class="w-full text-center px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" placeholder="Contraseña" required>
+                        <button type="button" id="passwordToggle" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                            <svg id="eyeIcon" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            <svg id="eyeOffIcon" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 1.274-4.057 5.064-7 9.542-7 .847 0 1.673.126 2.463.362m-7.916 5.242a3 3 0 014.242-4.242m-4.242 4.242L6 18m12-6h.008M18 6l-6 6" />
+                            </svg>
+                        </button>
+                    </div>
                     <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-indigo-500 to-indigo-700 hover:from-indigo-600 hover:to-indigo-800 rounded-lg">Ingresar</button>
                 </form>
             </div>
         </div>
 
+
         <!-- 1. Initial Screen -->
         <div id="initialScreen" class="screen p-8 space-y-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg text-center fade-in">
             <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200">Parroquia San José Bono ⛪</h1>
             <p class="text-xl text-gray-600 dark:text-gray-400">"Sembradores de Esperanza"</p>
+            <p id="welcomeMessage" class="text-lg text-gray-700 dark:text-gray-300"></p>
             
             <!-- Admin Dashboard -->
             <div id="adminDashboard" class="hidden my-4 p-4 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-left space-y-3">
@@ -417,7 +431,7 @@
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, addDoc, getDocs, deleteDoc, onSnapshot, query, writeBatch, updateDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- App Initialization ---
@@ -427,6 +441,7 @@
             // --- STATE ---
             state: {
                 currentUser: null,
+                isAdmin: false,
                 currentSessionRecords: [],
                 allSessions: [],
                 bankDeposits: [],
@@ -456,19 +471,6 @@
             async init() {
                 this.cacheDOMElements();
                 this.bindEvents();
-                
-                const params = new URLSearchParams(window.location.search);
-                const accessCode = params.get('access_code');
-                const savedUser = localStorage.getItem('currentUser');
-
-                if (accessCode) {
-                    this.handleLogin(accessCode);
-                } else if (savedUser) {
-                    this.login(savedUser);
-                } else {
-                    this.showScreen('loginScreen');
-                }
-                
                 this.showLoading(true);
                 await this.initializeFirebase();
             },
@@ -478,7 +480,11 @@
                     html: document.documentElement,
                     screens: document.querySelectorAll('.screen'),
                     loginForm: document.getElementById('loginForm'),
+                    emailInput: document.getElementById('emailInput'),
                     passwordInput: document.getElementById('passwordInput'),
+                    passwordToggle: document.getElementById('passwordToggle'),
+                    eyeIcon: document.getElementById('eyeIcon'),
+                    eyeOffIcon: document.getElementById('eyeOffIcon'),
                     dataForm: document.getElementById('dataForm'),
                     formTitle: document.getElementById('formTitle'),
                     formActions: document.getElementById('formActions'),
@@ -504,6 +510,7 @@
                     loadingIndicator: document.getElementById('loadingIndicator'),
                     authError: document.getElementById('authError'),
                     mainButtons: document.getElementById('mainButtons'),
+                    welcomeMessage: document.getElementById('welcomeMessage'),
                     searchScreen: document.getElementById('searchScreen'),
                     searchBonoButton: document.getElementById('searchBonoButton'),
                     findWinnerButton: document.getElementById('findWinnerButton'),
@@ -514,6 +521,7 @@
                     balanceSummaryContainer: document.getElementById('balanceSummaryContainer'),
                     downloadBalancePdfButton: document.getElementById('downloadBalancePdfButton'),
                     goToBalanceButton: document.getElementById('goToBalanceButton'),
+                    goToBankButton: document.getElementById('goToBankButton'),
                     logoutButton: document.getElementById('logoutButton'),
                     bankScreen: document.getElementById('bankScreen'),
                     bankForm: document.getElementById('bankForm'),
@@ -566,38 +574,21 @@
                 }
 
                 onAuthStateChanged(this.state.auth, (user) => {
+                    this.showLoading(false);
                     if (user) {
-                        this.state.userId = user.uid;
-                        this.dom.authError.classList.add('hidden');
-                        this.dom.mainButtons.classList.remove('hidden');
+                        this.login(user);
                         this.loadHistoryFromFirestore();
                         this.loadBankDepositsFromFirestore();
                         this.loadExpensesFromFirestore();
                     } else {
-                        this.state.userId = null;
-                        this.showLoading(false);
+                        this.logoutCleanup();
                     }
                 });
-
-                try {
-                    await signInAnonymously(this.state.auth);
-                } catch (error) {
-                    this.showLoading(false);
-                    if (error.code === 'auth/configuration-not-found') {
-                        const errorMessage = `<h4 class="font-bold text-lg mb-2">Error de Configuración</h4><p>El inicio de sesión anónimo no está habilitado. Por favor, actívalo en la Consola de Firebase.</p>`;
-                        this.dom.mainButtons.classList.add('hidden');
-                        this.dom.authError.innerHTML = errorMessage;
-                        this.dom.authError.classList.remove('hidden');
-                    } else {
-                        console.error("Error signing in anonymously:", error);
-                        this.dom.authError.textContent = "Ocurrió un error inesperado al conectar.";
-                        this.dom.authError.classList.remove('hidden');
-                    }
-                }
             },
 
             bindEvents() {
-                this.dom.loginForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleLogin(this.dom.passwordInput.value); });
+                this.dom.loginForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleLogin(); });
+                this.dom.passwordToggle.addEventListener('click', () => this.togglePasswordVisibility());
                 document.getElementById('goToFormButton').addEventListener('click', () => this.promptForDate('bono'));
                 document.getElementById('goToHistoryButton').addEventListener('click', () => this.showHistoryScreen());
                 document.getElementById('goToWinnerButton').addEventListener('click', () => this.showScreen('winnerScreen'));
@@ -626,26 +617,66 @@
             },
 
             // --- AUTH & NAVIGATION ---
-            handleLogin(password) {
-                const key = password.toLowerCase().trim();
-                const validUsers = ['javier', 'ana', 'adan', 'jose'];
-                if (validUsers.includes(key)) {
-                    localStorage.setItem('currentUser', key);
-                    this.login(key);
-                    this.dom.passwordInput.value = '';
-                } else {
-                    this.showToast('Clave incorrecta.', 'error');
+            async handleLogin() {
+                const email = this.dom.emailInput.value;
+                const password = this.dom.passwordInput.value;
+                this.showLoading(true);
+                try {
+                    await signInWithEmailAndPassword(this.state.auth, email, password);
+                    // onAuthStateChanged will handle the rest
+                } catch (error) {
+                    this.showLoading(false);
+                    console.error("Login Error:", error.code);
+                    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                        this.showToast('Correo o contraseña incorrectos.', 'error');
+                    } else {
+                        this.showToast('Error al intentar ingresar.', 'error');
+                    }
                 }
             },
 
-            login(userName) {
-                this.state.currentUser = userName.toLowerCase();
+            login(user) {
+                this.state.currentUser = user;
+                // Check for admin privileges.
+                const adminEmails = ['adanrdmato@gmail.com', 'jose@example.com']; 
+                this.state.isAdmin = adminEmails.includes(user.email);
+
+                // Custom welcome message logic
+                if (user.email === 'daianavirginiafroy@gmail.com') {
+                    this.dom.welcomeMessage.textContent = 'Bienvenido Javier';
+                } else {
+                    const displayName = user.email.split('@')[0];
+                    this.dom.welcomeMessage.textContent = `Bienvenido ${displayName}`;
+                }
+
                 this.showScreen('initialScreen');
             },
 
-            logout() {
+            async logout() {
+                try {
+                    await signOut(this.state.auth);
+                    // onAuthStateChanged will call logoutCleanup
+                    this.showToast('Sesión cerrada.');
+                } catch (error) {
+                    console.error("Logout Error:", error);
+                    this.showToast('Error al cerrar sesión.', 'error');
+                }
+            },
+            
+            logoutCleanup() {
                 this.state.currentUser = null;
-                localStorage.removeItem('currentUser');
+                this.state.isAdmin = false;
+                
+                // Unsubscribe from Firestore listeners
+                if (this.state.unsubscribeHistory) this.state.unsubscribeHistory();
+                if (this.state.unsubscribeBank) this.state.unsubscribeBank();
+                if (this.state.unsubscribeExpenses) this.state.unsubscribeExpenses();
+
+                // Reset state
+                this.state.allSessions = [];
+                this.state.bankDeposits = [];
+                this.state.expenses = [];
+
                 this.showScreen('loginScreen');
             },
 
@@ -658,13 +689,26 @@
             },
 
             updateUIForUser() {
-                const user = this.state.currentUser;
-                const isAdmin = user === 'adan' || user === 'jose';
+                const isAdmin = this.state.isAdmin;
                 this.dom.goToBalanceButton.style.display = isAdmin ? 'block' : 'none';
                 this.dom.goToExpenseButton.style.display = isAdmin ? 'block' : 'none';
+                this.dom.goToBankButton.style.display = isAdmin ? 'block' : 'none';
                 this.dom.adminDashboard.style.display = isAdmin ? 'block' : 'none';
                 if (isAdmin) {
                     this.updateDashboard();
+                }
+            },
+
+            togglePasswordVisibility() {
+                const input = this.dom.passwordInput;
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    this.dom.eyeIcon.classList.add('hidden');
+                    this.dom.eyeOffIcon.classList.remove('hidden');
+                } else {
+                    input.type = 'password';
+                    this.dom.eyeIcon.classList.remove('hidden');
+                    this.dom.eyeOffIcon.classList.add('hidden');
                 }
             },
 
@@ -791,7 +835,7 @@
                 `;
 
                 // Render pagination controls
-                const totalPages = Math.ceil(this.state.currentSessionRecords.length / recordsPerPage);
+                const totalPages = Math.ceil(this.state.currentSessionRecords.length / this.state.recordsPerPage);
                 if (totalPages > 1) {
                     this.dom.liveSummaryPagination.innerHTML = `
                         <button onclick="App.prevPage()" class="px-3 py-1 rounded-md bg-gray-200 dark:bg-gray-600" ${page === 1 ? 'disabled' : ''}>&lt;</button>
@@ -1466,8 +1510,7 @@
                     depositDiv.className = 'flex justify-between items-center p-3 bg-white dark:bg-gray-700 rounded-lg border dark:border-gray-600';
                     depositDiv.innerHTML = `<div><p class="font-semibold">${'Depósito'} - ${this.formatDateForId(deposit.date)}</p><p class="text-sm text-gray-600 dark:text-gray-400">${this.formatCurrency(parseFloat(deposit.amount))} (${deposit.type})</p></div><div class="flex gap-2"><button onclick="App.editBankDeposit('${deposit.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.promptDeleteItem('${deposit.id}', 'deposit')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button><button onclick="App.downloadDepositPDF('${deposit.id}')" class="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">PDF</button></div>`;
                     this.dom.bankDepositsListContainer.appendChild(depositDiv);
-                }
-                );
+                });
                 if (!this.state.showAllDeposits && deposits.length > 3) {
                     const seeMoreButton = document.createElement('button');
                     seeMoreButton.className = 'w-full mt-2 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600';
@@ -1672,7 +1715,7 @@
             },
 
             updateDashboard() {
-                if (!this.state.currentUser || (this.state.currentUser !== 'adan' && this.state.currentUser !== 'jose')) {
+                if (!this.state.isAdmin) {
                     return;
                 }
 
