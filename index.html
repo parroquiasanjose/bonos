@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- jsPDF for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <!-- Tone.js for sound effects -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <!-- Google Fonts: Inter -->
@@ -27,6 +27,15 @@
         input[type=number] { -moz-appearance: textfield; }
         .screen { display: none; } /* Helper class to manage views */
         .active-screen { display: block; }
+        .loader-container {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
         .loader {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #3498db;
@@ -34,16 +43,21 @@
             width: 40px;
             height: 40px;
             animation: spin 1s linear infinite;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
         /* Toast Notification Styles */
+        .toast-container {
+            position: fixed;
+            top: 1.25rem;
+            right: 1.25rem;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
         .toast {
             padding: 1rem;
             border-radius: 0.5rem;
@@ -56,6 +70,7 @@
         }
         .toast-success { background-color: #16a34a; }
         .toast-error { background-color: #dc2626; }
+        .toast-info { background-color: #2563eb; }
         @keyframes slideInAndOut {
             0% { opacity: 0; transform: translateX(100%); }
             15% { opacity: 1; transform: translateX(0); }
@@ -66,12 +81,12 @@
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 flex items-center justify-center min-h-screen p-4">
 
-    <div id="toastContainer" class="fixed top-5 right-5 z-50 space-y-2"></div>
+    <div id="toastContainer" class="toast-container"></div>
 
     <div class="w-full max-w-lg relative">
         <datalist id="vendedoresList"></datalist>
         <!-- Loading Indicator -->
-        <div id="loadingIndicator" class="hidden">
+        <div id="loadingIndicator" class="loader-container hidden">
             <div class="loader"></div>
         </div>
 
@@ -117,7 +132,6 @@
                 </div>
             </div>
 
-            <div id="authError" class="hidden p-4 my-4 text-sm text-red-700 bg-red-100 rounded-lg text-left"></div>
             <div id="mainButtons" class="space-y-4">
                 <button id="goToFormButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 rounded-lg">
                     Nueva Carga
@@ -144,11 +158,10 @@
             </div>
         </div>
 
-        <!-- 2. Data Entry Form Screen (REESTRUCTURADO) -->
+        <!-- 2. Data Entry Form Screen -->
         <div id="formScreen" class="screen p-6 sm:p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg fade-in">
             <h2 id="formTitle" class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6 text-center">Cargar Datos del Bono</h2>
             
-            <!-- Formulario de Carga -->
             <form id="dataForm" class="space-y-4">
                 <div>
                     <label for="fecha" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Fecha</label>
@@ -194,61 +207,39 @@
                     </select>
                 </div>
 
-                <!-- Botones de Acción del Formulario -->
-                <div id="formActions" class="pt-4 grid grid-cols-2 gap-4">
-                    <!-- Estos botones se actualizarán dinámicamente con JS -->
-                </div>
+                <div id="formActions" class="pt-4 grid grid-cols-2 gap-4"></div>
             </form>
 
-            <!-- Línea divisoria -->
             <hr class="my-6 border-gray-200 dark:border-gray-700">
 
-            <!-- Sección de Resumen en Vivo -->
             <div>
                 <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 text-center">Resumen de Carga Actual</h3>
-                <div id="liveSummaryContainer" class="space-y-3 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border dark:border-gray-700 min-h-[210px]">
-                    <!-- Los bonos cargados aparecerán aquí -->
-                </div>
-                <div id="liveSummaryPagination" class="mt-4 flex justify-center items-center gap-4">
-                    <!-- La paginación se renderizará aquí -->
-                </div>
-                <div id="liveSummaryTotals" class="mt-4 text-right font-semibold text-gray-800 dark:text-gray-200">
-                     <!-- Los totales se mostrarán aquí -->
-                </div>
+                <div id="liveSummaryContainer" class="space-y-3 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border dark:border-gray-700 min-h-[210px]"></div>
+                <div id="liveSummaryPagination" class="mt-4 flex justify-center items-center gap-4"></div>
+                <div id="liveSummaryTotals" class="mt-4 text-right font-semibold text-gray-800 dark:text-gray-200"></div>
             </div>
 
-            <!-- Línea divisoria -->
             <hr class="my-6 border-gray-200 dark:border-gray-700">
 
-            <!-- Acciones Finales de la Sesión -->
             <div id="sessionActions" class="space-y-3">
-                <button id="confirmAllButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 rounded-lg">Confirmar carga de bonos</button>
+                <button id="confirmAllButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 rounded-lg">Confirmar Carga de Bonos</button>
                 <button id="clearAllButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 rounded-lg">Borrar Todo</button>
                 <button id="goBackToInitialScreenButton" class="w-full px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Volver</button>
             </div>
-        </div>
-
-
-        <!-- 3. Final Details Screen -->
-        <div id="detailsScreen" class="screen p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg fade-in">
-            <h2 id="detailsTitle" class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4 text-center">Detalle de Carga</h2>
-            <div id="detailsListContainer" class="mb-6 max-h-80 overflow-y-auto p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border dark:border-gray-700"></div>
-            <div id="summaryContainer" class="mb-6 p-4 bg-gray-100 dark:bg-gray-900 rounded-lg space-y-2 text-lg"></div>
-            <div id="detailsActions" class="space-y-3"></div>
         </div>
         
         <!-- 4. History Screen -->
         <div id="historyScreen" class="screen p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg fade-in">
              <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4 text-center">Historial de Cargas</h2>
              <div id="historyListContainer" class="mb-6 max-h-96 overflow-y-auto space-y-3"></div>
-             <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 rounded-lg">Volver al Inicio</button>
+             <div id="historyLoadMoreContainer" class="mt-4"></div>
+             <button id="historyGoBackButton" class="w-full mt-4 px-4 py-3 font-semibold text-white bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 rounded-lg">Volver al Inicio</button>
         </div>
 
         <!-- 5. Winner Screen -->
         <div id="winnerScreen" class="screen p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg fade-in">
             <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6 text-center">Buscar Ganador</h2>
             <div class="space-y-6 mb-6">
-                <!-- Prize 1 -->
                 <div class="p-3 border dark:border-gray-700 rounded-lg">
                     <h3 class="font-bold text-lg text-gray-700 dark:text-gray-300 mb-2">Primer Premio</h3>
                     <div class="grid grid-cols-2 gap-3">
@@ -256,7 +247,6 @@
                         <input type="number" data-prize="1er Premio" class="winner-input w-full text-center p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md" placeholder="000" oninput="this.value = this.value.slice(0, 3);">
                     </div>
                 </div>
-                <!-- Prize 2 -->
                 <div class="p-3 border dark:border-gray-700 rounded-lg">
                     <h3 class="font-bold text-lg text-gray-700 dark:text-gray-300 mb-2">2do Premio</h3>
                     <div class="grid grid-cols-2 gap-3">
@@ -264,7 +254,6 @@
                         <input type="number" data-prize="2do Premio" class="winner-input w-full text-center p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md" placeholder="000" oninput="this.value = this.value.slice(0, 3);">
                     </div>
                 </div>
-                <!-- Prize 3 -->
                 <div class="p-3 border dark:border-gray-700 rounded-lg">
                     <h3 class="font-bold text-lg text-gray-700 dark:text-gray-300 mb-2">3er Premio</h3>
                     <div class="grid grid-cols-2 gap-3">
@@ -276,7 +265,7 @@
             <button id="findWinnerButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 rounded-lg mb-4">Buscar Ganadores</button>
             <div id="winnerResultContainer" class="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border dark:border-gray-700 min-h-[100px]"></div>
             <button id="downloadWinnerPdfButton" class="hidden w-full mt-4 px-4 py-3 font-semibold text-white bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 rounded-lg">Descargar PDF de Ganadores</button>
-            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Volver al Inicio</button>
+            <button id="winnerGoBackButton" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Volver al Inicio</button>
         </div>
         
         <!-- 6. Search Bono Screen -->
@@ -298,7 +287,7 @@
             </div>
             <div id="searchResultContainer" class="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border dark:border-gray-700 min-h-[100px] max-h-80 overflow-y-auto"></div>
             <button id="downloadSearchPdfButton" class="hidden w-full mt-4 px-4 py-3 font-semibold text-white bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 rounded-lg">Descargar PDF</button>
-            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Volver al Inicio</button>
+            <button id="searchGoBackButton" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Volver al Inicio</button>
         </div>
 
         <!-- 7. Balance Screen -->
@@ -307,7 +296,7 @@
             <div id="balanceListContainer" class="mb-6 max-h-80 overflow-y-auto p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border dark:border-gray-700"></div>
             <div id="balanceSummaryContainer" class="mb-6 p-4 bg-gray-100 dark:bg-gray-900 rounded-lg space-y-2 text-base"></div>
             <button id="downloadBalancePdfButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 rounded-lg">Descargar PDF</button>
-            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Volver al Inicio</button>
+            <button id="balanceGoBackButton" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Volver al Inicio</button>
         </div>
         
         <!-- 8. Bank Screen -->
@@ -317,7 +306,7 @@
                 <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300" id="bankFormTitle">Nuevo Depósito</h3>
                 <div>
                     <label for="bankDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Fecha</label>
-                    <input type="date" id="bankDate" name="bankDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" readonly>
+                    <input type="date" id="bankDate" name="bankDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
                 </div>
                 <div>
                     <label for="bankAmount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Importe</label>
@@ -330,13 +319,14 @@
                         <option value="Transferencia">Transferencia</option>
                     </select>
                 </div>
-                <div id="bankFormActions">
-                    <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-cyan-500 to-cyan-700 hover:from-cyan-600 hover:to-cyan-800 rounded-lg">Confirmar</button>
+                <div id="bankFormActions" class="grid grid-cols-2 gap-4">
+                     <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-cyan-500 to-cyan-700 hover:from-cyan-600 hover:to-cyan-800 rounded-lg">Confirmar</button>
+                     <button type="button" id="cancelBankEditButton" class="hidden w-full px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Cancelar</button>
                 </div>
             </form>
             <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 text-center">Depósitos Registrados</h3>
-            <div id="bankDepositsListContainer" class="mb-6 space-y-3"></div>
-            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Volver al Inicio</button>
+            <div id="bankDepositsListContainer" class="mb-6 space-y-3 max-h-60 overflow-y-auto"></div>
+            <button id="bankGoBackButton" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Volver al Inicio</button>
         </div>
 
         <!-- 9. Expense Screen -->
@@ -363,13 +353,14 @@
                         <option value="Transferencia">Transferencia</option>
                     </select>
                 </div>
-                <div id="expenseFormActions">
-                    <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 rounded-lg">Confirmar Egreso</button>
+                <div id="expenseFormActions" class="grid grid-cols-2 gap-4">
+                     <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 rounded-lg">Confirmar Egreso</button>
+                     <button type="button" id="cancelExpenseEditButton" class="hidden w-full px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Cancelar</button>
                 </div>
             </form>
             <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 text-center">Egresos Registrados</h3>
-            <div id="expenseListContainer" class="mb-6 space-y-3"></div>
-            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Volver al Inicio</button>
+            <div id="expenseListContainer" class="mb-6 space-y-3 max-h-60 overflow-y-auto"></div>
+            <button id="expenseGoBackButton" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Volver al Inicio</button>
         </div>
 
     </div>
@@ -417,387 +408,481 @@
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, addDoc, getDocs, deleteDoc, onSnapshot, query, writeBatch, updateDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, addDoc, getDoc, getDocs, deleteDoc, onSnapshot, query, writeBatch, updateDoc, enableIndexedDbPersistence, orderBy, limit, startAfter, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- App Initialization ---
+        // --- CONSTANTS & UTILS ---
         const { jsPDF } = window.jspdf;
-        
-        window.App = {
-            // --- STATE ---
+        const Utils = {
+            formatCurrency(amount) {
+                return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(amount || 0);
+            },
+            getCurrentDateFormattedForInput() {
+                const today = new Date();
+                return today.toISOString().split('T')[0];
+            },
+            formatDateForDisplay(dateString) {
+                if (!dateString) return 'N/A';
+                const [year, month, day] = dateString.split('-');
+                return `${day}/${month}/${year}`;
+            },
+        };
+
+        // --- MODULE: UI ---
+        const UI = {
+            dom: {},
+            init(app) {
+                this.app = app;
+                this.dom = app.dom;
+            },
+            showScreen(screenId) {
+                this.dom.screens.forEach(s => s.classList.remove('active-screen'));
+                document.getElementById(screenId)?.classList.add('active-screen');
+            },
+            showLoading(isLoading) {
+                this.dom.loadingIndicator.classList.toggle('hidden', !isLoading);
+            },
+            showToast(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = `toast toast-${type}`;
+                toast.textContent = message;
+                this.dom.toastContainer.appendChild(toast);
+                try {
+                    const synth = new Tone.Synth().toDestination();
+                    const note = type === 'success' ? "C5" : (type === 'error' ? "A3" : "E4");
+                    synth.triggerAttackRelease(note, "8n", Tone.now());
+                } catch (e) { console.warn("Could not play sound."); }
+                setTimeout(() => toast.remove(), 3000);
+            },
+        };
+
+        // --- MAIN APP OBJECT ---
+        const App = {
             state: {
                 currentUser: null,
                 currentSessionRecords: [],
                 allSessions: [],
                 bankDeposits: [],
                 expenses: [],
-                recordToEditIndex: null, // Used for live summary editing
+                recordToEditIndex: null,
                 depositToEditId: null,
                 expenseToEditId: null,
-                itemToDelete: { id: null, type: null, index: null }, // Added index for summary deletion
+                itemToDelete: { id: null, type: null, index: null, subId: null },
                 sessionToEditId: null,
-                sessionToEditRawDate: null, 
                 winnersData: [],
                 searchResult: [], 
                 db: null,
                 auth: null,
                 userId: null,
-                unsubscribeHistory: null,
+                appId: null, // <-- Added for correct paths
                 unsubscribeBank: null,
                 unsubscribeExpenses: null,
-                showAllDeposits: false,
-                showAllExpenses: false,
-                datePromptType: null,
+                unsubscribeSessions: null,
                 liveSummaryPage: 1,
                 recordsPerPage: 3,
+                historyLastVisible: null,
+                historyAllLoaded: false,
             },
 
-            // --- INITIALIZATION ---
             async init() {
                 this.cacheDOMElements();
+                UI.init(this);
+                UI.showLoading(true);
+                await this.initializeFirebase();
                 this.bindEvents();
                 
-                const params = new URLSearchParams(window.location.search);
-                const accessCode = params.get('access_code');
                 const savedUser = localStorage.getItem('currentUser');
-
-                if (accessCode) {
-                    this.handleLogin(accessCode);
-                } else if (savedUser) {
-                    this.login(savedUser);
+                if (savedUser) {
+                    this.login(savedUser, true);
                 } else {
                     this.showScreen('loginScreen');
+                    UI.showLoading(false);
                 }
-                
-                this.showLoading(true);
-                await this.initializeFirebase();
+            },
+            
+            showScreen(screenId) {
+                UI.showScreen(screenId);
             },
 
             cacheDOMElements() {
-                this.dom = {
-                    html: document.documentElement,
-                    screens: document.querySelectorAll('.screen'),
-                    loginForm: document.getElementById('loginForm'),
-                    passwordInput: document.getElementById('passwordInput'),
-                    dataForm: document.getElementById('dataForm'),
-                    formTitle: document.getElementById('formTitle'),
-                    formActions: document.getElementById('formActions'),
-                    confirmAllModal: document.getElementById('confirmAllModal'),
-                    finalConfirmationData: document.getElementById('finalConfirmationData'),
-                    saveAndFinishButton: document.getElementById('saveAndFinishButton'),
-                    goBackToFormButton: document.getElementById('goBackToFormButton'),
-                    deleteConfirmModal: document.getElementById('deleteConfirmModal'),
-                    deleteConfirmMessage: document.getElementById('deleteConfirmMessage'),
-                    dateConfirmModal: document.getElementById('dateConfirmModal'),
-                    dateConfirmTitle: document.getElementById('dateConfirmTitle'),
-                    modalDateInput: document.getElementById('modalDateInput'),
-                    confirmDateButton: document.getElementById('confirmDateButton'),
-                    cancelDateButton: document.getElementById('cancelDateButton'),
-                    historyListContainer: document.getElementById('historyListContainer'),
-                    detailsScreen: document.getElementById('detailsScreen'),
-                    detailsListContainer: document.getElementById('detailsListContainer'),
-                    summaryContainer: document.getElementById('summaryContainer'),
-                    detailsActions: document.getElementById('detailsActions'),
-                    detailsTitle: document.getElementById('detailsTitle'),
-                    winnerResultContainer: document.getElementById('winnerResultContainer'),
-                    downloadWinnerPdfButton: document.getElementById('downloadWinnerPdfButton'),
-                    loadingIndicator: document.getElementById('loadingIndicator'),
-                    authError: document.getElementById('authError'),
-                    mainButtons: document.getElementById('mainButtons'),
-                    searchScreen: document.getElementById('searchScreen'),
-                    searchBonoButton: document.getElementById('searchBonoButton'),
-                    findWinnerButton: document.getElementById('findWinnerButton'),
-                    searchResultContainer: document.getElementById('searchResultContainer'),
-                    downloadSearchPdfButton: document.getElementById('downloadSearchPdfButton'),
-                    balanceScreen: document.getElementById('balanceScreen'),
-                    balanceListContainer: document.getElementById('balanceListContainer'),
-                    balanceSummaryContainer: document.getElementById('balanceSummaryContainer'),
-                    downloadBalancePdfButton: document.getElementById('downloadBalancePdfButton'),
-                    goToBalanceButton: document.getElementById('goToBalanceButton'),
-                    logoutButton: document.getElementById('logoutButton'),
-                    bankScreen: document.getElementById('bankScreen'),
-                    bankForm: document.getElementById('bankForm'),
-                    bankFormTitle: document.getElementById('bankFormTitle'),
-                    bankFormActions: document.getElementById('bankFormActions'),
-                    bankDepositsListContainer: document.getElementById('bankDepositsListContainer'),
-                    expenseScreen: document.getElementById('expenseScreen'),
-                    expenseForm: document.getElementById('expenseForm'),
-                    expenseFormTitle: document.getElementById('expenseFormTitle'),
-                    expenseFormActions: document.getElementById('expenseFormActions'),
-                    expenseListContainer: document.getElementById('expenseListContainer'),
-                    toastContainer: document.getElementById('toastContainer'),
-                    goToExpenseButton: document.getElementById('goToExpenseButton'),
-                    adminDashboard: document.getElementById('adminDashboard'),
-                    monthlyIncome: document.getElementById('monthlyIncome'),
-                    monthlyExpenses: document.getElementById('monthlyExpenses'),
-                    totalBalance: document.getElementById('totalBalance'),
-                    vendedoresList: document.getElementById('vendedoresList'),
-                    liveSummaryContainer: document.getElementById('liveSummaryContainer'),
-                    liveSummaryPagination: document.getElementById('liveSummaryPagination'),
-                    liveSummaryTotals: document.getElementById('liveSummaryTotals'),
-                    confirmAllButton: document.getElementById('confirmAllButton'),
-                    clearAllButton: document.getElementById('clearAllButton'),
-                    goBackToInitialScreenButton: document.getElementById('goBackToInitialScreenButton'),
-                };
+                const ids = [
+                    'loginScreen', 'passwordInput', 'loginForm', 'initialScreen', 'adminDashboard', 'monthlyIncome', 
+                    'monthlyExpenses', 'totalBalance', 'mainButtons', 'goToFormButton', 'goToHistoryButton', 
+                    'goToSearchButton', 'goToWinnerButton', 'goToBankButton', 'goToExpenseButton', 'goToBalanceButton', 
+                    'logoutButton', 'formScreen', 'formTitle', 'dataForm', 'fecha', 'vendedor', 'bonoNro1', 'bonoNro2', 
+                    'nombre', 'telefono', 'tipoPago', 'cuotas', 'formActions', 'liveSummaryContainer', 
+                    'liveSummaryPagination', 'liveSummaryTotals', 'sessionActions', 'confirmAllButton', 'clearAllButton', 
+                    'goBackToInitialScreenButton', 'historyScreen', 'historyListContainer', 
+                    'historyLoadMoreContainer', 'winnerScreen', 'findWinnerButton', 'winnerResultContainer', 
+                    'downloadWinnerPdfButton', 'searchScreen', 'bonoSearchInput1', 'bonoSearchInput2', 'searchBonoButton', 
+                    'searchResultContainer', 'downloadSearchPdfButton', 'balanceScreen', 'balanceListContainer', 
+                    'balanceSummaryContainer', 'downloadBalancePdfButton', 'bankScreen', 'bankForm', 'bankFormTitle', 
+                    'bankDate', 'bankAmount', 'bankType', 'bankFormActions', 'bankDepositsListContainer', 'expenseScreen', 
+                    'expenseForm', 'expenseFormTitle', 'expenseDate', 'expenseDescription', 'expenseAmount', 
+                    'expenseType', 'expenseFormActions', 'expenseListContainer', 'toastContainer', 'loadingIndicator', 
+                    'vendedoresList', 'dateConfirmModal', 'dateConfirmTitle', 'modalDateInput', 'confirmDateButton', 
+                    'cancelDateButton', 'confirmAllModal', 'finalConfirmationData', 'saveAndFinishButton', 
+                    'goBackToFormButton', 'deleteConfirmModal', 'deleteConfirmMessage', 'cancelDeleteButton', 
+                    'confirmDeleteButton', 'historyGoBackButton', 'winnerGoBackButton', 'searchGoBackButton',
+                    'balanceGoBackButton', 'bankGoBackButton', 'expenseGoBackButton', 'cancelBankEditButton', 'cancelExpenseEditButton'
+                ];
+                this.dom = {};
+                ids.forEach(id => this.dom[id] = document.getElementById(id));
+                this.dom.screens = document.querySelectorAll('.screen');
+                this.dom.winnerInputs = document.querySelectorAll('.winner-input');
             },
 
             async initializeFirebase() {
-                const firebaseConfig = {
-                    apiKey: "AIzaSyAhV7Ri-DfYSQA_tgbDeSSGtpG74UNC10g",
-                    authDomain: "bonosparroquia-30762.firebaseapp.com",
-                    projectId: "bonosparroquia-30762",
-                    storageBucket: "bonosparroquia-30762.appspot.com",
-                    messagingSenderId: "24790926044",
-                    appId: "1:24790926044:web:a4ee95475ba61c133baa19"
-                };
+                // These global variables are expected to be injected by the environment.
+                this.state.appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const firebaseConfig = typeof __firebase_config !== 'undefined' 
+                    ? JSON.parse(__firebase_config)
+                    : { // Fallback for local testing
+                        apiKey: "AIzaSyAhV7Ri-DfYSQA_tgbDeSSGtpG74UNC10g",
+                        authDomain: "bonosparroquia-30762.firebaseapp.com",
+                        projectId: "bonosparroquia-30762",
+                        storageBucket: "bonosparroquia-30762.appspot.com",
+                        messagingSenderId: "24790926044",
+                        appId: "1:24790926044:web:a4ee95475ba61c133baa19"
+                    };
+
                 const app = initializeApp(firebaseConfig);
                 this.state.db = getFirestore(app);
                 this.state.auth = getAuth(app);
 
                 try {
                     await enableIndexedDbPersistence(this.state.db);
-                    console.log("Persistencia offline habilitada.");
                 } catch (err) {
-                    if (err.code == 'failed-precondition') {
-                        console.warn("Múltiples pestañas abiertas, la persistencia offline solo se puede habilitar en una.");
-                    } else if (err.code == 'unimplemented') {
-                        console.warn("El navegador actual no soporta la persistencia offline.");
-                    }
+                    console.warn("Firebase offline persistence error:", err.code);
                 }
 
-                onAuthStateChanged(this.state.auth, (user) => {
+                onAuthStateChanged(this.state.auth, user => {
+                    UI.showLoading(false);
                     if (user) {
                         this.state.userId = user.uid;
-                        this.dom.authError.classList.add('hidden');
-                        this.dom.mainButtons.classList.remove('hidden');
-                        this.loadHistoryFromFirestore();
-                        this.loadBankDepositsFromFirestore();
-                        this.loadExpensesFromFirestore();
+                        this.attachDataListeners();
                     } else {
-                        this.state.userId = null;
-                        this.showLoading(false);
+                        this.detachDataListeners();
+                        this.logout();
                     }
                 });
 
                 try {
-                    await signInAnonymously(this.state.auth);
-                } catch (error) {
-                    this.showLoading(false);
-                    if (error.code === 'auth/configuration-not-found') {
-                        const errorMessage = `<h4 class="font-bold text-lg mb-2">Error de Configuración</h4><p>El inicio de sesión anónimo no está habilitado. Por favor, actívalo en la Consola de Firebase.</p>`;
-                        this.dom.mainButtons.classList.add('hidden');
-                        this.dom.authError.innerHTML = errorMessage;
-                        this.dom.authError.classList.remove('hidden');
+                    const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                    if (token) {
+                         await signInWithCustomToken(this.state.auth, token);
                     } else {
-                        console.error("Error signing in anonymously:", error);
-                        this.dom.authError.textContent = "Ocurrió un error inesperado al conectar.";
-                        this.dom.authError.classList.remove('hidden');
+                         await signInAnonymously(this.state.auth);
                     }
+                } catch (error) {
+                    console.error("Firebase sign-in error:", error);
+                    UI.showLoading(false);
+                    UI.showToast('Error de autenticación con Firebase.', 'error');
                 }
             },
 
             bindEvents() {
-                this.dom.loginForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleLogin(this.dom.passwordInput.value); });
-                document.getElementById('goToFormButton').addEventListener('click', () => this.promptForDate('bono'));
-                document.getElementById('goToHistoryButton').addEventListener('click', () => this.showHistoryScreen());
-                document.getElementById('goToWinnerButton').addEventListener('click', () => this.showScreen('winnerScreen'));
-                document.getElementById('goToSearchButton').addEventListener('click', () => this.showScreen('searchScreen'));
-                document.getElementById('goToBankButton').addEventListener('click', () => this.promptForDate('banco'));
+                // --- Navigation ---
+                this.dom.loginForm.addEventListener('submit', (e) => { e.preventDefault(); this.login(this.dom.passwordInput.value); });
+                this.dom.logoutButton.addEventListener('click', () => this.logout());
+                this.dom.goToFormButton.addEventListener('click', () => this.promptForDate('bono'));
+                this.dom.goToHistoryButton.addEventListener('click', () => this.showHistoryScreen());
+                this.dom.goToSearchButton.addEventListener('click', () => this.showScreen('searchScreen'));
+                this.dom.goToWinnerButton.addEventListener('click', () => this.showScreen('winnerScreen'));
+                this.dom.goToBankButton.addEventListener('click', () => this.showBankScreen());
                 this.dom.goToExpenseButton.addEventListener('click', () => this.showExpenseScreen());
                 this.dom.goToBalanceButton.addEventListener('click', () => this.showBalanceScreen());
-                this.dom.logoutButton.addEventListener('click', () => this.logout());
+                
+                // --- "Go Back" Buttons ---
+                const backButtons = ['historyGoBackButton', 'winnerGoBackButton', 'searchGoBackButton', 'balanceGoBackButton', 'bankGoBackButton', 'expenseGoBackButton', 'goBackToInitialScreenButton'];
+                backButtons.forEach(id => this.dom[id].addEventListener('click', () => this.showScreen('initialScreen')));
+
+                // --- Form Screen ---
                 this.dom.dataForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleAddOrUpdateRecord(); });
-                this.dom.saveAndFinishButton.addEventListener('click', () => this.handleSaveAndFinish());
-                this.dom.goBackToFormButton.addEventListener('click', () => this.dom.confirmAllModal.classList.add('hidden'));
-                document.getElementById('cancelDeleteButton').addEventListener('click', () => this.dom.deleteConfirmModal.classList.add('hidden'));
-                document.getElementById('confirmDeleteButton').addEventListener('click', () => this.deleteItem());
-                this.dom.findWinnerButton.addEventListener('click', () => this.findWinner());
-                this.dom.downloadWinnerPdfButton.addEventListener('click', () => this.downloadWinnerPDF());
-                this.dom.searchBonoButton.addEventListener('click', () => this.findBono());
-                this.dom.downloadSearchPdfButton.addEventListener('click', () => this.downloadSearchPDF());
-                this.dom.downloadBalancePdfButton.addEventListener('click', () => this.downloadBalancePDF());
-                this.dom.bankForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleBankFormSubmit(); });
-                this.dom.expenseForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleExpenseFormSubmit(); });
-                this.dom.confirmDateButton.addEventListener('click', () => this.handleDateConfirm());
-                this.dom.cancelDateButton.addEventListener('click', () => this.dom.dateConfirmModal.classList.add('hidden'));
                 this.dom.confirmAllButton.addEventListener('click', () => this.handleConfirmAll());
                 this.dom.clearAllButton.addEventListener('click', () => this.handleClearAll());
-                this.dom.goBackToInitialScreenButton.addEventListener('click', () => this.showScreen('initialScreen'));
-            },
+                
+                // --- Modals ---
+                this.dom.confirmDateButton.addEventListener('click', () => this.handleDateConfirm());
+                this.dom.cancelDateButton.addEventListener('click', () => this.dom.dateConfirmModal.classList.add('hidden'));
+                this.dom.saveAndFinishButton.addEventListener('click', () => this.handleSaveAndFinish());
+                this.dom.goBackToFormButton.addEventListener('click', () => this.dom.confirmAllModal.classList.add('hidden'));
+                this.dom.confirmDeleteButton.addEventListener('click', () => this.deleteItem());
+                this.dom.cancelDeleteButton.addEventListener('click', () => this.dom.deleteConfirmModal.classList.add('hidden'));
 
-            // --- AUTH & NAVIGATION ---
-            handleLogin(password) {
+                // --- Feature Screens ---
+                this.dom.findWinnerButton.addEventListener('click', () => this.findWinners());
+                this.dom.searchBonoButton.addEventListener('click', () => this.searchBonos());
+                this.dom.bankForm.addEventListener('submit', e => { e.preventDefault(); this.handleBankSubmit(); });
+                this.dom.expenseForm.addEventListener('submit', e => { e.preventDefault(); this.handleExpenseSubmit(); });
+                this.dom.cancelBankEditButton.addEventListener('click', () => this.cancelBankEdit());
+                this.dom.cancelExpenseEditButton.addEventListener('click', () => this.cancelExpenseEdit());
+
+                // --- PDF Downloads ---
+                this.dom.downloadWinnerPdfButton.addEventListener('click', () => this.downloadWinnerPDF());
+                this.dom.downloadSearchPdfButton.addEventListener('click', () => this.downloadSearchPDF());
+                this.dom.downloadBalancePdfButton.addEventListener('click', () => this.downloadBalancePDF());
+            },
+            
+            // AUTH & DATA LISTENERS
+            login(password, isAutoLogin = false) {
                 const key = password.toLowerCase().trim();
-                const validUsers = ['javier', 'ana', 'adan', 'jose'];
-                if (validUsers.includes(key)) {
+                const validUsers = {
+                    'javier': 'user', 'ana': 'user', 
+                    'adan': 'admin', 'jose': 'admin'
+                };
+                if (validUsers[key]) {
                     localStorage.setItem('currentUser', key);
-                    this.login(key);
+                    this.state.currentUser = key;
                     this.dom.passwordInput.value = '';
-                } else {
-                    this.showToast('Clave incorrecta.', 'error');
+                    this.showScreen('initialScreen');
+                    this.updateUIForUser();
+                    if (!isAutoLogin) UI.showToast(`Bienvenido ${key}!`, 'success');
+                } else if (!isAutoLogin) {
+                    UI.showToast('Clave incorrecta.', 'error');
                 }
-            },
-
-            login(userName) {
-                this.state.currentUser = userName.toLowerCase();
-                this.showScreen('initialScreen');
             },
 
             logout() {
                 this.state.currentUser = null;
                 localStorage.removeItem('currentUser');
                 this.showScreen('loginScreen');
-            },
-
-            showScreen(screenId) {
-                this.dom.screens.forEach(s => s.classList.remove('active-screen'));
-                document.getElementById(screenId).classList.add('active-screen');
-                if (screenId === 'initialScreen') {
-                    this.updateUIForUser();
-                }
+                this.detachDataListeners();
             },
 
             updateUIForUser() {
                 const user = this.state.currentUser;
                 const isAdmin = user === 'adan' || user === 'jose';
-                this.dom.goToBalanceButton.style.display = isAdmin ? 'block' : 'none';
-                this.dom.goToExpenseButton.style.display = isAdmin ? 'block' : 'none';
-                this.dom.adminDashboard.style.display = isAdmin ? 'block' : 'none';
+                const adminElements = ['goToBalanceButton', 'goToExpenseButton', 'adminDashboard', 'goToBankButton'];
+                adminElements.forEach(id => this.dom[id].style.display = isAdmin ? 'block' : 'none');
                 if (isAdmin) {
-                    this.updateDashboard();
+                    this.updateAdminDashboard();
                 }
             },
 
-            // --- NEW DATA ENTRY WORKFLOW (REESTRUCTURADO) ---
+            attachDataListeners() {
+                if (!this.state.db || !this.state.appId) return;
+                this.detachDataListeners(); // Prevent duplicates
+
+                const basePath = `artifacts/${this.state.appId}/public/data`;
+
+                const sessionsQuery = query(collection(this.state.db, `${basePath}/sessions`), orderBy("createdAt", "desc"));
+                this.state.unsubscribeSessions = onSnapshot(sessionsQuery, (snapshot) => {
+                    const sessionsPromises = snapshot.docs.map(async (docSnap) => {
+                        const sessionData = { id: docSnap.id, ...docSnap.data(), records: [] };
+                        const recordsSnapshot = await getDocs(collection(docSnap.ref, 'records'));
+                        sessionData.records = recordsSnapshot.docs.map(d => ({ recordId: d.id, ...d.data() }));
+                        return sessionData;
+                    });
+                    Promise.all(sessionsPromises).then(sessions => {
+                        this.state.allSessions = sessions;
+                        this.updateAdminDashboard();
+                        this.populateVendedoresList();
+                    });
+                }, error => console.error("Session listener error:", error));
+
+                const bankQuery = query(collection(this.state.db, `${basePath}/bank`), orderBy("date", "desc"));
+                this.state.unsubscribeBank = onSnapshot(bankQuery, (snapshot) => {
+                    this.state.bankDeposits = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    this.renderBankList();
+                    this.updateAdminDashboard();
+                }, error => console.error("Bank listener error:", error));
+
+                const expensesQuery = query(collection(this.state.db, `${basePath}/expenses`), orderBy("date", "desc"));
+                this.state.unsubscribeExpenses = onSnapshot(expensesQuery, (snapshot) => {
+                    this.state.expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    this.renderExpenseList();
+                    this.updateAdminDashboard();
+                }, error => console.error("Expense listener error:", error));
+            },
+
+            detachDataListeners() {
+                if (this.state.unsubscribeSessions) this.state.unsubscribeSessions();
+                if (this.state.unsubscribeBank) this.state.unsubscribeBank();
+                if (this.state.unsubscribeExpenses) this.state.unsubscribeExpenses();
+            },
+
+            updateAdminDashboard() {
+                if (!this.state.currentUser || (this.state.currentUser !== 'adan' && this.state.currentUser !== 'jose')) return;
+                
+                const now = new Date();
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
+
+                let monthlyIncome = 0;
+                this.state.allSessions.forEach(session => {
+                    const sessionDate = new Date(session.rawDate + 'T00:00:00');
+                    if (sessionDate.getMonth() === currentMonth && sessionDate.getFullYear() === currentYear) {
+                        monthlyIncome += session.totalAmount;
+                    }
+                });
+
+                const monthlyExpenses = this.state.expenses
+                    .filter(exp => {
+                        const expDate = new Date(exp.date + 'T00:00:00');
+                        return expDate.getMonth() === currentMonth && expDate.getFullYear() === currentYear;
+                    })
+                    .reduce((acc, exp) => acc + Number(exp.amount), 0);
+
+                const totalIncome = this.state.allSessions.reduce((acc, s) => acc + s.totalAmount, 0);
+                const totalExpenses = this.state.expenses.reduce((acc, e) => acc + Number(e.amount), 0);
+                const totalBalance = totalIncome - totalExpenses;
+
+                this.dom.monthlyIncome.textContent = Utils.formatCurrency(monthlyIncome);
+                this.dom.monthlyExpenses.textContent = Utils.formatCurrency(monthlyExpenses);
+                this.dom.totalBalance.textContent = Utils.formatCurrency(totalBalance);
+                this.dom.totalBalance.style.color = totalBalance >= 0 ? '#16a34a' : '#dc2626';
+            },
+            
+            populateVendedoresList() {
+                const vendedores = new Set(this.state.allSessions.flatMap(s => s.records.map(r => r.vendedor)));
+                this.dom.vendedoresList.innerHTML = '';
+                vendedores.forEach(v => {
+                    const option = document.createElement('option');
+                    option.value = v;
+                    this.dom.vendedoresList.appendChild(option);
+                });
+            },
+
+            // --- FORM WORKFLOW ---
+            promptForDate(type) { 
+                this.state.datePromptType = type;
+                this.dom.modalDateInput.value = Utils.getCurrentDateFormattedForInput();
+                this.dom.dateConfirmTitle.textContent = type === 'bono' ? 'Confirmar Fecha de Carga' : 'Confirmar Fecha';
+                this.dom.dateConfirmModal.classList.remove('hidden');
+            },
+
+            handleDateConfirm() {
+                const selectedDate = this.dom.modalDateInput.value;
+                if (!selectedDate) {
+                    UI.showToast('Por favor, seleccione una fecha.', 'error');
+                    return;
+                }
+                if (this.state.datePromptType === 'bono') {
+                    this.startNewSession(selectedDate);
+                }
+                this.dom.dateConfirmModal.classList.add('hidden');
+                this.state.datePromptType = null;
+            },
 
             startNewSession(date) {
                 this.state.currentSessionRecords = [];
                 this.state.recordToEditIndex = null;
+                this.state.sessionToEditId = null;
                 this.state.liveSummaryPage = 1;
                 this.dom.dataForm.reset();
-                document.getElementById('fecha').value = date;
+                this.dom.fecha.value = date;
                 this.renderLiveSummary();
                 this.setFormMode('add');
                 this.showScreen('formScreen');
             },
 
-            setFormMode(mode) {
+            setFormMode(mode, clearVendedor = true) {
+                const formActions = this.dom.formActions;
                 if (mode === 'add') {
                     this.dom.formTitle.textContent = 'Cargar Datos del Bono';
-                    this.dom.formActions.innerHTML = `
-                        <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-indigo-500 to-indigo-700 hover:from-indigo-600 hover:to-indigo-800 rounded-lg">Cargar Otro</button>
-                        <button type="button" onclick="App.clearForm()" class="w-full px-4 py-3 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Borrar Campos</button>
+                    formActions.innerHTML = `
+                        <button type="submit" class="px-4 py-3 font-semibold text-white bg-gradient-to-r from-indigo-500 to-indigo-700 hover:from-indigo-600 hover:to-indigo-800 rounded-lg">Cargar Otro</button>
+                        <button type="button" id="clearFormFieldsButton" class="px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Borrar</button>
                     `;
-                } else if (mode === 'edit') {
+                    document.getElementById('clearFormFieldsButton').addEventListener('click', () => this.clearForm(true));
+                    this.clearForm(clearVendedor);
+                } else { // edit mode
                     this.dom.formTitle.textContent = 'Modificando Registro';
-                    this.dom.formActions.innerHTML = `
-                        <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 rounded-lg">Guardar Cambios</button>
-                        <button type="button" onclick="App.cancelEdit()" class="w-full px-4 py-3 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Cancelar</button>
+                    formActions.innerHTML = `
+                        <button type="submit" class="px-4 py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 rounded-lg">Guardar Cambios</button>
+                        <button type="button" id="cancelEditButton" class="px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Cancelar</button>
                     `;
+                    document.getElementById('cancelEditButton').addEventListener('click', () => this.cancelEdit());
                 }
             },
-            
+
             handleAddOrUpdateRecord() {
                 const formData = new FormData(this.dom.dataForm);
                 const record = Object.fromEntries(formData.entries());
-
-                // Basic validation
                 if (!record.bonoNro1 || !record.bonoNro2 || !record.nombre || !record.telefono) {
-                    this.showToast('Por favor, complete todos los campos requeridos.', 'error');
+                    UI.showToast('Por favor, complete todos los campos requeridos.', 'error');
                     return;
                 }
-                const phoneRegex = /^\d{6,12}$/;
-                if (!phoneRegex.test(record.telefono)) {
-                    this.showToast('Teléfono inválido (6-12 dígitos).', 'error');
+                if (!/^\d{6,14}$/.test(record.telefono.replace(/\s+/g, ''))) {
+                    UI.showToast('Teléfono inválido (debe contener entre 6 y 14 dígitos).', 'error');
                     return;
                 }
                 
                 if (this.state.recordToEditIndex !== null) {
-                    // Update existing record
                     this.state.currentSessionRecords[this.state.recordToEditIndex] = record;
-                    this.showToast('Registro modificado en el resumen.');
+                    UI.showToast('Registro modificado en el resumen.', 'info');
                     this.state.recordToEditIndex = null;
-                    this.setFormMode('add');
+                    this.setFormMode('add', false);
                 } else {
-                    // Add new record
                     this.state.currentSessionRecords.push(record);
                     this.state.liveSummaryPage = Math.ceil(this.state.currentSessionRecords.length / this.state.recordsPerPage);
-                    this.showToast('Bono añadido al resumen.');
+                    UI.showToast('Bono añadido al resumen.', 'success');
+                    this.setFormMode('add', false);
                 }
-
                 this.renderLiveSummary();
-                this.clearForm(false); // Clear form but keep date and vendedor
             },
-
-            clearForm(clearAll = true) {
-                const currentDate = document.getElementById('fecha').value;
-                const currentVendedor = document.getElementById('vendedor').value;
+            
+            clearForm(clearVendedor = true) {
+                const currentDate = this.dom.fecha.value;
+                const currentVendedor = this.dom.vendedor.value;
                 this.dom.dataForm.reset();
-                document.getElementById('fecha').value = currentDate;
-                if (!clearAll) {
-                    document.getElementById('vendedor').value = currentVendedor;
+                this.dom.fecha.value = currentDate;
+                if (!clearVendedor) {
+                    this.dom.vendedor.value = currentVendedor;
                 }
-                document.getElementById('bonoNro1').focus();
+                this.dom.bonoNro1.focus();
             },
 
             renderLiveSummary() {
-                this.dom.liveSummaryContainer.innerHTML = '';
+                const container = this.dom.liveSummaryContainer;
+                container.innerHTML = '';
                 this.dom.liveSummaryPagination.innerHTML = '';
-                let subtotal = 0;
-                let totalEfectivo = 0;
+                let subtotal = 0, totalEfectivo = 0;
 
                 if (this.state.currentSessionRecords.length === 0) {
-                    this.dom.liveSummaryContainer.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">Aún no hay bonos en esta carga.</p>';
+                    container.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">Aún no hay bonos en esta carga.</p>';
                     this.dom.liveSummaryTotals.innerHTML = '';
                     return;
                 }
 
-                // Pagination logic
                 const page = this.state.liveSummaryPage;
                 const recordsPerPage = this.state.recordsPerPage;
                 const startIndex = (page - 1) * recordsPerPage;
-                const endIndex = startIndex + recordsPerPage;
-                const paginatedRecords = this.state.currentSessionRecords.slice(startIndex, endIndex);
+                const paginatedRecords = this.state.currentSessionRecords.slice(startIndex, startIndex + recordsPerPage);
 
                 paginatedRecords.forEach((record, index) => {
                     const originalIndex = startIndex + index;
                     const monto = record.cuotas == 1 ? 15000 : 30000;
-                    
                     const recordDiv = document.createElement('div');
                     recordDiv.className = 'p-3 border dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 grid grid-cols-[1fr_auto] gap-2 items-center';
                     recordDiv.innerHTML = `
                         <div>
                             <p class="font-bold text-indigo-700 dark:text-indigo-400">${record.nombre}</p>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Bonos: ${record.bonoNro1}-${record.bonoNro2} | ${this.formatCurrency(monto)}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Bonos: ${record.bonoNro1}-${record.bonoNro2} | ${Utils.formatCurrency(monto)}</p>
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="App.editRecordFromSummary(${originalIndex})" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button>
-                            <button onclick="App.promptDeleteItem(null, 'summaryRecord', ${originalIndex})" class="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Eliminar</button>
-                        </div>
-                    `;
-                    this.dom.liveSummaryContainer.appendChild(recordDiv);
+                            <button data-index="${originalIndex}" class="edit-summary-btn text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button>
+                            <button data-index="${originalIndex}" class="delete-summary-btn text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Eliminar</button>
+                        </div>`;
+                    container.appendChild(recordDiv);
                 });
 
-                // Calculate totals for the entire session, not just the page
+                container.querySelectorAll('.edit-summary-btn').forEach(btn => btn.addEventListener('click', (e) => this.editRecordFromSummary(parseInt(e.target.dataset.index))));
+                container.querySelectorAll('.delete-summary-btn').forEach(btn => btn.addEventListener('click', (e) => this.promptDeleteItem(null, 'summaryRecord', parseInt(e.target.dataset.index))));
+
                 this.state.currentSessionRecords.forEach(record => {
                     const monto = record.cuotas == 1 ? 15000 : 30000;
                     subtotal += monto;
                     if (record.tipoPago === 'Efectivo') totalEfectivo += monto;
                 });
+                this.dom.liveSummaryTotals.innerHTML = `<p>Subtotal: <span class="font-bold">${Utils.formatCurrency(subtotal)}</span></p><p class="text-green-700 dark:text-green-400">Total Efectivo: <span class="font-bold">${Utils.formatCurrency(totalEfectivo)}</span></p>`;
 
-                this.dom.liveSummaryTotals.innerHTML = `
-                    <p>Subtotal: <span class="font-bold">${this.formatCurrency(subtotal)}</span></p>
-                    <p class="text-green-700 dark:text-green-400">Total Efectivo: <span class="font-bold">${this.formatCurrency(totalEfectivo)}</span></p>
-                `;
-
-                // Render pagination controls
                 const totalPages = Math.ceil(this.state.currentSessionRecords.length / recordsPerPage);
                 if (totalPages > 1) {
-                    this.dom.liveSummaryPagination.innerHTML = `
-                        <button onclick="App.prevPage()" class="px-3 py-1 rounded-md bg-gray-200 dark:bg-gray-600" ${page === 1 ? 'disabled' : ''}>&lt;</button>
-                        <span class="font-semibold text-gray-700 dark:text-gray-300">Página ${page} de ${totalPages}</span>
-                        <button onclick="App.nextPage()" class="px-3 py-1 rounded-md bg-gray-200 dark:bg-gray-600" ${page === totalPages ? 'disabled' : ''}>&gt;</button>
-                    `;
+                    this.dom.liveSummaryPagination.innerHTML = `<button id="prevPageBtn" class="px-3 py-1 rounded-md bg-gray-200 dark:bg-gray-600" ${page === 1 ? 'disabled' : ''}>&lt;</button><span class="font-semibold text-gray-700 dark:text-gray-300">Página ${page} de ${totalPages}</span><button id="nextPageBtn" class="px-3 py-1 rounded-md bg-gray-200 dark:bg-gray-600" ${page === totalPages ? 'disabled' : ''}>&gt;</button>`;
+                    document.getElementById('prevPageBtn').addEventListener('click', () => this.prevPage());
+                    document.getElementById('nextPageBtn').addEventListener('click', () => this.nextPage());
                 }
             },
             
@@ -819,42 +904,26 @@
             editRecordFromSummary(index) {
                 const record = this.state.currentSessionRecords[index];
                 if (!record) return;
-
                 this.state.recordToEditIndex = index;
-                
-                // Populate form
-                document.getElementById('vendedor').value = record.vendedor;
-                document.getElementById('bonoNro1').value = record.bonoNro1;
-                document.getElementById('bonoNro2').value = record.bonoNro2;
-                document.getElementById('nombre').value = record.nombre;
-                document.getElementById('telefono').value = record.telefono;
-                document.getElementById('tipoPago').value = record.tipoPago;
-                document.getElementById('cuotas').value = record.cuotas;
-
+                Object.keys(record).forEach(key => {
+                    if(this.dom.dataForm.elements[key]) this.dom.dataForm.elements[key].value = record[key];
+                });
                 this.setFormMode('edit');
                 window.scrollTo(0, 0);
             },
 
             cancelEdit() {
                 this.state.recordToEditIndex = null;
-                this.clearForm();
-                this.setFormMode('add');
+                this.setFormMode('add', false);
             },
 
             handleConfirmAll() {
                 if (this.state.currentSessionRecords.length === 0) {
-                    this.showToast('No hay bonos en el resumen para guardar.', 'error');
+                    UI.showToast('No hay bonos en el resumen para guardar.', 'error');
                     return;
                 }
-                
-                let subtotal = 0;
-                this.state.currentSessionRecords.forEach(r => subtotal += (r.cuotas == 1 ? 15000 : 30000));
-
-                this.dom.finalConfirmationData.innerHTML = `
-                    <p>Vas a guardar una sesión con <strong>${this.state.currentSessionRecords.length} registros</strong>.</p>
-                    <p>El monto total es de <strong>${this.formatCurrency(subtotal)}</strong>.</p>
-                    <p class="mt-4">¿Estás seguro de que quieres continuar?</p>
-                `;
+                let subtotal = this.state.currentSessionRecords.reduce((acc, r) => acc + (r.cuotas == 1 ? 15000 : 30000), 0);
+                this.dom.finalConfirmationData.innerHTML = `<p>Vas a guardar una sesión con <strong>${this.state.currentSessionRecords.length} registros</strong>.</p><p>El monto total es de <strong>${Utils.formatCurrency(subtotal)}</strong>.</p><p class="mt-4">¿Estás seguro?</p>`;
                 this.dom.confirmAllModal.classList.remove('hidden');
             },
 
@@ -862,7 +931,7 @@
                 if (this.state.currentSessionRecords.length > 0) {
                     this.promptDeleteItem(null, 'clearAllSummary');
                 } else {
-                    this.showToast('El resumen ya está vacío.', 'error');
+                    UI.showToast('El resumen ya está vacío.', 'info');
                 }
             },
 
@@ -870,871 +939,641 @@
                 this.dom.confirmAllModal.classList.add('hidden');
                 this.saveSessionToFirestore();
             },
-
-            // --- FIRESTORE & DATA HANDLING ---
-            loadHistoryFromFirestore() {
-                if (this.state.unsubscribeHistory) this.state.unsubscribeHistory();
-                const sessionsColRef = collection(this.state.db, "sessions");
-                this.showLoading(true);
-                this.state.unsubscribeHistory = onSnapshot(query(sessionsColRef), async (snapshot) => {
-                    const sessionsPromises = snapshot.docs.map(async (docSnap) => {
-                        const sessionDocData = docSnap.data();
-                        const sessionData = { 
-                            id: docSnap.id, 
-                            records: [], 
-                            rawDate: sessionDocData.rawDate 
-                        };
-                        const recordsColRef = collection(docSnap.ref, 'records');
-                        const recordsSnapshot = await getDocs(recordsColRef);
-                        sessionData.records = recordsSnapshot.docs.map(d => Object.assign({recordId: d.id}, d.data()));
-                        return sessionData;
-                    });
-                    this.state.allSessions = await Promise.all(sessionsPromises);
-                    this.updateVendedoresList();
-                    this.showLoading(false);
-                    if (document.getElementById('historyScreen').classList.contains('active-screen')) {
-                        this.showHistoryScreen();
-                    }
-                    this.updateDashboard();
-                }, (error) => {
-                    console.error("Error listening to history changes:", error);
-                    this.showLoading(false);
-                });
+            
+            // --- HISTORY SCREEN ---
+            async showHistoryScreen() {
+                this.state.historyLastVisible = null;
+                this.state.historyAllLoaded = false;
+                this.dom.historyListContainer.innerHTML = '';
+                this.dom.historyLoadMoreContainer.innerHTML = '';
+                this.showScreen('historyScreen');
+                await this.loadMoreHistory();
             },
 
-            async saveSessionToFirestore() {
-                if (this.state.currentSessionRecords.length === 0) return;
-                this.showLoading(true);
-                const rawDate = this.state.currentSessionRecords[0].fecha;
-                const sessionId = this.formatDateForId(rawDate, true);
-                const sessionDocRef = doc(this.state.db, "sessions", sessionId);
-                const recordsColRef = collection(sessionDocRef, 'records');
-                try {
-                    const batch = writeBatch(this.state.db);
-                    batch.set(sessionDocRef, { id: this.formatDateForId(rawDate), rawDate: rawDate, lastUpdated: new Date() }, { merge: true });
-                    this.state.currentSessionRecords.forEach(record => {
-                        const newRecordRef = doc(recordsColRef);
-                        batch.set(newRecordRef, record);
-                    });
-                    await batch.commit();
-                    this.displayDetailsScreen(this.state.currentSessionRecords, 'new');
-                    this.showToast('Carga finalizada y guardada con éxito.');
-                } catch (error) {
-                    console.error("Error saving session to Firestore: ", error);
-                    this.showToast('Error al guardar la carga.', 'error');
-                } finally {
-                    this.showLoading(false);
+            async loadMoreHistory() {
+                if (this.state.historyAllLoaded) return;
+                UI.showLoading(true);
+
+                const basePath = `artifacts/${this.state.appId}/public/data`;
+                const sessionsColRef = collection(this.state.db, `${basePath}/sessions`);
+                const constraints = [orderBy("createdAt", "desc"), limit(10)];
+                if (this.state.historyLastVisible) {
+                    constraints.push(startAfter(this.state.historyLastVisible));
                 }
-            },
+                const q = query(sessionsColRef, ...constraints);
+                
+                try {
+                    const snapshot = await getDocs(q);
+                    UI.showLoading(false);
 
-            showLoading(isLoading) {
-                this.dom.loadingIndicator.classList.toggle('hidden', !isLoading);
+                    const newSessions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    
+                    if (newSessions.length > 0) {
+                        this.renderHistoryList(newSessions, true); // Append new sessions
+                        this.state.historyLastVisible = snapshot.docs[snapshot.docs.length - 1];
+                    }
+                    
+                    if (snapshot.empty || newSessions.length < 10) {
+                        this.state.historyAllLoaded = true;
+                        this.dom.historyLoadMoreContainer.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">Fin de los registros.</p>';
+                    } else {
+                        this.dom.historyLoadMoreContainer.innerHTML = '<button id="loadMoreHistoryBtn" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 rounded-lg">Cargar Más</button>';
+                        document.getElementById('loadMoreHistoryBtn').addEventListener('click', () => this.loadMoreHistory());
+                    }
+                } catch (error) {
+                    console.error("Error loading history:", error);
+                    UI.showToast('Error al cargar el historial.', 'error');
+                    UI.showLoading(false);
+                }
             },
             
-            showHistoryScreen() {
-                this.dom.historyListContainer.innerHTML = '';
-                if (this.state.allSessions.length === 0) {
-                    this.dom.historyListContainer.innerHTML = '<p class="text-center text-gray-500">No hay cargas guardadas.</p>';
-                } else {
-                    const sortedSessions = [...this.state.allSessions].sort((a, b) => (a.rawDate || this.parseIdToDate(a.id)).localeCompare(b.rawDate || this.parseIdToDate(b.id))).reverse();
-                    sortedSessions.forEach(session => {
-                        const displayId = session.id.replace(/-/g, '/');
-                        const sessionDiv = document.createElement('div');
-                        sessionDiv.className = 'flex justify-between items-center p-3 bg-gray-100 dark:bg-gray-700 rounded-lg border dark:border-gray-600';
-                        sessionDiv.innerHTML = `<span class="font-semibold text-gray-800 dark:text-gray-200">Carga del ${displayId}</span><div class="flex gap-2"><button onclick="App.editSession('${session.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.promptDeleteItem('${session.id}', 'session')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button><button onclick="App.downloadSessionPDF('${session.id}')" class="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">PDF</button></div>`;
-                        this.dom.historyListContainer.appendChild(sessionDiv);
-                    });
+            renderHistoryList(sessionsToRender, append = false) {
+                if (!append) {
+                    this.dom.historyListContainer.innerHTML = '';
                 }
-                this.showScreen('historyScreen');
-            },
-
-            displayDetailsScreen(records, mode = 'new') {
-                this.dom.detailsListContainer.innerHTML = '';
-                this.dom.summaryContainer.innerHTML = '';
-                if (!records || records.length === 0) {
-                    this.dom.detailsListContainer.innerHTML = '<p class="text-center text-gray-500">No hay registros.</p>';
+                if (this.dom.historyListContainer.innerHTML === '' && sessionsToRender.length === 0) {
+                    this.dom.historyListContainer.innerHTML = '<p class="text-center text-gray-500">No hay cargas guardadas.</p>';
                     return;
                 }
-                let subtotal = 0, totalEfectivo = 0;
-                records.forEach((data, index) => {
-                    const monto = data.cuotas == 1 ? 15000 : 30000;
-                    subtotal += monto;
-                    if (data.tipoPago === 'Efectivo') totalEfectivo += monto;
-                    const detailDiv = document.createElement('div');
-                    detailDiv.className = 'p-3 mb-2 border dark:border-gray-700 rounded-md bg-white dark:bg-gray-700 grid grid-cols-1 gap-2 items-center';
-                    detailDiv.innerHTML = `<div><p class="font-bold text-indigo-700 dark:text-indigo-400">${data.nombre}</p><p class="text-sm text-gray-600 dark:text-gray-400">Bonos: ${data.bonoNro1}-${data.bonoNro2} | ${data.tipoPago}</p></div><p class="text-right font-semibold text-gray-800 dark:text-gray-200">${this.formatCurrency(monto)}</p>${mode === 'edit' ? `<div class="text-right flex gap-2 justify-end"><button onclick="App.editRecordFromSession(${index})" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.deleteRecordFromSession(${index})" class="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Eliminar</button></div>` : ''}`;
-                    this.dom.detailsListContainer.appendChild(detailDiv);
+                
+                sessionsToRender.forEach(session => {
+                    const displayDate = Utils.formatDateForDisplay(session.rawDate);
+                    const sessionDiv = document.createElement('div');
+                    sessionDiv.className = 'flex justify-between items-center p-3 bg-gray-100 dark:bg-gray-700 rounded-lg border dark:border-gray-600';
+                    sessionDiv.innerHTML = `
+                        <div>
+                            <span class="font-semibold text-gray-800 dark:text-gray-200">Carga del ${displayDate}</span>
+                            <span class="text-sm text-gray-500 dark:text-gray-400 block">${session.recordCount} bonos - ${Utils.formatCurrency(session.totalAmount)}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button data-id="${session.id}" class="edit-session-btn text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button>
+                            <button data-id="${session.id}" class="delete-session-btn text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button>
+                            <button data-id="${session.id}" class="pdf-session-btn text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">PDF</button>
+                        </div>`;
+                    this.dom.historyListContainer.appendChild(sessionDiv);
                 });
-                this.dom.summaryContainer.innerHTML = `<div class="flex justify-between items-center"><span class="font-medium text-gray-600 dark:text-gray-300">Subtotal:</span><span class="font-bold text-gray-900 dark:text-gray-100">${this.formatCurrency(subtotal)}</span></div><div class="flex justify-between items-center text-green-700 dark:text-green-400"><span class="font-medium">Total (Efectivo):</span><span class="font-bold">${this.formatCurrency(totalEfectivo)}</span></div>`;
-                if (mode === 'new') {
-                    const rawDate = this.state.currentSessionRecords[0].fecha;
-                    this.dom.detailsTitle.textContent = `Detalle de Carga - ${this.formatDateForId(rawDate)}`;
-                    this.dom.detailsActions.innerHTML = `<button onclick="App.downloadSessionPDF(null)" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 rounded-lg">Descargar PDF</button><button onclick="App.promptForDate('bono')" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 rounded-lg">Nueva Carga</button><button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 rounded-lg">Volver al Inicio</button>`;
-                } else if (mode === 'edit') {
-                    this.dom.detailsTitle.textContent = `Modificando Carga del ${this.state.sessionToEditId.replace(/-/g, '/')}`;
-                    this.dom.detailsActions.innerHTML = `<button onclick="App.saveModifiedSession()" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 rounded-lg">Guardar Cambios</button><button onclick="App.showHistoryScreen()" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 rounded-lg">Cancelar</button>`;
+
+                this.dom.historyListContainer.querySelectorAll('.edit-session-btn').forEach(btn => btn.addEventListener('click', (e) => this.editSession(e.target.dataset.id)));
+                this.dom.historyListContainer.querySelectorAll('.delete-session-btn').forEach(btn => btn.addEventListener('click', (e) => this.promptDeleteItem(e.target.dataset.id, 'session')));
+                this.dom.historyListContainer.querySelectorAll('.pdf-session-btn').forEach(btn => btn.addEventListener('click', (e) => this.downloadSessionPDF(e.target.dataset.id)));
+            },
+
+            editSession(sessionId) {
+                const session = this.state.allSessions.find(s => s.id === sessionId);
+                if (!session) {
+                    UI.showToast('No se encontró la sesión para editar.', 'error');
+                    return;
                 }
-                this.showScreen('detailsScreen');
+                this.state.sessionToEditId = sessionId;
+                this.state.currentSessionRecords = JSON.parse(JSON.stringify(session.records)); // Deep copy
+                this.state.recordToEditIndex = null;
+                this.state.liveSummaryPage = 1;
+                this.dom.dataForm.reset();
+                this.dom.fecha.value = session.rawDate;
+                this.renderLiveSummary();
+                this.setFormMode('add');
+                this.showScreen('formScreen');
+            },
+
+            // --- BANK & EXPENSE SCREENS ---
+            showBankScreen() {
+                this.cancelBankEdit();
+                this.dom.bankDate.value = Utils.getCurrentDateFormattedForInput();
+                this.showScreen('bankScreen');
+            },
+
+            renderBankList() {
+                const container = this.dom.bankDepositsListContainer;
+                container.innerHTML = '';
+                if(this.state.bankDeposits.length === 0) {
+                    container.innerHTML = '<p class="text-center text-gray-500">No hay depósitos registrados.</p>';
+                    return;
+                }
+                this.state.bankDeposits.forEach(dep => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'flex justify-between items-center p-3 bg-gray-100 dark:bg-gray-700 rounded-lg border dark:border-gray-600';
+                    itemDiv.innerHTML = `
+                        <div>
+                            <span class="font-semibold text-gray-800 dark:text-gray-200">${Utils.formatCurrency(dep.amount)}</span>
+                            <span class="text-sm text-gray-500 dark:text-gray-400 block">${Utils.formatDateForDisplay(dep.date)} - ${dep.type}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button data-id="${dep.id}" class="edit-bank-btn text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Editar</button>
+                            <button data-id="${dep.id}" class="delete-bank-btn text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Borrar</button>
+                        </div>
+                    `;
+                    container.appendChild(itemDiv);
+                });
+                container.querySelectorAll('.edit-bank-btn').forEach(btn => btn.addEventListener('click', e => this.editBankDeposit(e.target.dataset.id)));
+                container.querySelectorAll('.delete-bank-btn').forEach(btn => btn.addEventListener('click', e => this.promptDeleteItem(e.target.dataset.id, 'bank')));
             },
             
-            editSession(sessionId) {
-                this.state.sessionToEditId = sessionId;
-                const session = this.state.allSessions.find(s => s.id === sessionId);
-                if (session) {
-                    this.state.sessionToEditRawDate = session.rawDate; 
-                    this.state.currentSessionRecords = JSON.parse(JSON.stringify(session.records)); 
-                    this.displayDetailsScreen(this.state.currentSessionRecords, 'edit');
+            async handleBankSubmit() {
+                const formData = new FormData(this.dom.bankForm);
+                const deposit = {
+                    date: formData.get('bankDate'),
+                    amount: Number(formData.get('bankAmount')),
+                    type: formData.get('bankType'),
+                };
+                if (!deposit.date || !deposit.amount || deposit.amount <= 0) {
+                    UI.showToast('Por favor, complete todos los campos del depósito.', 'error');
+                    return;
                 }
-            },
-
-            deleteRecordFromSession(index) {
-                this.state.currentSessionRecords.splice(index, 1);
-                this.displayDetailsScreen(this.state.currentSessionRecords, 'edit');
-            },
-
-            async saveModifiedSession() {
-                this.showLoading(true);
-                const sessionId = this.state.sessionToEditId;
-                const rawDate = this.state.sessionToEditRawDate || this.parseIdToDate(sessionId);
-                const sessionDocRef = doc(this.state.db, "sessions", sessionId);
+                UI.showLoading(true);
+                const basePath = `artifacts/${this.state.appId}/public/data`;
                 try {
-                    const recordsColRef = collection(sessionDocRef, 'records');
-                    const recordsSnapshot = await getDocs(recordsColRef);
-                    const deleteBatch = writeBatch(this.state.db);
-                    recordsSnapshot.forEach(doc => deleteBatch.delete(doc.ref));
-                    await deleteBatch.commit();
-                    if (this.state.currentSessionRecords.length > 0) {
-                        const addBatch = writeBatch(this.state.db);
-                        addBatch.set(sessionDocRef, { id: this.formatDateForId(rawDate), rawDate: rawDate, lastUpdated: new Date() }, { merge: true });
-                        this.state.currentSessionRecords.forEach(record => {
-                            const newRecordRef = doc(recordsColRef);
-                            const recordData = Object.assign({}, record);
-                            delete recordData.recordId;
-                            addBatch.set(newRecordRef, recordData);
-                        });
-                        await addBatch.commit();
+                    if (this.state.depositToEditId) {
+                        await updateDoc(doc(this.state.db, `${basePath}/bank`, this.state.depositToEditId), deposit);
+                        UI.showToast('Depósito actualizado.', 'success');
                     } else {
-                        await deleteDoc(sessionDocRef);
+                        await addDoc(collection(this.state.db, `${basePath}/bank`), deposit);
+                        UI.showToast('Depósito guardado.', 'success');
                     }
-                    this.showToast('Cambios guardados con éxito.');
+                    this.cancelBankEdit();
                 } catch (error) {
-                    console.error("Error modifying session: ", error);
-                    this.showToast('Error al guardar los cambios.', 'error');
+                    console.error("Error saving bank deposit:", error);
+                    UI.showToast('Error al guardar el depósito.', 'error');
                 } finally {
-                    this.showLoading(false);
-                    this.showHistoryScreen();
+                    UI.showLoading(false);
                 }
             },
 
-            promptDeleteItem(id, type, index = null) {
-                this.state.itemToDelete = { id, type, index };
-                if (type === 'summaryRecord') {
-                    this.dom.deleteConfirmMessage.textContent = '¿Seguro que quieres eliminar este registro del resumen?';
-                } else if (type === 'clearAllSummary') {
-                    this.dom.deleteConfirmMessage.textContent = '¿Seguro que quieres borrar todos los registros del resumen actual? Esta acción no se puede deshacer.';
+            editBankDeposit(id) {
+                const deposit = this.state.bankDeposits.find(d => d.id === id);
+                if (!deposit) return;
+                this.state.depositToEditId = id;
+                this.dom.bankFormTitle.textContent = 'Modificar Depósito';
+                this.dom.bankDate.value = deposit.date;
+                this.dom.bankAmount.value = deposit.amount;
+                this.dom.bankType.value = deposit.type;
+                this.dom.cancelBankEditButton.classList.remove('hidden');
+                this.dom.bankForm.querySelector('button[type="submit"]').textContent = 'Guardar Cambios';
+            },
+
+            cancelBankEdit() {
+                this.state.depositToEditId = null;
+                this.dom.bankForm.reset();
+                this.dom.bankDate.value = Utils.getCurrentDateFormattedForInput();
+                this.dom.bankFormTitle.textContent = 'Nuevo Depósito';
+                this.dom.cancelBankEditButton.classList.add('hidden');
+                this.dom.bankForm.querySelector('button[type="submit"]').textContent = 'Confirmar';
+            },
+
+
+            showExpenseScreen() {
+                this.cancelExpenseEdit();
+                this.dom.expenseDate.value = Utils.getCurrentDateFormattedForInput();
+                this.showScreen('expenseScreen');
+            },
+
+            renderExpenseList() {
+                const container = this.dom.expenseListContainer;
+                container.innerHTML = '';
+                if (this.state.expenses.length === 0) {
+                    container.innerHTML = '<p class="text-center text-gray-500">No hay egresos registrados.</p>';
+                    return;
                 }
-                else {
-                    this.dom.deleteConfirmMessage.textContent = 'Esta operación no puede revertirse.';
+                this.state.expenses.forEach(exp => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'flex justify-between items-center p-3 bg-gray-100 dark:bg-gray-700 rounded-lg border dark:border-gray-600';
+                    itemDiv.innerHTML = `
+                        <div>
+                            <span class="font-semibold text-gray-800 dark:text-gray-200">${exp.description} - ${Utils.formatCurrency(exp.amount)}</span>
+                            <span class="text-sm text-gray-500 dark:text-gray-400 block">${Utils.formatDateForDisplay(exp.date)} - ${exp.type}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button data-id="${exp.id}" class="edit-expense-btn text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Editar</button>
+                            <button data-id="${exp.id}" class="delete-expense-btn text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Borrar</button>
+                        </div>
+                    `;
+                    container.appendChild(itemDiv);
+                });
+                container.querySelectorAll('.edit-expense-btn').forEach(btn => btn.addEventListener('click', e => this.editExpense(e.target.dataset.id)));
+                container.querySelectorAll('.delete-expense-btn').forEach(btn => btn.addEventListener('click', e => this.promptDeleteItem(e.target.dataset.id, 'expense')));
+            },
+
+            async handleExpenseSubmit() {
+                const formData = new FormData(this.dom.expenseForm);
+                const expense = {
+                    date: formData.get('expenseDate'),
+                    description: formData.get('expenseDescription'),
+                    amount: Number(formData.get('expenseAmount')),
+                    type: formData.get('expenseType'),
+                };
+                if (!expense.date || !expense.description || !expense.amount || expense.amount <= 0) {
+                    UI.showToast('Por favor, complete todos los campos del egreso.', 'error');
+                    return;
                 }
+                UI.showLoading(true);
+                const basePath = `artifacts/${this.state.appId}/public/data`;
+                try {
+                    if (this.state.expenseToEditId) {
+                        await updateDoc(doc(this.state.db, `${basePath}/expenses`, this.state.expenseToEditId), expense);
+                        UI.showToast('Egreso actualizado.', 'success');
+                    } else {
+                        await addDoc(collection(this.state.db, `${basePath}/expenses`), expense);
+                        UI.showToast('Egreso guardado.', 'success');
+                    }
+                    this.cancelExpenseEdit();
+                } catch (error) {
+                    console.error("Error saving expense:", error);
+                    UI.showToast('Error al guardar el egreso.', 'error');
+                } finally {
+                    UI.showLoading(false);
+                }
+            },
+
+            editExpense(id) {
+                const expense = this.state.expenses.find(e => e.id === id);
+                if (!expense) return;
+                this.state.expenseToEditId = id;
+                this.dom.expenseFormTitle.textContent = 'Modificar Egreso';
+                this.dom.expenseDate.value = expense.date;
+                this.dom.expenseDescription.value = expense.description;
+                this.dom.expenseAmount.value = expense.amount;
+                this.dom.expenseType.value = expense.type;
+                this.dom.cancelExpenseEditButton.classList.remove('hidden');
+                this.dom.expenseForm.querySelector('button[type="submit"]').textContent = 'Guardar Cambios';
+            },
+
+            cancelExpenseEdit() {
+                this.state.expenseToEditId = null;
+                this.dom.expenseForm.reset();
+                this.dom.expenseDate.value = Utils.getCurrentDateFormattedForInput();
+                this.dom.expenseFormTitle.textContent = 'Nuevo Egreso';
+                this.dom.cancelExpenseEditButton.classList.add('hidden');
+                this.dom.expenseForm.querySelector('button[type="submit"]').textContent = 'Confirmar Egreso';
+            },
+
+
+            // --- BALANCE SCREEN ---
+            showBalanceScreen() {
+                const container = this.dom.balanceListContainer;
+                const summaryContainer = this.dom.balanceSummaryContainer;
+                container.innerHTML = '';
+                summaryContainer.innerHTML = '';
+
+                let totalIngresos = 0;
+                let totalEgresos = 0;
+                const allTransactions = [];
+
+                this.state.allSessions.forEach(session => {
+                    const amount = session.totalAmount;
+                    totalIngresos += amount;
+                    allTransactions.push({ date: session.rawDate, description: `Carga de Bonos`, amount: amount, type: 'ingreso' });
+                });
+
+                this.state.expenses.forEach(expense => {
+                    const amount = Number(expense.amount);
+                    totalEgresos += amount;
+                    allTransactions.push({ date: expense.date, description: expense.description, amount: -amount, type: 'egreso' });
+                });
+                
+                // Sort transactions by date
+                allTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                if (allTransactions.length === 0) {
+                    container.innerHTML = '<p class="text-center text-gray-500">No hay transacciones para mostrar.</p>';
+                } else {
+                    allTransactions.forEach(t => {
+                        const itemDiv = document.createElement('div');
+                        const amountColor = t.type === 'ingreso' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
+                        itemDiv.className = 'flex justify-between items-center p-2 border-b dark:border-gray-700';
+                        itemDiv.innerHTML = `
+                            <div>
+                                <p class="font-semibold text-gray-800 dark:text-gray-200">${t.description}</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">${Utils.formatDateForDisplay(t.date)}</p>
+                            </div>
+                            <span class="font-bold ${amountColor}">${Utils.formatCurrency(t.amount)}</span>
+                        `;
+                        container.appendChild(itemDiv);
+                    });
+                }
+
+                const balance = totalIngresos - totalEgresos;
+                const balanceColor = balance >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400';
+                summaryContainer.innerHTML = `
+                    <div class="flex justify-between font-semibold text-green-600 dark:text-green-400"><span>Total Ingresos:</span><span>${Utils.formatCurrency(totalIngresos)}</span></div>
+                    <div class="flex justify-between font-semibold text-red-600 dark:text-red-400"><span>Total Egresos:</span><span>${Utils.formatCurrency(totalEgresos)}</span></div>
+                    <hr class="my-2 border-gray-300 dark:border-gray-600">
+                    <div class="flex justify-between font-bold text-xl ${balanceColor}"><span>Balance Final:</span><span>${Utils.formatCurrency(balance)}</span></div>
+                `;
+                
+                this.showScreen('balanceScreen');
+            },
+
+
+            // --- SEARCH & WINNER ---
+            async findWinners() {
+                UI.showLoading(true);
+                const prizeInputs = Array.from(this.dom.winnerInputs);
+                const numbersToFind = new Set();
+                prizeInputs.forEach(input => {
+                    if (input.value) numbersToFind.add(input.value.padStart(3, '0'));
+                });
+
+                if (numbersToFind.size === 0) {
+                    UI.showToast('Ingrese al menos un número para buscar.', 'error');
+                    UI.showLoading(false);
+                    return;
+                }
+
+                this.state.winnersData = [];
+                for (const session of this.state.allSessions) {
+                    for (const record of session.records) {
+                        if (numbersToFind.has(record.bonoNro1) || numbersToFind.has(record.bonoNro2)) {
+                             this.state.winnersData.push({ ...record, sessionDate: session.rawDate });
+                        }
+                    }
+                }
+                
+                UI.showLoading(false);
+                this.renderWinnerResults();
+            },
+
+            renderWinnerResults() {
+                const container = this.dom.winnerResultContainer;
+                container.innerHTML = '';
+                this.state.winnersData.sort((a,b) => a.bonoNro1 - b.bonoNro1);
+
+                if (this.state.winnersData.length === 0) {
+                    container.innerHTML = '<p class="text-center text-gray-500">No se encontraron ganadores para los números ingresados.</p>';
+                    this.dom.downloadWinnerPdfButton.classList.add('hidden');
+                    return;
+                }
+                
+                this.state.winnersData.forEach(record => {
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'p-3 border-b dark:border-gray-700';
+                    resultDiv.innerHTML = `
+                        <p class="font-bold text-lg text-indigo-700 dark:text-indigo-400">${record.nombre}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Tel: ${record.telefono}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Bonos: <span class="font-semibold">${record.bonoNro1} - ${record.bonoNro2}</span></p>
+                        <p class="text-xs text-gray-500 dark:text-gray-500">Vendedor: ${record.vendedor} | Fecha: ${Utils.formatDateForDisplay(record.sessionDate)}</p>
+                    `;
+                    container.appendChild(resultDiv);
+                });
+                this.dom.downloadWinnerPdfButton.classList.remove('hidden');
+            },
+
+            async searchBonos() {
+                UI.showLoading(true);
+                const num1 = this.dom.bonoSearchInput1.value;
+                const num2 = this.dom.bonoSearchInput2.value;
+
+                if (!num1 && !num2) {
+                    UI.showToast('Ingrese al menos un número para buscar.', 'error');
+                    UI.showLoading(false);
+                    return;
+                }
+
+                const startNum = parseInt(num1 || num2);
+                const endNum = parseInt(num2 || num1);
+                
+                this.state.searchResult = [];
+                for (const session of this.state.allSessions) {
+                    for (const record of session.records) {
+                        const bono1 = parseInt(record.bonoNro1);
+                        const bono2 = parseInt(record.bonoNro2);
+                        if ((bono1 >= startNum && bono1 <= endNum) || (bono2 >= startNum && bono2 <= endNum)) {
+                             this.state.searchResult.push({ ...record, sessionDate: session.rawDate });
+                        }
+                    }
+                }
+                UI.showLoading(false);
+                this.renderSearchResults();
+            },
+
+            renderSearchResults() {
+                const container = this.dom.searchResultContainer;
+                container.innerHTML = '';
+                this.state.searchResult.sort((a,b) => a.bonoNro1 - b.bonoNro1);
+
+                if (this.state.searchResult.length === 0) {
+                    container.innerHTML = '<p class="text-center text-gray-500">No se encontraron bonos en ese rango.</p>';
+                    this.dom.downloadSearchPdfButton.classList.add('hidden');
+                    return;
+                }
+
+                this.state.searchResult.forEach(record => {
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'p-3 border-b dark:border-gray-700';
+                    resultDiv.innerHTML = `
+                        <p class="font-bold text-indigo-700 dark:text-indigo-400">${record.nombre}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Bonos: <span class="font-semibold">${record.bonoNro1} - ${record.bonoNro2}</span> | Tel: ${record.telefono}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-500">Vendedor: ${record.vendedor} | Fecha: ${Utils.formatDateForDisplay(record.sessionDate)}</p>
+                    `;
+                    container.appendChild(resultDiv);
+                });
+                this.dom.downloadSearchPdfButton.classList.remove('hidden');
+            },
+
+            // --- DELETION ---
+            promptDeleteItem(id, type, index = null, subId = null) {
+                this.state.itemToDelete = { id, type, index, subId };
+                let message = '¿Seguro que quieres eliminar esto? Esta operación no puede revertirse.';
+                if (type === 'summaryRecord') message = '¿Seguro que quieres eliminar este registro del resumen?';
+                if (type === 'clearAllSummary') message = '¿Seguro que quieres borrar todos los registros del resumen actual?';
+                if (type === 'session') message = '¿Seguro que quieres eliminar toda la carga de esta fecha? Se borrarán todos sus registros.';
+                if (type === 'bank') message = '¿Seguro que quieres eliminar este depósito?';
+                if (type === 'expense') message = '¿Seguro que quieres eliminar este egreso?';
+                
+                this.dom.deleteConfirmMessage.textContent = message;
                 this.dom.deleteConfirmModal.classList.remove('hidden');
             },
 
             async deleteItem() {
                 const { id, type, index } = this.state.itemToDelete;
                 this.dom.deleteConfirmModal.classList.add('hidden');
+                UI.showLoading(true);
+                const basePath = `artifacts/${this.state.appId}/public/data`;
 
-                if (type === 'summaryRecord' && index !== null) {
-                    this.state.currentSessionRecords.splice(index, 1);
-                    const totalPages = Math.ceil(this.state.currentSessionRecords.length / this.state.recordsPerPage);
-                    if (this.state.liveSummaryPage > totalPages) {
-                        this.state.liveSummaryPage = totalPages > 0 ? totalPages : 1;
-                    }
-                    this.renderLiveSummary();
-                    this.showToast('Registro eliminado del resumen.');
-                    this.state.itemToDelete = { id: null, type: null, index: null };
-                    return;
-                }
-                
-                if (type === 'clearAllSummary') {
-                    this.state.currentSessionRecords = [];
-                    this.state.liveSummaryPage = 1;
-                    this.renderLiveSummary();
-                    this.showToast('Resumen de carga borrado.');
-                    this.state.itemToDelete = { id: null, type: null, index: null };
-                    return;
-                }
-
-                if (!id || !type) return;
-
-                this.showLoading(true);
                 try {
-                    if (type === 'session') {
-                        const sessionDocRef = doc(this.state.db, "sessions", id);
-                        const recordsColRef = collection(sessionDocRef, 'records');
-                        const recordsSnapshot = await getDocs(recordsColRef);
-                        const batch = writeBatch(this.state.db);
-                        recordsSnapshot.forEach(doc => batch.delete(doc.ref));
-                        await batch.commit();
-                        await deleteDoc(sessionDocRef);
-                    } else if (type === 'deposit') {
-                        await deleteDoc(doc(this.state.db, "bank_deposits", id));
-                    } else if (type === 'expense') {
-                        await deleteDoc(doc(this.state.db, "expenses", id));
+                    switch (type) {
+                        case 'summaryRecord':
+                            this.state.currentSessionRecords.splice(index, 1);
+                            const totalPages = Math.ceil(this.state.currentSessionRecords.length / this.state.recordsPerPage);
+                            if (this.state.liveSummaryPage > totalPages) {
+                                this.state.liveSummaryPage = totalPages > 0 ? totalPages : 1;
+                            }
+                            this.renderLiveSummary();
+                            UI.showToast('Registro eliminado del resumen.', 'info');
+                            break;
+                        case 'clearAllSummary':
+                            this.state.currentSessionRecords = [];
+                            this.state.liveSummaryPage = 1;
+                            this.renderLiveSummary();
+                            UI.showToast('Resumen de carga borrado.', 'info');
+                            break;
+                        case 'session':
+                            const sessionRef = doc(this.state.db, `${basePath}/sessions`, id);
+                            const recordsSnapshot = await getDocs(collection(sessionRef, 'records'));
+                            const batch = writeBatch(this.state.db);
+                            recordsSnapshot.forEach(recordDoc => batch.delete(recordDoc.ref));
+                            batch.delete(sessionRef);
+                            await batch.commit();
+                            this.showHistoryScreen(); // Refresh history
+                            UI.showToast('Sesión eliminada correctamente.', 'success');
+                            break;
+                        case 'bank':
+                            await deleteDoc(doc(this.state.db, `${basePath}/bank`, id));
+                            UI.showToast('Depósito eliminado.', 'success');
+                            break;
+                        case 'expense':
+                            await deleteDoc(doc(this.state.db, `${basePath}/expenses`, id));
+                            UI.showToast('Egreso eliminado.', 'success');
+                            break;
                     }
-                    this.showToast('Registro eliminado correctamente.');
                 } catch (error) {
                     console.error(`Error deleting ${type}:`, error);
-                    this.showToast('Error al eliminar el registro.', 'error');
+                    UI.showToast(`Error al eliminar.`, 'error');
                 } finally {
-                    this.showLoading(false);
-                    this.state.itemToDelete = { id: null, type: null, index: null };
+                    this.state.itemToDelete = { id: null, type: null, index: null, subId: null };
+                    UI.showLoading(false);
                 }
             },
             
-            // Other functions (findBono, downloadSearchPDF, findWinner, etc.) remain unchanged
-            // ... [All other functions from the original script are here] ...
-            findBono() {
-                const searchInput1 = document.getElementById('bonoSearchInput1');
-                const searchInput2 = document.getElementById('bonoSearchInput2');
-                const number1 = parseInt(searchInput1.value, 10);
-                const number2 = parseInt(searchInput2.value, 10) || number1;
-                this.state.searchResult = [];
-                this.dom.searchResultContainer.innerHTML = '';
-                this.dom.downloadSearchPdfButton.classList.add('hidden');
-                if (isNaN(number1)) {
-                    this.dom.searchResultContainer.innerHTML = '<p class="text-center text-red-500">Por favor, ingrese un número en el primer campo.</p>';
-                    return;
-                }
-                const foundRecords = [];
-                for (const session of this.state.allSessions) {
-                    for (const record of session.records) {
-                        const recordNum1 = parseInt(record.bonoNro1, 10);
-                        const recordNum2 = parseInt(record.bonoNro2, 10);
-                        if (Math.max(number1, recordNum1) <= Math.min(number2, recordNum2)) {
-                            foundRecords.push(Object.assign({ sessionDate: session.id.replace(/-/g, '/') }, record));
-                        }
-                    }
-                }
-                this.state.searchResult = foundRecords;
-                if (foundRecords.length > 0) {
-                    this.dom.searchResultContainer.innerHTML = foundRecords.map(record => {
-                        const monto = record.cuotas == 1 ? 15000 : 30000;
-                        return `<div class="p-4 border rounded-md bg-blue-50 dark:bg-gray-700 dark:border-gray-600 space-y-2 mb-2"><p><strong>Nombre:</strong> ${record.nombre}</p><p><strong>Teléfono:</strong> ${record.telefono}</p><p><strong>Bonos Comprados:</strong> ${record.bonoNro1} - ${record.bonoNro2}</p><p><strong>Vendedor:</strong> ${record.vendedor || 'No especificado'}</p><p><strong>Fecha de Carga:</strong> ${record.sessionDate}</p><p><strong>Tipo de Pago:</strong> ${record.tipoPago}</p><p><strong>Cuotas Abonadas:</strong> ${record.cuotas}</p><p><strong>Monto:</strong> ${this.formatCurrency(monto)}</p></div>`;
-                    }).join('');
-                    this.dom.downloadSearchPdfButton.classList.remove('hidden');
-                } else {
-                    this.dom.searchResultContainer.innerHTML = '<p class="text-center text-gray-600 dark:text-gray-400">No se encontraron registros para los números ingresados.</p>';
-                }
-            },
+            // --- FIRESTORE SAVING ---
+            async saveSessionToFirestore() {
+                UI.showLoading(true);
+                const recordsToSave = this.state.currentSessionRecords;
+                const rawDate = this.dom.fecha.value;
+                const totalAmount = recordsToSave.reduce((acc, r) => acc + (r.cuotas == 1 ? 15000 : 30000), 0);
+                const totalCash = recordsToSave.filter(r => r.tipoPago === 'Efectivo').reduce((acc, r) => acc + (r.cuotas == 1 ? 15000 : 30000), 0);
 
-            downloadSearchPDF() {
-                if (this.state.searchResult.length === 0) return;
-                const doc = new jsPDF();
-                const searchInput1 = document.getElementById('bonoSearchInput1').value;
-                const searchInput2 = document.getElementById('bonoSearchInput2').value;
-                let title = "Detalle de Búsqueda de Bonos";
-                if (searchInput1 && searchInput2) title = `Detalle de Bonos ${searchInput1} - ${searchInput2}`;
-                else if (searchInput1) title = `Detalle de Bono N° ${searchInput1}`;
-                const startY = this.addPdfHeader(doc, title);
-                const tableColumn = ["Nombre", "Teléfono", "Bonos", "Vendedor", "Fecha Carga", "Pago", "Cuotas", "Monto"];
-                const tableRows = this.state.searchResult.map(record => {
-                    const monto = record.cuotas == 1 ? 15000 : 30000;
-                    return [record.nombre, record.telefono, `${record.bonoNro1} - ${record.bonoNro2}`, record.vendedor || 'N/A', record.sessionDate, record.tipoPago, record.cuotas, this.formatCurrency(monto)];
-                });
-                doc.autoTable({ head: [tableColumn], body: tableRows, startY: startY, theme: 'grid', headStyles: { fillColor: [67, 56, 202] } });
-                const currentDate = this.getCurrentDateFormatted();
-                doc.save(`busqueda_bonos_${currentDate}.pdf`);
-            },
-
-            findWinner() {
-                const winnerInputs = document.querySelectorAll('.winner-input');
-                this.state.winnersData = [];
-                this.dom.winnerResultContainer.innerHTML = '';
-                this.dom.downloadWinnerPdfButton.classList.add('hidden');
-                const numbersToSearch = {};
-                winnerInputs.forEach(input => {
-                    const prize = input.dataset.prize;
-                    const number = parseInt(input.value, 10);
-                    if (!isNaN(number)) {
-                        if (!numbersToSearch[prize]) numbersToSearch[prize] = [];
-                        numbersToSearch[prize].push(number);
-                    }
-                });
-                if (Object.keys(numbersToSearch).length === 0) {
-                    this.dom.winnerResultContainer.innerHTML = '<p class="text-center text-red-500">Por favor, ingrese al menos un número ganador.</p>';
-                    return;
-                }
-                const foundNumbers = new Set();
-                for (const prizeLevel in numbersToSearch) {
-                    for (const session of this.state.allSessions) {
-                        for (const record of session.records) {
-                            const from = parseInt(record.bonoNro1, 10);
-                            const to = parseInt(record.bonoNro2, 10);
-                            for (const num of numbersToSearch[prizeLevel]) {
-                                if (num >= from && num <= to && !foundNumbers.has(num)) {
-                                    this.state.winnersData.push(Object.assign({ winningNumber: num, sessionDate: session.id.replace(/-/g, '/'), prizeLevel }, record));
-                                    foundNumbers.add(num);
-                                }
-                            }
-                        }
-                    }
-                }
-                if (this.state.winnersData.length > 0) {
-                    this.dom.winnerResultContainer.innerHTML = `<h3 class="text-xl font-bold text-green-600 text-center mb-4">¡Resultados del Sorteo!</h3><div class="space-y-3">${this.state.winnersData.map(winner => `<div class="p-3 border rounded-md bg-green-50 dark:bg-green-900/50 dark:border-green-700"><p class="font-bold text-green-800 dark:text-green-300">${winner.prizeLevel} - N° ${winner.winningNumber}</p><p><strong>Nombre:</strong> ${winner.nombre}</p><p><strong>Teléfono:</strong> ${winner.telefono}</p><p><strong>Bonos:</strong> ${winner.bonoNro1} - ${winner.bonoNro2}</p><p><strong>Vendido por:</strong> ${winner.vendedor || 'No especificado'}</p></div>`).join('')}</div>`;
-                    this.dom.downloadWinnerPdfButton.classList.remove('hidden');
-                } else {
-                    this.dom.winnerResultContainer.innerHTML = '<p class="text-center text-gray-600 dark:text-gray-400">No se encontraron ganadores con los números ingresados.</p>';
-                }
-            },
-
-            downloadWinnerPDF() {
-                if (this.state.winnersData.length === 0) return;
-                const doc = new jsPDF();
-                const startY = this.addPdfHeader(doc, "Resultados del Sorteo");
-                const tableColumn = ["Premio", "N° Ganador", "Nombre", "Teléfono", "Bonos Comprados", "Vendedor"];
-                const tableRows = this.state.winnersData.map(data => [data.prizeLevel, data.winningNumber, data.nombre, data.telefono, `${data.bonoNro1} - ${data.bonoNro2}`, data.vendedor || 'N/A']);
-                doc.autoTable({ head: [tableColumn], body: tableRows, startY: startY, theme: 'grid', headStyles: { fillColor: [22, 163, 74] } });
-                const currentDate = this.getCurrentDateFormatted();
-                doc.save(`resultados_sorteo_${currentDate}.pdf`);
-            },
-            
-            showBalanceScreen() {
-                this.dom.balanceListContainer.innerHTML = '';
-                this.dom.balanceSummaryContainer.innerHTML = '';
-                let totalBonosEfectivo = 0, totalBonosTransferencia = 0, totalBonos = 0;
-                let totalExpenses = 0;
-                let salesByVendedor = {};
+                const sessionData = {
+                    rawDate: rawDate,
+                    totalAmount: totalAmount,
+                    totalCash: totalCash,
+                    recordCount: recordsToSave.length,
+                    user: this.state.currentUser,
+                    createdAt: serverTimestamp()
+                };
                 
-                const allRecords = [];
-                this.state.allSessions.forEach(session => {
-                    session.records.forEach(record => {
-                        allRecords.push(Object.assign({ sessionDate: session.id.replace(/-/g, '/') }, record));
+                const basePath = `artifacts/${this.state.appId}/public/data`;
+
+                try {
+                    const batch = writeBatch(this.state.db);
+                    let sessionRef;
+
+                    if (this.state.sessionToEditId) {
+                        // UPDATE existing session
+                        sessionRef = doc(this.state.db, `${basePath}/sessions`, this.state.sessionToEditId);
+                        batch.update(sessionRef, sessionData);
+
+                        // Delete old records first
+                        const oldRecordsSnapshot = await getDocs(collection(sessionRef, 'records'));
+                        oldRecordsSnapshot.forEach(recordDoc => batch.delete(recordDoc.ref));
+                    } else {
+                        // ADD new session
+                        sessionRef = doc(collection(this.state.db, `${basePath}/sessions`));
+                        batch.set(sessionRef, sessionData);
+                    }
+                    
+                    // Add new/updated records
+                    recordsToSave.forEach(record => {
+                        const recordRef = doc(collection(sessionRef, 'records'));
+                        batch.set(recordRef, record);
                     });
-                });
-                allRecords.sort((a, b) => (this.parseIdToDate(a.sessionDate)).localeCompare(this.parseIdToDate(b.sessionDate))).reverse();
 
-                let balanceHTML = '<div><h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2 border-b dark:border-gray-700 pb-2">Ingresos por Bonos</h3>';
-                if (allRecords.length === 0) {
-                    balanceHTML += '<p class="text-center text-gray-500 dark:text-gray-400">No hay registros de bonos.</p>';
-                } else {
-                    allRecords.forEach(record => {
-                        const monto = record.cuotas == 1 ? 15000 : 30000;
-                        totalBonos += monto;
-                        if (record.tipoPago === 'Efectivo') totalBonosEfectivo += monto;
-                        else totalBonosTransferencia += monto;
+                    await batch.commit();
+                    UI.showToast('Carga guardada con éxito!', 'success');
+                    this.showScreen('initialScreen');
+                    this.state.currentSessionRecords = [];
+                    this.state.sessionToEditId = null;
 
-                        if (record.vendedor) {
-                            salesByVendedor[record.vendedor] = (salesByVendedor[record.vendedor] || 0) + monto;
-                        }
-
-                        balanceHTML += `<div class="p-3 mb-2 border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 grid grid-cols-3 gap-2 items-center text-sm"><div><p class="font-semibold">${record.nombre}</p><p class="text-xs text-gray-500 dark:text-gray-400">${record.sessionDate}</p></div><p class="text-center">${record.tipoPago}</p><p class="text-right font-semibold">${this.formatCurrency(monto)}</p></div>`;
-                    });
+                } catch (error) {
+                    console.error("Error saving session:", error);
+                    UI.showToast('Error al guardar la carga.', 'error');
+                } finally {
+                    UI.showLoading(false);
                 }
-                balanceHTML += '</div>';
+            },
 
-                balanceHTML += '<div class="mt-6"><h3 class="text-lg font-semibold text-red-700 dark:text-red-400 mb-2 border-b border-red-200 dark:border-red-800 pb-2">Egresos</h3>';
-                if (this.state.expenses.length === 0) {
-                    balanceHTML += '<p class="text-center text-gray-500 dark:text-gray-400">No hay egresos registrados.</p>';
-                } else {
-                    this.state.expenses.forEach(expense => {
-                        const monto = parseFloat(expense.amount);
-                        totalExpenses += monto;
-                        balanceHTML += `<div class="p-3 mb-2 border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 grid grid-cols-3 gap-2 items-center text-sm"><div><p class="font-semibold">${expense.description}</p><p class="text-xs text-gray-500 dark:text-gray-400">${this.formatDateForId(expense.date)}</p></div><p class="text-center">${expense.type}</p><p class="text-right font-semibold text-red-600">-${this.formatCurrency(monto)}</p></div>`;
+            // --- PDF GENERATION ---
+            generatePdf(title, head, body, filename) {
+                try {
+                    const doc = new jsPDF();
+                    doc.text(title, 14, 16);
+                    doc.setFontSize(10);
+                    doc.text(`Generado: ${new Date().toLocaleString('es-AR')}`, 14, 22);
+                    
+                    doc.autoTable({
+                        head: head,
+                        body: body,
+                        startY: 28,
+                        theme: 'grid',
+                        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
+                        styles: { fontSize: 8 },
+                        alternateRowStyles: { fillColor: [245, 245, 245] },
                     });
+                    doc.save(`${filename}_${Utils.getCurrentDateFormattedForInput()}.pdf`);
+                    UI.showToast('PDF generado.', 'success');
+                } catch (error) {
+                    console.error("PDF Generation Error:", error);
+                    UI.showToast('Error al generar el PDF.', 'error');
                 }
-                balanceHTML += '</div>';
-                
-                this.dom.balanceListContainer.innerHTML = balanceHTML;
-
-                let salesSummaryHTML = '';
-                if (Object.keys(salesByVendedor).length > 0) {
-                    salesSummaryHTML += '<div class="p-4 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 mb-4"><h4 class="font-bold text-lg mb-2 text-gray-800 dark:text-gray-200">Resumen de Ventas por Vendedor</h4>';
-                    for (const vendedor in salesByVendedor) {
-                        salesSummaryHTML += `<div class="flex justify-between items-center"><span class="font-medium text-gray-600 dark:text-gray-300">${vendedor}:</span><span class="font-bold text-gray-800 dark:text-gray-200">${this.formatCurrency(salesByVendedor[vendedor])}</span></div>`;
-                    }
-                    salesSummaryHTML += '</div>';
-                }
-
-                this.dom.balanceSummaryContainer.innerHTML = `
-                    <div class="p-4 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 mb-4">
-                        <h4 class="font-bold text-lg mb-2 text-gray-800 dark:text-gray-200">Resumen de Ingresos (Bonos)</h4>
-                        <div class="flex justify-between items-center"><span class="font-medium text-gray-600 dark:text-gray-300">Total Efectivo:</span><span class="font-bold text-green-700 dark:text-green-400">${this.formatCurrency(totalBonosEfectivo)}</span></div>
-                        <div class="flex justify-between items-center"><span class="font-medium text-gray-600 dark:text-gray-300">Total Transferencia:</span><span class="font-bold text-blue-700 dark:text-blue-400">${this.formatCurrency(totalBonosTransferencia)}</span></div>
-                        <hr class="my-2 border-gray-200 dark:border-gray-700">
-                        <div class="flex justify-between items-center text-lg"><span class="font-bold text-gray-800 dark:text-gray-200">Total Bonos:</span><span class="font-extrabold text-gray-900 dark:text-white">${this.formatCurrency(totalBonos)}</span></div>
-                    </div>
-                    ${salesSummaryHTML}
-                     <div class="p-4 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 mb-4">
-                        <h4 class="font-bold text-lg mb-2 text-gray-800 dark:text-gray-200">Resumen de Egresos</h4>
-                        <div class="flex justify-between items-center text-lg"><span class="font-bold text-gray-800 dark:text-gray-200">Total Egresos:</span><span class="font-extrabold text-red-600">-${this.formatCurrency(totalExpenses)}</span></div>
-                    </div>
-                    <div class="p-4 border rounded-lg bg-gray-800 text-white">
-                        <h4 class="font-bold text-xl mb-2">Balance Final</h4>
-                        <div class="flex justify-between items-center text-2xl"><span class="font-bold">TOTAL:</span><span class="font-extrabold">${this.formatCurrency(totalBonos - totalExpenses)}</span></div>
-                    </div>
-                `;
-                this.showScreen('balanceScreen');
-            },
-
-            downloadBalancePDF() {
-                const doc = new jsPDF();
-                let startY = this.addPdfHeader(doc, "Balance General");
-                
-                let totalBonosEfectivo = 0, totalBonosTransferencia = 0, totalBonos = 0;
-                let totalExpenses = 0;
-                let salesByVendedor = {};
-
-                const bonoRecords = [];
-                this.state.allSessions.forEach(session => {
-                    session.records.forEach(record => {
-                        bonoRecords.push(Object.assign({ sessionDate: session.id.replace(/-/g, '/') }, record));
-                    });
-                });
-                bonoRecords.sort((a, b) => (this.parseIdToDate(a.sessionDate)).localeCompare(this.parseIdToDate(b.sessionDate))).reverse();
-
-                const bonoTableRows = bonoRecords.map(record => {
-                    const monto = record.cuotas == 1 ? 15000 : 30000;
-                    totalBonos += monto;
-                    if (record.tipoPago === 'Efectivo') totalBonosEfectivo += monto;
-                    else totalBonosTransferencia += monto;
-                    if (record.vendedor) {
-                        salesByVendedor[record.vendedor] = (salesByVendedor[record.vendedor] || 0) + monto;
-                    }
-                    return [record.sessionDate, record.nombre, `${record.bonoNro1}-${record.bonoNro2}`, record.tipoPago, this.formatCurrency(monto)];
-                });
-                
-                doc.setFontSize(14);
-                doc.text('Ingresos por Bonos', 14, startY);
-                doc.autoTable({
-                    head: [["Fecha", "Nombre", "Bonos", "Tipo de Pago", "Monto"]],
-                    body: bonoTableRows,
-                    startY: startY + 7,
-                    theme: 'grid',
-                    headStyles: { fillColor: [67, 56, 202] },
-                });
-
-                const expenseTableRows = this.state.expenses.map(expense => {
-                    const monto = parseFloat(expense.amount);
-                    totalExpenses += monto;
-                    return [this.formatDateForId(expense.date), expense.description, expense.type, `-${this.formatCurrency(monto)}`];
-                });
-                
-                let finalY = doc.autoTable.previous.finalY + 15;
-                doc.setFontSize(14);
-                doc.text('Egresos', 14, finalY);
-                doc.autoTable({
-                    head: [["Fecha", "Descripción", "Tipo de Pago", "Monto"]],
-                    body: expenseTableRows,
-                    startY: finalY + 7,
-                    theme: 'grid',
-                    headStyles: { fillColor: [220, 38, 38] },
-                });
-                
-                const salesSummaryRows = Object.keys(salesByVendedor).map(vendedor => [vendedor, this.formatCurrency(salesByVendedor[vendedor])]);
-
-                doc.autoTable({
-                    startY: doc.autoTable.previous.finalY + 10,
-                    theme: 'plain',
-                    body: [
-                        ['Resumen de Bonos', ''],
-                        ['Total Efectivo (Bonos):', this.formatCurrency(totalBonosEfectivo)],
-                        ['Total Transferencia (Bonos):', this.formatCurrency(totalBonosTransferencia)],
-                        [{content: 'Total Bonos:', styles: {fontStyle: 'bold'}}, {content: this.formatCurrency(totalBonos), styles: {fontStyle: 'bold'}}],
-                        ['', ''], // Spacer
-                        ['Resumen de Ventas por Vendedor', ''],
-                        ...salesSummaryRows,
-                        ['', ''], // Spacer
-                        ['Resumen de Egresos', ''],
-                        [{content: 'Total Egresos:', styles: {fontStyle: 'bold'}}, {content: `-${this.formatCurrency(totalExpenses)}`, styles: {fontStyle: 'bold'}}],
-                        ['', ''], // Spacer
-                        [{content: 'Balance Final (Ingresos Bonos - Egresos):', styles: {fontStyle: 'bold', fontSize: 12}}, {content: this.formatCurrency(totalBonos - totalExpenses), styles: {fontStyle: 'bold', fontSize: 12}}],
-                    ],
-                    columnStyles: {
-                        0: { halign: 'right', fontStyle: 'bold' },
-                        1: { halign: 'right' }
-                    }
-                });
-
-                const currentDate = this.getCurrentDateFormatted();
-                doc.save(`balance_${currentDate}.pdf`);
-            },
-
-            formatCurrency(amount) {
-                return amount.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
-            },
-
-            getCurrentDateFormatted() {
-                const today = new Date();
-                const day = String(today.getDate()).padStart(2, '0');
-                const month = String(today.getMonth() + 1).padStart(2, '0');
-                const year = today.getFullYear();
-                return `${day}-${month}-${year}`;
-            },
-
-            formatDateForId(dateString, useSafeFormat = false) {
-                if (!dateString || !/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
-                const [year, month, day] = dateString.split('-');
-                const separator = useSafeFormat ? '-' : '/';
-                return `${day}${separator}${month}${separator}${year}`;
-            },
-
-            parseIdToDate(idString) {
-                if (!idString || !/^\d{2}[-\/]\d{2}[-\/]\d{4}$/.test(idString)) return idString;
-                const parts = idString.split(/[-\/]/);
-                return `${parts[2]}-${parts[1]}-${parts[0]}`;
             },
 
             downloadSessionPDF(sessionId) {
-                const recordsToPrint = sessionId ? this.state.allSessions.find(s => s.id === sessionId)?.records : this.state.currentSessionRecords;
-                if (!recordsToPrint || recordsToPrint.length === 0) return;
-                const doc = new jsPDF();
-                let title, fileName;
-                const currentDate = this.getCurrentDateFormatted();
-
-                if (sessionId) {
-                    const displayId = sessionId.replace(/-/g, '/');
-                    title = `Detalle de Carga - ${displayId}`;
-                    fileName = `cargas_de_bono_${currentDate}.pdf`;
-                } else {
-                    const rawDate = this.state.currentSessionRecords[0].fecha;
-                    const formattedDate = this.formatDateForId(rawDate);
-                    title = `Detalle de Carga - ${formattedDate}`;
-                    fileName = `detalle_bonos_${this.formatDateForId(rawDate, true)}.pdf`;
-                }
+                const session = this.state.allSessions.find(s => s.id === sessionId);
+                if (!session) return;
                 
-                const startY = this.addPdfHeader(doc, title);
-                const tableColumn = ["Nombre", "Bonos", "Pago", "Cuotas", "Monto"];
-                const tableRows = [];
-                let subtotal = 0, totalEfectivo = 0;
-                recordsToPrint.forEach(data => {
-                    const monto = data.cuotas == 1 ? 15000 : 30000;
-                    subtotal += monto;
-                    if (data.tipoPago === 'Efectivo') totalEfectivo += monto;
-                    tableRows.push([data.nombre, `${data.bonoNro1}-${data.bonoNro2}`, data.tipoPago, data.cuotas, this.formatCurrency(monto)]);
-                });
-                doc.autoTable({
-                    head: [tableColumn],
-                    body: tableRows,
-                    startY: startY,
-                    theme: 'grid',
-                    headStyles: { fillColor: [107, 114, 128] },
-                    foot: [
-                        [{ content: 'Subtotal', colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } }, { content: this.formatCurrency(subtotal), styles: { halign: 'right', fontStyle: 'bold' } }],
-                        [{ content: 'Total (Efectivo)', colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } }, { content: this.formatCurrency(totalEfectivo), styles: { halign: 'right', fontStyle: 'bold' } }],
-                    ],
-                    footStyles: { fontStyle: 'bold', fillColor: false }
-                });
-                doc.save(fileName);
-            },
-            
-            // --- BANK & EXPENSE LOGIC ---
-            showBankScreen(date = null) {
-                this.state.showAllDeposits = false;
-                this.dom.bankForm.reset();
-                const dateInput = document.getElementById('bankDate');
-                if (date) dateInput.value = date;
-                else dateInput.valueAsDate = new Date();
-                this.dom.bankFormTitle.textContent = 'Nuevo Depósito';
-                this.dom.bankFormActions.innerHTML = `<button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-cyan-600 rounded-lg hover:bg-cyan-700">Confirmar</button>`;
-                this.state.depositToEditId = null;
-                this.renderBankDeposits();
-                this.showScreen('bankScreen');
+                const title = `Detalle de Carga - ${Utils.formatDateForDisplay(session.rawDate)}`;
+                const head = [['Nro Bono 1', 'Nro Bono 2', 'Nombre', 'Teléfono', 'Vendedor', 'Cuotas', 'Tipo Pago', 'Monto']];
+                const body = session.records.map(r => [
+                    r.bonoNro1, r.bonoNro2, r.nombre, r.telefono, r.vendedor, r.cuotas, r.tipoPago,
+                    Utils.formatCurrency(r.cuotas == 1 ? 15000 : 30000)
+                ]);
+                body.push(['', '', '', '', '', '', 'TOTAL:', Utils.formatCurrency(session.totalAmount)]);
+
+                this.generatePdf(title, head, body, 'carga_bonos');
             },
 
-            loadBankDepositsFromFirestore() {
-                if (this.state.unsubscribeBank) this.state.unsubscribeBank();
-                const bankColRef = collection(this.state.db, "bank_deposits");
-                this.state.unsubscribeBank = onSnapshot(query(bankColRef), (snapshot) => {
-                    this.state.bankDeposits = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    this.state.bankDeposits.sort((a, b) => b.date.localeCompare(a.date));
-                    if (document.getElementById('bankScreen').classList.contains('active-screen')) {
-                        this.renderBankDeposits();
-                    }
-                });
+            downloadWinnerPDF() {
+                const title = 'Lista de Ganadores';
+                const head = [['Nro Bono 1', 'Nro Bono 2', 'Nombre', 'Teléfono', 'Vendedor']];
+                const body = this.state.winnersData.map(r => [r.bonoNro1, r.bonoNro2, r.nombre, r.telefono, r.vendedor]);
+                this.generatePdf(title, head, body, 'ganadores');
             },
 
-            renderBankDeposits() {
-                this.dom.bankDepositsListContainer.innerHTML = '';
-                const deposits = this.state.bankDeposits;
-                if (deposits.length === 0) {
-                    this.dom.bankDepositsListContainer.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">No hay depósitos registrados.</p>';
-                    return;
-                }
-                const depositsToShow = this.state.showAllDeposits ? deposits : deposits.slice(0, 3);
-                depositsToShow.forEach(deposit => {
-                    const depositDiv = document.createElement('div');
-                    depositDiv.className = 'flex justify-between items-center p-3 bg-white dark:bg-gray-700 rounded-lg border dark:border-gray-600';
-                    depositDiv.innerHTML = `<div><p class="font-semibold">${'Depósito'} - ${this.formatDateForId(deposit.date)}</p><p class="text-sm text-gray-600 dark:text-gray-400">${this.formatCurrency(parseFloat(deposit.amount))} (${deposit.type})</p></div><div class="flex gap-2"><button onclick="App.editBankDeposit('${deposit.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.promptDeleteItem('${deposit.id}', 'deposit')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button><button onclick="App.downloadDepositPDF('${deposit.id}')" class="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">PDF</button></div>`;
-                    this.dom.bankDepositsListContainer.appendChild(depositDiv);
-                }
-                );
-                if (!this.state.showAllDeposits && deposits.length > 3) {
-                    const seeMoreButton = document.createElement('button');
-                    seeMoreButton.className = 'w-full mt-2 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600';
-                    seeMoreButton.textContent = 'Ver más';
-                    seeMoreButton.onclick = () => { this.state.showAllDeposits = true; this.renderBankDeposits(); };
-                    this.dom.bankDepositsListContainer.appendChild(seeMoreButton);
-                }
+            downloadSearchPDF() {
+                const title = `Resultados de Búsqueda de Bonos`;
+                const head = [['Nro Bono 1', 'Nro Bono 2', 'Nombre', 'Teléfono', 'Vendedor']];
+                const body = this.state.searchResult.map(r => [r.bonoNro1, r.bonoNro2, r.nombre, r.telefono, r.vendedor]);
+                this.generatePdf(title, head, body, 'busqueda_bonos');
             },
 
-            async handleBankFormSubmit() {
-                const formData = new FormData(this.dom.bankForm);
-                const depositData = { date: formData.get('bankDate'), amount: parseFloat(formData.get('bankAmount')), type: formData.get('bankType') };
-                this.showLoading(true);
-                try {
-                    if (this.state.depositToEditId) {
-                        await updateDoc(doc(this.state.db, "bank_deposits", this.state.depositToEditId), depositData);
-                        this.showToast('Depósito modificado.');
-                    } else {
-                        await addDoc(collection(this.state.db, "bank_deposits"), depositData);
-                        this.showToast('Depósito guardado.');
-                    }
-                    this.showBankScreen();
-                } catch (error) {
-                    console.error("Error saving bank deposit:", error);
-                    this.showToast('Error al guardar depósito.', 'error');
-                } finally {
-                    this.showLoading(false);
-                }
-            },
+            downloadBalancePDF() {
+                const totalIngresos = this.state.allSessions.reduce((acc, s) => acc + s.totalAmount, 0);
+                const totalEgresos = this.state.expenses.reduce((acc, e) => acc + Number(e.amount), 0);
+                const balance = totalIngresos - totalEgresos;
 
-            editBankDeposit(depositId) {
-                const deposit = this.state.bankDeposits.find(d => d.id === depositId);
-                if (!deposit) return;
-                this.state.depositToEditId = depositId;
-                document.getElementById('bankDate').value = deposit.date;
-                document.getElementById('bankAmount').value = deposit.amount;
-                document.getElementById('bankType').value = deposit.type;
-                this.dom.bankFormTitle.textContent = 'Modificar Depósito';
-                this.dom.bankFormActions.innerHTML = `<button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">Guardar Cambios</button><button type="button" onclick="App.showBankScreen()" class="w-full mt-2 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cancelar</button>`;
-                window.scrollTo(0, 0);
-            },
+                const title = 'Balance General';
+                const head = [['Fecha', 'Descripción', 'Ingreso', 'Egreso']];
+                const allTransactions = [];
+                this.state.allSessions.forEach(session => allTransactions.push({ date: session.rawDate, description: `Carga de Bonos`, amount: session.totalAmount, type: 'ingreso' }));
+                this.state.expenses.forEach(expense => allTransactions.push({ date: expense.date, description: expense.description, amount: Number(expense.amount), type: 'egreso' }));
+                allTransactions.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-            downloadDepositPDF(depositId) {
-                const deposit = this.state.bankDeposits.find(d => d.id === depositId);
-                if (!deposit) return;
-                const doc = new jsPDF();
-                const startY = this.addPdfHeader(doc, "Detalle de Depósito");
-                doc.autoTable({
-                    head: [["Campo", "Valor"]],
-                    body: [["Fecha", this.formatDateForId(deposit.date)], ["Importe", this.formatCurrency(parseFloat(deposit.amount))], ["Tipo", deposit.type]],
-                    startY: startY, theme: 'grid', headStyles: { fillColor: [8, 145, 178] }
-                });
-                doc.save(`deposito_${deposit.id}.pdf`);
-            },
+                const body = allTransactions.map(t => [
+                    Utils.formatDateForDisplay(t.date),
+                    t.description,
+                    t.type === 'ingreso' ? Utils.formatCurrency(t.amount) : '',
+                    t.type === 'egreso' ? Utils.formatCurrency(t.amount) : ''
+                ]);
 
-            promptForDate(type) {
-                this.state.datePromptType = type;
-                this.dom.modalDateInput.valueAsDate = new Date();
-                if (type === 'bono') this.dom.dateConfirmTitle.textContent = 'Confirmar Fecha de Carga';
-                else if (type === 'banco') this.dom.dateConfirmTitle.textContent = 'Confirmar Fecha de Depósito';
-                this.dom.dateConfirmModal.classList.remove('hidden');
-            },
+                // Add summary rows
+                body.push(['', 'TOTAL INGRESOS', Utils.formatCurrency(totalIngresos), '']);
+                body.push(['', 'TOTAL EGRESOS', '', Utils.formatCurrency(totalEgresos)]);
+                body.push(['', 'BALANCE FINAL', Utils.formatCurrency(balance), '']);
 
-            handleDateConfirm() {
-                const selectedDate = this.dom.modalDateInput.value;
-                if (!selectedDate) {
-                    this.showToast('Por favor, seleccione una fecha.', 'error');
-                    return;
-                }
-                if (this.state.datePromptType === 'bono') this.startNewSession(selectedDate);
-                else if (this.state.datePromptType === 'banco') this.showBankScreen(selectedDate);
-                this.dom.dateConfirmModal.classList.add('hidden');
-                this.state.datePromptType = null;
-            },
-
-            showExpenseScreen() {
-                this.state.showAllExpenses = false;
-                this.dom.expenseForm.reset();
-                document.getElementById('expenseDate').valueAsDate = new Date();
-                this.dom.expenseFormTitle.textContent = 'Nuevo Egreso';
-                this.dom.expenseFormActions.innerHTML = `<button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700">Confirmar Egreso</button>`;
-                this.state.expenseToEditId = null;
-                this.renderExpenses();
-                this.showScreen('expenseScreen');
-            },
-
-            loadExpensesFromFirestore() {
-                if (this.state.unsubscribeExpenses) this.state.unsubscribeExpenses();
-                const expensesColRef = collection(this.state.db, "expenses");
-                this.state.unsubscribeExpenses = onSnapshot(query(expensesColRef), (snapshot) => {
-                    this.state.expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    this.state.expenses.sort((a, b) => b.date.localeCompare(a.date));
-                    if (document.getElementById('expenseScreen').classList.contains('active-screen')) {
-                        this.renderExpenses();
-                    }
-                    this.updateDashboard();
-                });
-            },
-
-            renderExpenses() {
-                this.dom.expenseListContainer.innerHTML = '';
-                const expenses = this.state.expenses;
-                if (expenses.length === 0) {
-                    this.dom.expenseListContainer.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">No hay egresos registrados.</p>';
-                    return;
-                }
-                const expensesToShow = this.state.showAllExpenses ? expenses : expenses.slice(0, 3);
-                expensesToShow.forEach(expense => {
-                    const expenseDiv = document.createElement('div');
-                    expenseDiv.className = 'flex justify-between items-center p-3 bg-white dark:bg-gray-700 rounded-lg border dark:border-gray-600';
-                    expenseDiv.innerHTML = `<div><p class="font-semibold">${expense.description}</p><p class="text-sm text-gray-600 dark:text-gray-400">${this.formatDateForId(expense.date)} - ${this.formatCurrency(parseFloat(expense.amount))} (${expense.type})</p></div><div class="flex gap-2"><button onclick="App.editExpense('${expense.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.promptDeleteItem('${expense.id}', 'expense')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button></div>`;
-                    this.dom.expenseListContainer.appendChild(expenseDiv);
-                });
-                if (!this.state.showAllExpenses && expenses.length > 3) {
-                    const seeMoreButton = document.createElement('button');
-                    seeMoreButton.className = 'w-full mt-2 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600';
-                    seeMoreButton.textContent = 'Ver más';
-                    seeMoreButton.onclick = () => { this.state.showAllExpenses = true; this.renderExpenses(); };
-                    this.dom.expenseListContainer.appendChild(seeMoreButton);
-                }
-            },
-            
-            async handleExpenseFormSubmit() {
-                const formData = new FormData(this.dom.expenseForm);
-                const expenseData = {
-                    date: formData.get('expenseDate'),
-                    description: formData.get('expenseDescription'),
-                    amount: parseFloat(formData.get('expenseAmount')),
-                    type: formData.get('expenseType'),
-                };
-                this.showLoading(true);
-                try {
-                    if (this.state.expenseToEditId) {
-                        await updateDoc(doc(this.state.db, "expenses", this.state.expenseToEditId), expenseData);
-                        this.showToast('Egreso modificado.');
-                    } else {
-                        await addDoc(collection(this.state.db, "expenses"), expenseData);
-                        this.showToast('Egreso guardado.');
-                    }
-                    this.showExpenseScreen();
-                } catch (error) {
-                    console.error("Error saving expense:", error);
-                    this.showToast('Error al guardar el egreso.', 'error');
-                } finally {
-                    this.showLoading(false);
-                }
-            },
-
-            editExpense(expenseId) {
-                const expense = this.state.expenses.find(e => e.id === expenseId);
-                if (!expense) return;
-                this.state.expenseToEditId = expenseId;
-                document.getElementById('expenseDate').value = expense.date;
-                document.getElementById('expenseDescription').value = expense.description;
-                document.getElementById('expenseAmount').value = expense.amount;
-                document.getElementById('expenseType').value = expense.type;
-                this.dom.expenseFormTitle.textContent = 'Modificar Egreso';
-                this.dom.expenseFormActions.innerHTML = `<button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">Guardar Cambios</button><button type="button" onclick="App.showExpenseScreen()" class="w-full mt-2 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cancelar</button>`;
-                window.scrollTo(0, 0);
-            },
-            
-            showToast(message, type = 'success') {
-                const toastContainer = this.dom.toastContainer;
-                const toast = document.createElement('div');
-                toast.className = `toast toast-${type}`;
-                toast.textContent = message;
-                toastContainer.appendChild(toast);
-
-                // Play sound
-                try {
-                    const synth = new Tone.Synth().toDestination();
-                    if (type === 'success') {
-                        synth.triggerAttackRelease("C5", "8n", Tone.now());
-                    } else if (type === 'error') {
-                        synth.triggerAttackRelease("A3", "8n", Tone.now());
-                    }
-                } catch (e) {
-                    console.warn("Could not play sound, user interaction might be required first.");
-                }
-
-                setTimeout(() => {
-                    toast.remove();
-                }, 3000);
-            },
-
-            addPdfHeader(doc, title) {
-                doc.setFontSize(20);
-                doc.setFont(undefined, 'bold');
-                doc.text("Parroquia San José Bono", 15, 20);
-
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'normal');
-                doc.text(title, 15, 30);
-
-                doc.setFontSize(10);
-                doc.text(this.getCurrentDateFormatted(), doc.internal.pageSize.getWidth() - 15, 20, { align: 'right' });
-
-                doc.setDrawColor(180, 180, 180);
-                doc.line(15, 35, doc.internal.pageSize.getWidth() - 15, 35);
-
-                return 45; // Return the start Y position for the table
-            },
-
-            updateDashboard() {
-                if (!this.state.currentUser || (this.state.currentUser !== 'adan' && this.state.currentUser !== 'jose')) {
-                    return;
-                }
-
-                const now = new Date();
-                const currentYear = now.getFullYear();
-                const currentMonth = now.getMonth();
-
-                let monthlyIncome = 0;
-                this.state.allSessions.forEach(session => {
-                    const sessionDate = new Date(session.rawDate);
-                    if (sessionDate.getFullYear() === currentYear && sessionDate.getMonth() === currentMonth) {
-                        session.records.forEach(record => {
-                            monthlyIncome += record.cuotas == 1 ? 15000 : 30000;
-                        });
-                    }
-                });
-
-                let monthlyExpenses = 0;
-                this.state.expenses.forEach(expense => {
-                    const expenseDate = new Date(expense.date);
-                    if (expenseDate.getFullYear() === currentYear && expenseDate.getMonth() === currentMonth) {
-                        monthlyExpenses += parseFloat(expense.amount);
-                    }
-                });
-
-                let totalIncome = 0;
-                this.state.allSessions.forEach(session => {
-                    session.records.forEach(record => {
-                        totalIncome += record.cuotas == 1 ? 15000 : 30000;
-                    });
-                });
-
-                let totalExpenses = 0;
-                this.state.expenses.forEach(expense => {
-                    totalExpenses += parseFloat(expense.amount);
-                });
-
-                this.dom.monthlyIncome.textContent = this.formatCurrency(monthlyIncome);
-                this.dom.monthlyExpenses.textContent = `-${this.formatCurrency(monthlyExpenses)}`;
-                this.dom.totalBalance.textContent = this.formatCurrency(totalIncome - totalExpenses);
-            },
-            
-            updateVendedoresList() {
-                const vendedores = new Set();
-                this.state.allSessions.forEach(session => {
-                    session.records.forEach(record => {
-                        if (record.vendedor) {
-                            vendedores.add(record.vendedor);
-                        }
-                    });
-                });
-
-                this.dom.vendedoresList.innerHTML = '';
-                vendedores.forEach(vendedor => {
-                    const option = document.createElement('option');
-                    option.value = vendedor;
-                    this.dom.vendedoresList.appendChild(option);
-                });
-            },
+                this.generatePdf(title, head, body, 'balance_general');
+            }
         };
 
         // Start the application
+        window.App = App;
         window.App.init();
 
     </script>
