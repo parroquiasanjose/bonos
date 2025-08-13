@@ -450,7 +450,7 @@
                 recordToEditIndex: null,
                 depositToEditId: null,
                 expenseToEditId: null,
-                editOrigin: null, // NUEVO: Para saber de dónde vino la edición
+                editOrigin: null, // Para saber de dónde vino la edición
                 itemToDelete: { id: null, type: null, index: null },
                 sessionToEditId: null,
                 sessionToEditRawDate: null, 
@@ -750,7 +750,6 @@
                 }
             },
             
-            // CORREGIDO: Lógica de agregar/actualizar separada para mayor claridad
             handleAddOrUpdateRecord() {
                 const formData = new FormData(this.dom.dataForm);
                 const record = Object.fromEntries(formData.entries());
@@ -834,7 +833,7 @@
                     recordDiv.innerHTML = `
                         <div>
                             <p class="font-bold text-indigo-700 dark:text-indigo-400">${record.nombre}</p>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Bonos: ${record.bonoNro1}-${record.bonoNro2} | ${this.formatCurrency(monto)}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-300">Bonos: ${record.bonoNro1}-${record.bonoNro2} | ${this.formatCurrency(monto)}</p>
                         </div>
                         <div class="flex gap-2">
                             <button onclick="App.editRecordFromSummary(${originalIndex})" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button>
@@ -902,7 +901,6 @@
                 window.scrollTo(0, 0);
             },
 
-            // NUEVA FUNCIÓN: Para editar un registro desde la pantalla de detalles de sesión
             editRecordFromSession(index) {
                 const record = this.state.currentSessionRecords[index];
                 if (!record) return;
@@ -924,7 +922,6 @@
                 this.showScreen('formScreen'); // Cambiar a la pantalla del formulario
             },
 
-            // CORREGIDO: Lógica para manejar la cancelación de edición
             cancelEdit() {
                 const origin = this.state.editOrigin;
                 this.state.recordToEditIndex = null;
@@ -936,7 +933,6 @@
                     // Vuelve a la pantalla de detalles de la sesión
                     this.displayDetailsScreen(this.state.currentSessionRecords, 'edit');
                 }
-                // Si el origen es 'formScreen', no hace falta hacer nada más, ya está en la pantalla correcta.
             },
 
             handleConfirmAll() {
@@ -1060,7 +1056,7 @@
                     if (data.tipoPago === 'Efectivo') totalEfectivo += monto;
                     const detailDiv = document.createElement('div');
                     detailDiv.className = 'p-3 mb-2 border dark:border-gray-700 rounded-md bg-white dark:bg-gray-700 grid grid-cols-1 gap-2 items-center';
-                    detailDiv.innerHTML = `<div><p class="font-bold text-indigo-700 dark:text-indigo-400">${data.nombre}</p><p class="text-sm text-gray-600 dark:text-gray-400">Bonos: ${data.bonoNro1}-${data.bonoNro2} | ${data.tipoPago}</p></div><p class="text-right font-semibold text-gray-800 dark:text-gray-200">${this.formatCurrency(monto)}</p>${mode === 'edit' ? `<div class="text-right flex gap-2 justify-end"><button onclick="App.editRecordFromSession(${index})" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.deleteRecordFromSession(${index})" class="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Eliminar</button></div>` : ''}`;
+                    detailDiv.innerHTML = `<div><p class="font-bold text-indigo-700 dark:text-indigo-400">${data.nombre}</p><p class="text-sm text-gray-600 dark:text-gray-300">Bonos: ${data.bonoNro1}-${data.bonoNro2} | ${data.tipoPago}</p></div><p class="text-right font-semibold text-gray-800 dark:text-gray-200">${this.formatCurrency(monto)}</p>${mode === 'edit' ? `<div class="text-right flex gap-2 justify-end"><button onclick="App.editRecordFromSession(${index})" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.deleteRecordFromSession(${index})" class="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Eliminar</button></div>` : ''}`;
                     this.dom.detailsListContainer.appendChild(detailDiv);
                 });
                 this.dom.summaryContainer.innerHTML = `<div class="flex justify-between items-center"><span class="font-medium text-gray-600 dark:text-gray-300">Subtotal:</span><span class="font-bold text-gray-900 dark:text-gray-100">${this.formatCurrency(subtotal)}</span></div><div class="flex justify-between items-center text-green-700 dark:text-green-400"><span class="font-medium">Total (Efectivo):</span><span class="font-bold">${this.formatCurrency(totalEfectivo)}</span></div>`;
@@ -1216,7 +1212,7 @@
                 if (foundRecords.length > 0) {
                     this.dom.searchResultContainer.innerHTML = foundRecords.map(record => {
                         const monto = record.cuotas == 1 ? 15000 : 30000;
-                        return `<div class="p-4 border rounded-md bg-blue-50 dark:bg-gray-700 dark:border-gray-600 space-y-2 mb-2"><p><strong>Nombre:</strong> ${record.nombre}</p><p><strong>Teléfono:</strong> ${record.telefono}</p><p><strong>Bonos Comprados:</strong> ${record.bonoNro1} - ${record.bonoNro2}</p><p><strong>Vendedor:</strong> ${record.vendedor || 'No especificado'}</p><p><strong>Fecha de Carga:</strong> ${record.sessionDate}</p><p><strong>Tipo de Pago:</strong> ${record.tipoPago}</p><p><strong>Cuotas Abonadas:</strong> ${record.cuotas}</p><p><strong>Monto:</strong> ${this.formatCurrency(monto)}</p></div>`;
+                        return `<div class="p-4 border rounded-md bg-blue-50 dark:bg-gray-700 dark:border-gray-600 space-y-2 mb-2 dark:text-gray-200"><p><strong>Nombre:</strong> ${record.nombre}</p><p><strong>Teléfono:</strong> ${record.telefono}</p><p><strong>Bonos Comprados:</strong> ${record.bonoNro1} - ${record.bonoNro2}</p><p><strong>Vendedor:</strong> ${record.vendedor || 'No especificado'}</p><p><strong>Fecha de Carga:</strong> ${record.sessionDate}</p><p><strong>Tipo de Pago:</strong> ${record.tipoPago}</p><p><strong>Cuotas Abonadas:</strong> ${record.cuotas}</p><p><strong>Monto:</strong> ${this.formatCurrency(monto)}</p></div>`;
                     }).join('');
                     this.dom.downloadSearchPdfButton.classList.remove('hidden');
                 } else {
@@ -1324,7 +1320,7 @@
                             salesByVendedor[record.vendedor] = (salesByVendedor[record.vendedor] || 0) + monto;
                         }
 
-                        balanceHTML += `<div class="p-3 mb-2 border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 grid grid-cols-3 gap-2 items-center text-sm"><div><p class="font-semibold">${record.nombre}</p><p class="text-xs text-gray-500 dark:text-gray-400">${record.sessionDate}</p></div><p class="text-center">${record.tipoPago}</p><p class="text-right font-semibold">${this.formatCurrency(monto)}</p></div>`;
+                        balanceHTML += `<div class="p-3 mb-2 border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 grid grid-cols-3 gap-2 items-center text-sm dark:text-gray-200"><div><p class="font-semibold">${record.nombre}</p><p class="text-xs text-gray-500 dark:text-gray-400">${record.sessionDate}</p></div><p class="text-center">${record.tipoPago}</p><p class="text-right font-semibold">${this.formatCurrency(monto)}</p></div>`;
                     });
                 }
                 balanceHTML += '</div>';
@@ -1336,7 +1332,7 @@
                     this.state.expenses.forEach(expense => {
                         const monto = parseFloat(expense.amount);
                         totalExpenses += monto;
-                        balanceHTML += `<div class="p-3 mb-2 border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 grid grid-cols-3 gap-2 items-center text-sm"><div><p class="font-semibold">${expense.description}</p><p class="text-xs text-gray-500 dark:text-gray-400">${this.formatDateForId(expense.date)}</p></div><p class="text-center">${expense.type}</p><p class="text-right font-semibold text-red-600">-${this.formatCurrency(monto)}</p></div>`;
+                        balanceHTML += `<div class="p-3 mb-2 border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 grid grid-cols-3 gap-2 items-center text-sm dark:text-gray-200"><div><p class="font-semibold">${expense.description}</p><p class="text-xs text-gray-500 dark:text-gray-400">${this.formatDateForId(expense.date)}</p></div><p class="text-center">${expense.type}</p><p class="text-right font-semibold text-red-600">-${this.formatCurrency(monto)}</p></div>`;
                     });
                 }
                 balanceHTML += '</div>';
@@ -1561,7 +1557,7 @@
                 depositsToShow.forEach(deposit => {
                     const depositDiv = document.createElement('div');
                     depositDiv.className = 'flex justify-between items-center p-3 bg-white dark:bg-gray-700 rounded-lg border dark:border-gray-600';
-                    depositDiv.innerHTML = `<div><p class="font-semibold">${'Depósito'} - ${this.formatDateForId(deposit.date)}</p><p class="text-sm text-gray-600 dark:text-gray-400">${this.formatCurrency(parseFloat(deposit.amount))} (${deposit.type})</p></div><div class="flex gap-2"><button onclick="App.editBankDeposit('${deposit.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.promptDeleteItem('${deposit.id}', 'deposit')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button><button onclick="App.downloadDepositPDF('${deposit.id}')" class="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">PDF</button></div>`;
+                    depositDiv.innerHTML = `<div><p class="font-semibold text-gray-800 dark:text-gray-200">${'Depósito'} - ${this.formatDateForId(deposit.date)}</p><p class="text-sm text-gray-600 dark:text-gray-300">${this.formatCurrency(parseFloat(deposit.amount))} (${deposit.type})</p></div><div class="flex gap-2"><button onclick="App.editBankDeposit('${deposit.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.promptDeleteItem('${deposit.id}', 'deposit')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button><button onclick="App.downloadDepositPDF('${deposit.id}')" class="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">PDF</button></div>`;
                     this.dom.bankDepositsListContainer.appendChild(depositDiv);
                 });
                 if (!this.state.showAllDeposits && deposits.length > 3) {
@@ -1674,7 +1670,7 @@
                 expensesToShow.forEach(expense => {
                     const expenseDiv = document.createElement('div');
                     expenseDiv.className = 'flex justify-between items-center p-3 bg-white dark:bg-gray-700 rounded-lg border dark:border-gray-600';
-                    expenseDiv.innerHTML = `<div><p class="font-semibold">${expense.description}</p><p class="text-sm text-gray-600 dark:text-gray-400">${this.formatDateForId(expense.date)} - ${this.formatCurrency(parseFloat(expense.amount))} (${expense.type})</p></div><div class="flex gap-2"><button onclick="App.editExpense('${expense.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.promptDeleteItem('${expense.id}', 'expense')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button></div>`;
+                    expenseDiv.innerHTML = `<div><p class="font-semibold text-gray-800 dark:text-gray-200">${expense.description}</p><p class="text-sm text-gray-600 dark:text-gray-300">${this.formatDateForId(expense.date)} - ${this.formatCurrency(parseFloat(expense.amount))} (${expense.type})</p></div><div class="flex gap-2"><button onclick="App.editExpense('${expense.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.promptDeleteItem('${expense.id}', 'expense')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button></div>`;
                     this.dom.expenseListContainer.appendChild(expenseDiv);
                 });
                 if (!this.state.showAllExpenses && expenses.length > 3) {
