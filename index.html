@@ -450,6 +450,7 @@
                 recordToEditIndex: null,
                 depositToEditId: null,
                 expenseToEditId: null,
+                editOrigin: null, // NUEVO: Para saber de dónde vino la edición
                 itemToDelete: { id: null, type: null, index: null },
                 sessionToEditId: null,
                 sessionToEditRawDate: null, 
@@ -749,6 +750,7 @@
                 }
             },
             
+            // CORREGIDO: Lógica de agregar/actualizar separada para mayor claridad
             handleAddOrUpdateRecord() {
                 const formData = new FormData(this.dom.dataForm);
                 const record = Object.fromEntries(formData.entries());
@@ -765,20 +767,32 @@
                 }
                 
                 if (this.state.recordToEditIndex !== null) {
-                    // Actualizar registro existente
+                    // --- MODO EDICIÓN ---
                     this.state.currentSessionRecords[this.state.recordToEditIndex] = record;
-                    this.showToast('Registro modificado en el resumen.');
+                    this.showToast('Registro modificado con éxito.');
+                    
+                    const origin = this.state.editOrigin;
                     this.state.recordToEditIndex = null;
+                    this.state.editOrigin = null;
+                    this.dom.dataForm.reset();
                     this.setFormMode('add');
+
+                    if (origin === 'detailsScreen') {
+                        // Vuelve a la pantalla de detalles de la sesión
+                        this.displayDetailsScreen(this.state.currentSessionRecords, 'edit');
+                    } else {
+                        // Se queda en la pantalla de formulario y actualiza el resumen en vivo
+                        this.renderLiveSummary();
+                        this.clearForm(false); // Mantener fecha y vendedor
+                    }
                 } else {
-                    // Agregar nuevo registro
+                    // --- MODO AGREGAR ---
                     this.state.currentSessionRecords.push(record);
                     this.state.liveSummaryPage = Math.ceil(this.state.currentSessionRecords.length / this.state.recordsPerPage);
                     this.showToast('Bono añadido al resumen.');
+                    this.renderLiveSummary();
+                    this.clearForm(false); // Limpiar formulario pero mantener fecha y vendedor
                 }
-
-                this.renderLiveSummary();
-                this.clearForm(false); // Limpiar formulario pero mantener fecha y vendedor
             },
 
             clearForm(clearAll = true) {
@@ -869,6 +883,7 @@
             },
 
             editRecordFromSummary(index) {
+                this.state.editOrigin = 'formScreen'; // Origen de la edición
                 const record = this.state.currentSessionRecords[index];
                 if (!record) return;
 
@@ -887,10 +902,41 @@
                 window.scrollTo(0, 0);
             },
 
+            // NUEVA FUNCIÓN: Para editar un registro desde la pantalla de detalles de sesión
+            editRecordFromSession(index) {
+                const record = this.state.currentSessionRecords[index];
+                if (!record) return;
+
+                this.state.recordToEditIndex = index;
+                this.state.editOrigin = 'detailsScreen'; // Origen de la edición
+
+                // Llenar formulario
+                document.getElementById('fecha').value = record.fecha;
+                document.getElementById('vendedor').value = record.vendedor;
+                document.getElementById('bonoNro1').value = record.bonoNro1;
+                document.getElementById('bonoNro2').value = record.bonoNro2;
+                document.getElementById('nombre').value = record.nombre;
+                document.getElementById('telefono').value = record.telefono;
+                document.getElementById('tipoPago').value = record.tipoPago;
+                document.getElementById('cuotas').value = record.cuotas;
+
+                this.setFormMode('edit');
+                this.showScreen('formScreen'); // Cambiar a la pantalla del formulario
+            },
+
+            // CORREGIDO: Lógica para manejar la cancelación de edición
             cancelEdit() {
+                const origin = this.state.editOrigin;
                 this.state.recordToEditIndex = null;
+                this.state.editOrigin = null;
                 this.clearForm();
                 this.setFormMode('add');
+
+                if (origin === 'detailsScreen') {
+                    // Vuelve a la pantalla de detalles de la sesión
+                    this.displayDetailsScreen(this.state.currentSessionRecords, 'edit');
+                }
+                // Si el origen es 'formScreen', no hace falta hacer nada más, ya está en la pantalla correcta.
             },
 
             handleConfirmAll() {
