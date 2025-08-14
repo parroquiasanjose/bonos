@@ -22,6 +22,7 @@
             from { opacity: 0; transform: scale(0.95); }
             to { opacity: 1; transform: scale(1); }
         }
+        /* Ocultar flechas en inputs numéricos */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
@@ -336,7 +337,7 @@
                 </div>
                 <div>
                     <label for="bankAmount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Importe</label>
-                    <input type="number" id="bankAmount" name="bankAmount" required placeholder="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                    <input type="text" inputmode="numeric" id="bankAmount" name="bankAmount" required placeholder="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
                 </div>
                 <div>
                     <label for="bankType" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo</label>
@@ -369,7 +370,7 @@
                 </div>
                 <div>
                     <label for="expenseAmount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Importe</label>
-                    <input type="number" id="expenseAmount" name="expenseAmount" required placeholder="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                    <input type="text" inputmode="numeric" id="expenseAmount" name="expenseAmount" required placeholder="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
                 </div>
                 <div>
                     <label for="expenseType" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Pago</label>
@@ -549,6 +550,8 @@
                     confirmAllButton: document.getElementById('confirmAllButton'),
                     clearAllButton: document.getElementById('clearAllButton'),
                     goBackToInitialScreenButton: document.getElementById('goBackToInitialScreenButton'),
+                    bankAmountInput: document.getElementById('bankAmount'),
+                    expenseAmountInput: document.getElementById('expenseAmount'),
                 };
             },
 
@@ -617,6 +620,9 @@
                 this.dom.confirmAllButton.addEventListener('click', () => this.handleConfirmAll());
                 this.dom.clearAllButton.addEventListener('click', () => this.handleClearAll());
                 this.dom.goBackToInitialScreenButton.addEventListener('click', () => this.showScreen('initialScreen'));
+                
+                this.dom.bankAmountInput.addEventListener('input', (e) => this.formatCurrencyInput(e));
+                this.dom.expenseAmountInput.addEventListener('input', (e) => this.formatCurrencyInput(e));
             },
 
             // --- AUTENTICACIÓN Y NAVEGACIÓN ---
@@ -626,7 +632,6 @@
                 this.showLoading(true);
                 try {
                     await signInWithEmailAndPassword(this.state.auth, email, password);
-                    // onAuthStateChanged manejará el resto
                 } catch (error) {
                     this.showLoading(false);
                     console.error("Error de inicio de sesión:", error.code);
@@ -640,11 +645,9 @@
 
             login(user) {
                 this.state.currentUser = user;
-                // Verificar privilegios de administrador.
                 const adminEmails = ['adanrdmato@gmail.com', 'jose@example.com']; 
                 this.state.isAdmin = adminEmails.includes(user.email);
 
-                // Lógica de mensaje de bienvenida personalizado
                 if (user.email === 'daianavirginiafroy@gmail.com') {
                     this.dom.welcomeMessage.textContent = 'Bienvenido Javier';
                 } else {
@@ -658,7 +661,6 @@
             async logout() {
                 try {
                     await signOut(this.state.auth);
-                    // onAuthStateChanged llamará a logoutCleanup
                     this.showToast('Sesión cerrada.');
                 } catch (error) {
                     console.error("Error al cerrar sesión:", error);
@@ -670,12 +672,10 @@
                 this.state.currentUser = null;
                 this.state.isAdmin = false;
                 
-                // Anular la suscripción a los escuchas de Firestore
                 if (this.state.unsubscribeHistory) this.state.unsubscribeHistory();
                 if (this.state.unsubscribeBank) this.state.unsubscribeBank();
                 if (this.state.unsubscribeExpenses) this.state.unsubscribeExpenses();
 
-                // Restablecer estado
                 this.state.allSessions = [];
                 this.state.bankDeposits = [];
                 this.state.expenses = [];
@@ -754,7 +754,6 @@
                 const formData = new FormData(this.dom.dataForm);
                 const record = Object.fromEntries(formData.entries());
 
-                // Validación básica
                 if (!record.bonoNro1 || !record.bonoNro2 || !record.nombre || !record.telefono) {
                     this.showToast('Por favor, complete todos los campos requeridos.', 'error');
                     return;
@@ -766,7 +765,6 @@
                 }
                 
                 if (this.state.recordToEditIndex !== null) {
-                    // --- MODO EDICIÓN ---
                     this.state.currentSessionRecords[this.state.recordToEditIndex] = record;
                     this.showToast('Registro modificado con éxito.');
                     
@@ -777,20 +775,17 @@
                     this.setFormMode('add');
 
                     if (origin === 'detailsScreen') {
-                        // Vuelve a la pantalla de detalles de la sesión
                         this.displayDetailsScreen(this.state.currentSessionRecords, 'edit');
                     } else {
-                        // Se queda en la pantalla de formulario y actualiza el resumen en vivo
                         this.renderLiveSummary();
-                        this.clearForm(false); // Mantener fecha y vendedor
+                        this.clearForm(false);
                     }
                 } else {
-                    // --- MODO AGREGAR ---
                     this.state.currentSessionRecords.push(record);
                     this.state.liveSummaryPage = Math.ceil(this.state.currentSessionRecords.length / this.state.recordsPerPage);
                     this.showToast('Bono añadido al resumen.');
                     this.renderLiveSummary();
-                    this.clearForm(false); // Limpiar formulario pero mantener fecha y vendedor
+                    this.clearForm(false);
                 }
             },
 
@@ -817,7 +812,6 @@
                     return;
                 }
 
-                // Lógica de paginación
                 const page = this.state.liveSummaryPage;
                 const recordsPerPage = this.state.recordsPerPage;
                 const startIndex = (page - 1) * recordsPerPage;
@@ -843,7 +837,6 @@
                     this.dom.liveSummaryContainer.appendChild(recordDiv);
                 });
 
-                // Calcular totales para toda la sesión
                 this.state.currentSessionRecords.forEach(record => {
                     const monto = record.cuotas == 1 ? 15000 : 30000;
                     subtotal += monto;
@@ -855,7 +848,6 @@
                     <p class="text-green-700 dark:text-green-400">Total Efectivo: <span class="font-bold">${this.formatCurrency(totalEfectivo)}</span></p>
                 `;
 
-                // Renderizar controles de paginación
                 const totalPages = Math.ceil(this.state.currentSessionRecords.length / this.state.recordsPerPage);
                 if (totalPages > 1) {
                     this.dom.liveSummaryPagination.innerHTML = `
@@ -882,13 +874,12 @@
             },
 
             editRecordFromSummary(index) {
-                this.state.editOrigin = 'formScreen'; // Origen de la edición
+                this.state.editOrigin = 'formScreen';
                 const record = this.state.currentSessionRecords[index];
                 if (!record) return;
 
                 this.state.recordToEditIndex = index;
                 
-                // Llenar formulario
                 document.getElementById('vendedor').value = record.vendedor;
                 document.getElementById('bonoNro1').value = record.bonoNro1;
                 document.getElementById('bonoNro2').value = record.bonoNro2;
@@ -906,9 +897,8 @@
                 if (!record) return;
 
                 this.state.recordToEditIndex = index;
-                this.state.editOrigin = 'detailsScreen'; // Origen de la edición
+                this.state.editOrigin = 'detailsScreen';
 
-                // Llenar formulario
                 document.getElementById('fecha').value = record.fecha;
                 document.getElementById('vendedor').value = record.vendedor;
                 document.getElementById('bonoNro1').value = record.bonoNro1;
@@ -919,7 +909,7 @@
                 document.getElementById('cuotas').value = record.cuotas;
 
                 this.setFormMode('edit');
-                this.showScreen('formScreen'); // Cambiar a la pantalla del formulario
+                this.showScreen('formScreen');
             },
 
             cancelEdit() {
@@ -930,7 +920,6 @@
                 this.setFormMode('add');
 
                 if (origin === 'detailsScreen') {
-                    // Vuelve a la pantalla de detalles de la sesión
                     this.displayDetailsScreen(this.state.currentSessionRecords, 'edit');
                 }
             },
@@ -1185,7 +1174,7 @@
                 }
             },
             
-            // --- LÓGICA DE BÚSQUEDA Y GANADORES ---
+            // --- LÓGICA DE BÚSQUEDA, GANADORES Y PDF ---
             findBono() {
                 const searchInput1 = document.getElementById('bonoSearchInput1');
                 const searchInput2 = document.getElementById('bonoSearchInput2');
@@ -1237,6 +1226,49 @@
                 doc.autoTable({ head: [tableColumn], body: tableRows, startY: startY, theme: 'grid', headStyles: { fillColor: [67, 56, 202] } });
                 const currentDate = this.getCurrentDateFormatted();
                 doc.save(`busqueda_bonos_${currentDate}.pdf`);
+            },
+
+            downloadSessionPDF(sessionId) {
+                const recordsToPrint = sessionId ? this.state.allSessions.find(s => s.id === sessionId)?.records : this.state.currentSessionRecords;
+                if (!recordsToPrint || recordsToPrint.length === 0) return;
+                const doc = new jsPDF();
+                let title, fileName;
+                const currentDate = this.getCurrentDateFormatted();
+
+                if (sessionId) {
+                    const displayId = sessionId.replace(/-/g, '/');
+                    title = `Detalle de Carga - ${displayId}`;
+                    fileName = `cargas_de_bono_${currentDate}.pdf`;
+                } else {
+                    const rawDate = this.state.currentSessionRecords[0].fecha;
+                    const formattedDate = this.formatDateForId(rawDate);
+                    title = `Detalle de Carga - ${formattedDate}`;
+                    fileName = `detalle_bonos_${this.formatDateForId(rawDate, true)}.pdf`;
+                }
+                
+                const startY = this.addPdfHeader(doc, title);
+                const tableColumn = ["Nombre", "Bonos", "Pago", "Cuotas", "Monto"];
+                const tableRows = [];
+                let subtotal = 0, totalEfectivo = 0;
+                recordsToPrint.forEach(data => {
+                    const monto = data.cuotas == 1 ? 15000 : 30000;
+                    subtotal += monto;
+                    if (data.tipoPago === 'Efectivo') totalEfectivo += monto;
+                    tableRows.push([data.nombre, `${data.bonoNro1}-${data.bonoNro2}`, data.tipoPago, data.cuotas, this.formatCurrency(monto)]);
+                });
+                doc.autoTable({
+                    head: [tableColumn],
+                    body: tableRows,
+                    startY: startY,
+                    theme: 'grid',
+                    headStyles: { fillColor: [107, 114, 128] },
+                    foot: [
+                        [{ content: 'Subtotal', colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } }, { content: this.formatCurrency(subtotal), styles: { halign: 'right', fontStyle: 'bold' } }],
+                        [{ content: 'Total (Efectivo)', colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } }, { content: this.formatCurrency(totalEfectivo), styles: { halign: 'right', fontStyle: 'bold' } }],
+                    ],
+                    footStyles: { fontStyle: 'bold', fillColor: false }
+                });
+                doc.save(fileName);
             },
 
             findWinner() {
@@ -1291,6 +1323,7 @@
                 doc.save(`resultados_sorteo_${currentDate}.pdf`);
             },
             
+            // CORRECCIÓN: Se agregó la coma faltante aquí
             showBalanceScreen() {
                 this.dom.balanceListContainer.innerHTML = '';
                 this.dom.balanceSummaryContainer.innerHTML = '';
@@ -1433,13 +1466,13 @@
                         ['Total Efectivo (Bonos):', this.formatCurrency(totalBonosEfectivo)],
                         ['Total Transferencia (Bonos):', this.formatCurrency(totalBonosTransferencia)],
                         [{content: 'Total Bonos:', styles: {fontStyle: 'bold'}}, {content: this.formatCurrency(totalBonos), styles: {fontStyle: 'bold'}}],
-                        ['', ''], // Espaciador
+                        ['', ''],
                         ['Resumen de Ventas por Vendedor', ''],
                         ...salesSummaryRows,
-                        ['', ''], // Espaciador
+                        ['', ''],
                         ['Resumen de Egresos', ''],
                         [{content: 'Total Egresos:', styles: {fontStyle: 'bold'}}, {content: `-${this.formatCurrency(totalExpenses)}`, styles: {fontStyle: 'bold'}}],
-                        ['', ''], // Espaciador
+                        ['', ''],
                         [{content: 'Balance Final (Ingresos Bonos - Egresos):', styles: {fontStyle: 'bold', fontSize: 12}}, {content: this.formatCurrency(totalBonos - totalExpenses), styles: {fontStyle: 'bold', fontSize: 12}}],
                     ],
                     columnStyles: {
@@ -1450,74 +1483,6 @@
 
                 const currentDate = this.getCurrentDateFormatted();
                 doc.save(`balance_${currentDate}.pdf`);
-            },
-
-            formatCurrency(amount) {
-                return amount.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
-            },
-
-            getCurrentDateFormatted() {
-                const today = new Date();
-                const day = String(today.getDate()).padStart(2, '0');
-                const month = String(today.getMonth() + 1).padStart(2, '0');
-                const year = today.getFullYear();
-                return `${day}-${month}-${year}`;
-            },
-
-            formatDateForId(dateString, useSafeFormat = false) {
-                if (!dateString || !/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
-                const [year, month, day] = dateString.split('-');
-                const separator = useSafeFormat ? '-' : '/';
-                return `${day}${separator}${month}${separator}${year}`;
-            },
-
-            parseIdToDate(idString) {
-                if (!idString || !/^\d{2}[-\/]\d{2}[-\/]\d{4}$/.test(idString)) return idString;
-                const parts = idString.split(/[-\/]/);
-                return `${parts[2]}-${parts[1]}-${parts[0]}`;
-            },
-
-            downloadSessionPDF(sessionId) {
-                const recordsToPrint = sessionId ? this.state.allSessions.find(s => s.id === sessionId)?.records : this.state.currentSessionRecords;
-                if (!recordsToPrint || recordsToPrint.length === 0) return;
-                const doc = new jsPDF();
-                let title, fileName;
-                const currentDate = this.getCurrentDateFormatted();
-
-                if (sessionId) {
-                    const displayId = sessionId.replace(/-/g, '/');
-                    title = `Detalle de Carga - ${displayId}`;
-                    fileName = `cargas_de_bono_${currentDate}.pdf`;
-                } else {
-                    const rawDate = this.state.currentSessionRecords[0].fecha;
-                    const formattedDate = this.formatDateForId(rawDate);
-                    title = `Detalle de Carga - ${formattedDate}`;
-                    fileName = `detalle_bonos_${this.formatDateForId(rawDate, true)}.pdf`;
-                }
-                
-                const startY = this.addPdfHeader(doc, title);
-                const tableColumn = ["Nombre", "Bonos", "Pago", "Cuotas", "Monto"];
-                const tableRows = [];
-                let subtotal = 0, totalEfectivo = 0;
-                recordsToPrint.forEach(data => {
-                    const monto = data.cuotas == 1 ? 15000 : 30000;
-                    subtotal += monto;
-                    if (data.tipoPago === 'Efectivo') totalEfectivo += monto;
-                    tableRows.push([data.nombre, `${data.bonoNro1}-${data.bonoNro2}`, data.tipoPago, data.cuotas, this.formatCurrency(monto)]);
-                });
-                doc.autoTable({
-                    head: [tableColumn],
-                    body: tableRows,
-                    startY: startY,
-                    theme: 'grid',
-                    headStyles: { fillColor: [107, 114, 128] },
-                    foot: [
-                        [{ content: 'Subtotal', colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } }, { content: this.formatCurrency(subtotal), styles: { halign: 'right', fontStyle: 'bold' } }],
-                        [{ content: 'Total (Efectivo)', colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } }, { content: this.formatCurrency(totalEfectivo), styles: { halign: 'right', fontStyle: 'bold' } }],
-                    ],
-                    footStyles: { fontStyle: 'bold', fillColor: false }
-                });
-                doc.save(fileName);
             },
             
             // --- LÓGICA DE BANCO Y EGRESOS ---
@@ -1571,7 +1536,12 @@
 
             async handleBankFormSubmit() {
                 const formData = new FormData(this.dom.bankForm);
-                const depositData = { date: formData.get('bankDate'), amount: parseFloat(formData.get('bankAmount')), type: formData.get('bankType') };
+                const amountValue = formData.get('bankAmount');
+                const depositData = { 
+                    date: formData.get('bankDate'), 
+                    amount: this.getNumericValue(amountValue), 
+                    type: formData.get('bankType') 
+                };
                 this.showLoading(true);
                 try {
                     if (this.state.depositToEditId) {
@@ -1595,7 +1565,7 @@
                 if (!deposit) return;
                 this.state.depositToEditId = depositId;
                 document.getElementById('bankDate').value = deposit.date;
-                document.getElementById('bankAmount').value = deposit.amount;
+                document.getElementById('bankAmount').value = deposit.amount.toLocaleString('es-ES');
                 document.getElementById('bankType').value = deposit.type;
                 this.dom.bankFormTitle.textContent = 'Modificar Depósito';
                 this.dom.bankFormActions.innerHTML = `<button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">Guardar Cambios</button><button type="button" onclick="App.showBankScreen()" class="w-full mt-2 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cancelar</button>`;
@@ -1684,10 +1654,11 @@
             
             async handleExpenseFormSubmit() {
                 const formData = new FormData(this.dom.expenseForm);
+                const amountValue = formData.get('expenseAmount');
                 const expenseData = {
                     date: formData.get('expenseDate'),
                     description: formData.get('expenseDescription'),
-                    amount: parseFloat(formData.get('expenseAmount')),
+                    amount: this.getNumericValue(amountValue),
                     type: formData.get('expenseType'),
                 };
                 this.showLoading(true);
@@ -1714,7 +1685,7 @@
                 this.state.expenseToEditId = expenseId;
                 document.getElementById('expenseDate').value = expense.date;
                 document.getElementById('expenseDescription').value = expense.description;
-                document.getElementById('expenseAmount').value = expense.amount;
+                document.getElementById('expenseAmount').value = expense.amount.toLocaleString('es-ES');
                 document.getElementById('expenseType').value = expense.type;
                 this.dom.expenseFormTitle.textContent = 'Modificar Egreso';
                 this.dom.expenseFormActions.innerHTML = `<button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">Guardar Cambios</button><button type="button" onclick="App.showExpenseScreen()" class="w-full mt-2 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cancelar</button>`;
@@ -1728,7 +1699,6 @@
                 toast.textContent = message;
                 toastContainer.appendChild(toast);
 
-                // Reproducir sonido
                 try {
                     const synth = new Tone.Synth().toDestination();
                     if (type === 'success') {
@@ -1760,7 +1730,7 @@
                 doc.setDrawColor(180, 180, 180);
                 doc.line(15, 35, doc.internal.pageSize.getWidth() - 15, 35);
 
-                return 45; // Devolver la posición Y inicial para la tabla
+                return 45;
             },
 
             updateDashboard() {
@@ -1824,6 +1794,52 @@
                     option.value = vendedor;
                     this.dom.vendedoresList.appendChild(option);
                 });
+            },
+
+            // --- FUNCIONES AUXILIARES ---
+            formatCurrencyInput(event) {
+                const input = event.target;
+                let value = input.value.replace(/\./g, '');
+                if (isNaN(value) || value === '') {
+                    input.value = '';
+                    return;
+                }
+                if (/[^0-9]/.test(value)) {
+                    value = value.replace(/[^0-9]/g, '');
+                }
+                const number = parseInt(value, 10);
+                input.value = number.toLocaleString('es-ES');
+            },
+
+            getNumericValue(formattedValue) {
+                if (!formattedValue || typeof formattedValue !== 'string') return 0;
+                const cleanValue = formattedValue.replace(/\./g, '');
+                return parseInt(cleanValue, 10) || 0;
+            },
+
+            formatCurrency(amount) {
+                return amount.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+            },
+
+            getCurrentDateFormatted() {
+                const today = new Date();
+                const day = String(today.getDate()).padStart(2, '0');
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const year = today.getFullYear();
+                return `${day}-${month}-${year}`;
+            },
+
+            formatDateForId(dateString, useSafeFormat = false) {
+                if (!dateString || !/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
+                const [year, month, day] = dateString.split('-');
+                const separator = useSafeFormat ? '-' : '/';
+                return `${day}${separator}${month}${separator}${year}`;
+            },
+
+            parseIdToDate(idString) {
+                if (!idString || !/^\d{2}[-\/]\d{2}[-\/]\d{4}$/.test(idString)) return idString;
+                const parts = idString.split(/[-\/]/);
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
             },
         };
 
