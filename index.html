@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Parroquia San José Bono - Carga de Datos</title>
+    <!-- Favicon con el logo de la parroquia -->
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/vTQjffhK/NUEVO-LOGO.png">
     <!-- Tailwind CSS para el estilo -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- jsPDF para la generación de PDF -->
@@ -105,7 +107,11 @@
 
         <!-- 1. Pantalla Inicial -->
         <div id="initialScreen" class="screen p-8 space-y-4 bg-gray-50 rounded-xl shadow-lg text-center fade-in">
-            <h1 class="text-3xl font-bold text-gray-800">Parroquia San José Bono ⛪</h1>
+            <!-- Título actualizado con el logo -->
+            <h1 class="text-3xl font-bold text-gray-800 flex items-center justify-center gap-3">
+                <img src="https://i.postimg.cc/vTQjffhK/NUEVO-LOGO.png" alt="Logo Parroquia" class="h-10">
+                <span>Parroquia San José Bono</span>
+            </h1>
             <p class="text-xl text-gray-600">"Sembradores de Esperanza"</p>
             <p id="welcomeMessage" class="text-lg text-gray-700"></p>
             
@@ -1422,13 +1428,16 @@
                 doc.save(`resultados_sorteo_${currentDate}.pdf`);
             },
             
+            // --- CÓDIGO ACTUALIZADO PARA BALANCE ---
             showBalanceScreen() {
                 this.dom.balanceListContainer.innerHTML = '';
                 this.dom.balanceSummaryContainer.innerHTML = '';
                 let totalBonosEfectivo = 0, totalBonosTransferencia = 0, totalBonos = 0;
                 let totalExpenses = 0;
-                let salesByVendedor = {};
                 
+                // Objeto para agrupar ventas por vendedor (normalizado para evitar duplicados)
+                const salesByVendedor = {};
+
                 const allRecords = [];
                 this.state.allSessions.forEach(session => {
                     session.records.forEach(record => {
@@ -1447,8 +1456,16 @@
                         if (record.tipoPago === 'Efectivo') totalBonosEfectivo += monto;
                         else totalBonosTransferencia += monto;
 
-                        if (record.vendedor) {
-                            salesByVendedor[record.vendedor] = (salesByVendedor[record.vendedor] || 0) + monto;
+                        // Lógica de agrupación mejorada: normaliza el nombre del vendedor
+                        if (record.vendedor && record.vendedor.trim() !== '') {
+                            const normalizedVendedor = record.vendedor.trim().toLowerCase();
+                            if (!salesByVendedor[normalizedVendedor]) {
+                                salesByVendedor[normalizedVendedor] = {
+                                    originalName: record.vendedor.trim(), // Guardar el nombre original para mostrar
+                                    total: 0
+                                };
+                            }
+                            salesByVendedor[normalizedVendedor].total += monto;
                         }
 
                         balanceHTML += `<div class="p-3 mb-2 border rounded-md bg-white grid grid-cols-3 gap-2 items-center text-sm"><div><p class="font-semibold">${record.nombre}</p><p class="text-xs text-gray-500">${record.sessionDate}</p></div><p class="text-center">${record.tipoPago}</p><p class="text-right font-semibold">${this.formatCurrency(monto)}</p></div>`;
@@ -1473,8 +1490,11 @@
                 let salesSummaryHTML = '';
                 if (Object.keys(salesByVendedor).length > 0) {
                     salesSummaryHTML += '<div class="p-4 border rounded-lg bg-white mb-4"><h4 class="font-bold text-lg mb-2 text-gray-800">Resumen de Ventas por Vendedor</h4>';
-                    for (const vendedor in salesByVendedor) {
-                        salesSummaryHTML += `<div class="flex justify-between items-center"><span class="font-medium text-gray-600">${vendedor}:</span><span class="font-bold text-gray-800">${this.formatCurrency(salesByVendedor[vendedor])}</span></div>`;
+                    // Ordenar vendedores alfabéticamente para una vista consistente
+                    const sortedVendedores = Object.keys(salesByVendedor).sort();
+                    for (const normalizedVendedor of sortedVendedores) {
+                        const data = salesByVendedor[normalizedVendedor];
+                        salesSummaryHTML += `<div class="flex justify-between items-center"><span class="font-medium text-gray-600">${data.originalName}:</span><span class="font-bold text-gray-800">${this.formatCurrency(data.total)}</span></div>`;
                     }
                     salesSummaryHTML += '</div>';
                 }
@@ -1500,13 +1520,16 @@
                 this.showScreen('balanceScreen');
             },
 
+            // --- CÓDIGO ACTUALIZADO PARA PDF DE BALANCE ---
             downloadBalancePDF() {
                 const doc = new jsPDF();
                 let startY = this.addPdfHeader(doc, "Balance General");
                 
                 let totalBonosEfectivo = 0, totalBonosTransferencia = 0, totalBonos = 0;
                 let totalExpenses = 0;
-                let salesByVendedor = {};
+                
+                // Objeto para agrupar ventas por vendedor (normalizado)
+                const salesByVendedor = {};
 
                 const bonoRecords = [];
                 this.state.allSessions.forEach(session => {
@@ -1521,8 +1544,17 @@
                     totalBonos += monto;
                     if (record.tipoPago === 'Efectivo') totalBonosEfectivo += monto;
                     else totalBonosTransferencia += monto;
-                    if (record.vendedor) {
-                        salesByVendedor[record.vendedor] = (salesByVendedor[record.vendedor] || 0) + monto;
+
+                    // Lógica de agrupación mejorada
+                    if (record.vendedor && record.vendedor.trim() !== '') {
+                        const normalizedVendedor = record.vendedor.trim().toLowerCase();
+                        if (!salesByVendedor[normalizedVendedor]) {
+                            salesByVendedor[normalizedVendedor] = {
+                                originalName: record.vendedor.trim(),
+                                total: 0
+                            };
+                        }
+                        salesByVendedor[normalizedVendedor].total += monto;
                     }
                     return [record.sessionDate, record.nombre, `${record.bonoNro1}-${record.bonoNro2}`, record.tipoPago, this.formatCurrency(monto)];
                 });
@@ -1554,7 +1586,12 @@
                     headStyles: { fillColor: [220, 38, 38] },
                 });
                 
-                const salesSummaryRows = Object.keys(salesByVendedor).map(vendedor => [vendedor, this.formatCurrency(salesByVendedor[vendedor])]);
+                const salesSummaryRows = Object.keys(salesByVendedor)
+                    .sort() // Ordenar alfabéticamente
+                    .map(normalizedVendedor => {
+                        const data = salesByVendedor[normalizedVendedor];
+                        return [data.originalName, this.formatCurrency(data.total)];
+                    });
 
                 doc.autoTable({
                     startY: doc.autoTable.previous.finalY + 10,
