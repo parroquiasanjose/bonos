@@ -275,8 +275,11 @@
             <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Balance General</h2>
             <div id="balanceListContainer" class="mb-6 max-h-80 overflow-y-auto p-3 bg-white rounded-lg border"></div>
             <div id="balanceSummaryContainer" class="mb-6 p-4 bg-gray-100 rounded-lg space-y-2 text-base"></div>
-            <button id="downloadBalancePdfButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 rounded-lg">Descargar PDF</button>
-            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Volver al Inicio</button>
+            <div class="space-y-3 mt-4">
+                <button id="downloadBalanceSummaryPdfButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 rounded-lg">Descargar Resumen (PDF)</button>
+                <button id="downloadBalancePdfButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 rounded-lg">Descargar Detalle Completo (PDF)</button>
+                <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Volver al Inicio</button>
+            </div>
         </div>
         
         <!-- 8. Pantalla de Banco -->
@@ -570,6 +573,7 @@
                     balanceListContainer: document.getElementById('balanceListContainer'),
                     balanceSummaryContainer: document.getElementById('balanceSummaryContainer'),
                     downloadBalancePdfButton: document.getElementById('downloadBalancePdfButton'),
+                    downloadBalanceSummaryPdfButton: document.getElementById('downloadBalanceSummaryPdfButton'), // NUEVO
                     goToBalanceButton: document.getElementById('goToBalanceButton'),
                     goToBankButton: document.getElementById('goToBankButton'),
                     logoutButton: document.getElementById('logoutButton'),
@@ -676,6 +680,7 @@
                 document.getElementById('cancelDeleteButton').addEventListener('click', () => this.dom.deleteConfirmModal.classList.add('hidden'));
                 document.getElementById('confirmDeleteButton').addEventListener('click', () => this.handleConfirmDelete());
                 this.dom.downloadBalancePdfButton.addEventListener('click', () => this.downloadBalancePDF());
+                this.dom.downloadBalanceSummaryPdfButton.addEventListener('click', () => this.downloadBalanceSummaryPDF()); // NUEVO
                 this.dom.bankForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleBankFormSubmit(); });
                 this.dom.expenseForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleExpenseFormSubmit(); });
                 this.dom.vendedorBonoForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleVendedorBonoSubmit(); });
@@ -1419,10 +1424,121 @@
 
                 this.showScreen('balanceScreen');
             },
+            
+            downloadBalanceSummaryPDF() {
+                const doc = new jsPDF();
+                // Custom title for this specific PDF
+                doc.setFontSize(16);
+                doc.setFont(undefined, 'bold');
+                doc.text("Parroquia San José", 105, 15, { align: 'center' });
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'normal');
+                doc.text("Balance de Ventas y Egresos de Bonos", 105, 25, { align: 'center' });
+
+                doc.setFontSize(10);
+                doc.text(this.getCurrentDateFormatted(), doc.internal.pageSize.getWidth() - 15, 20, { align: 'right' });
+
+                doc.setDrawColor(180, 180, 180);
+                doc.line(15, 32, doc.internal.pageSize.getWidth() - 15, 32);
+
+                let startY = 40;
+
+                // --- Data Calculation (same as showBalanceScreen) ---
+                let totalBonosEfectivo = 0, totalBonosTransferencia = 0;
+                const salesByVendedor = {};
+                this.state.allSessions.forEach(session => {
+                    session.records.forEach(record => {
+                        const monto = record.cuotas == 1 ? 15000 : 30000;
+                        if (record.tipoPago === 'Efectivo') totalBonosEfectivo += monto;
+                        else totalBonosTransferencia += monto;
+
+                        if (record.vendedor && record.vendedor.trim() !== '') {
+                            const normalizedVendedor = record.vendedor.trim().toLowerCase();
+                            if (!salesByVendedor[normalizedVendedor]) {
+                                salesByVendedor[normalizedVendedor] = { originalName: record.vendedor.trim(), total: 0 };
+                            }
+                            salesByVendedor[normalizedVendedor].total += monto;
+                        }
+                    });
+                });
+                
+                let totalExpensesEfectivo = 0, totalExpensesTransferencia = 0;
+                this.state.expenses.forEach(expense => {
+                    const monto = parseFloat(expense.amount);
+                    if (expense.type === 'Efectivo') totalExpensesEfectivo += monto;
+                    else totalExpensesTransferencia += monto;
+                });
+                
+                const totalBonos = totalBonosEfectivo + totalBonosTransferencia;
+                const totalExpenses = totalExpensesEfectivo + totalExpensesTransferencia;
+                const calculoA = totalBonosEfectivo - totalBonosTransferencia - totalExpenses;
+                const balanceGeneral = totalBonos - totalExpenses;
+
+                // --- Section 1: Ventas por Vendedor ---
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text('Detalle de Ventas por Vendedor', 14, startY);
+                startY += 7;
+                const salesSummaryRows = Object.keys(salesByVendedor).sort().map(vendedor => [salesByVendedor[vendedor].originalName, this.formatCurrency(salesByVendedor[vendedor].total)]);
+                doc.autoTable({
+                    head: [["Vendedor", "Total Vendido"]],
+                    body: salesSummaryRows,
+                    startY: startY,
+                    theme: 'grid',
+                    headStyles: { fillColor: [22, 163, 74] } // Green
+                });
+                startY = doc.autoTable.previous.finalY + 15;
+
+                // --- Section 2: Detalle de Egresos ---
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text('Detalle de Egresos', 14, startY);
+                startY += 7;
+                const expenseTableRows = this.state.expenses.map(expense => {
+                    const monto = parseFloat(expense.amount);
+                    return [this.formatDateForId(expense.date), expense.description, expense.type, `-${this.formatCurrency(monto)}`];
+                });
+                 doc.autoTable({
+                    head: [["Fecha", "Descripción", "Tipo de Pago", "Monto"]],
+                    body: expenseTableRows,
+                    startY: startY,
+                    theme: 'grid',
+                    headStyles: { fillColor: [220, 38, 38] } // Red
+                });
+                startY = doc.autoTable.previous.finalY + 15;
+
+                // --- Section 3: Balances Finales ---
+                // Check if there is enough space for the final summary, if not, add a new page
+                if (startY > 250) { // Threshold for adding a new page, can be adjusted
+                    doc.addPage();
+                    startY = 20; // Reset Y position for the new page
+                }
+
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text('Balances Finales', 14, startY);
+                startY += 7;
+                doc.autoTable({
+                    startY: startY,
+                    theme: 'plain',
+                    body: [
+                        ['Total Ventas de Bonos:', this.formatCurrency(totalBonos)],
+                        ['Cálculo (Efectivo - Transf. - Egresos):', this.formatCurrency(calculoA)],
+                        [{content: 'BALANCE GENERAL:', styles: {fontStyle: 'bold'}}, {content: this.formatCurrency(balanceGeneral), styles: {fontStyle: 'bold'}}],
+                    ],
+                    columnStyles: { 
+                        0: { halign: 'right', fontStyle: 'bold' },
+                        1: { halign: 'right' }
+                    }
+                });
+
+                const currentDate = this.getCurrentDateFormatted();
+                doc.save(`resumen_balance_bonos_${currentDate}.pdf`);
+            },
 
             downloadBalancePDF() {
                 const doc = new jsPDF();
-                let startY = this.addPdfHeader(doc, "Balance General");
+                let startY = this.addPdfHeader(doc, "Balance General - Detalle Completo");
                 
                 let totalBonosEfectivo = 0, totalBonosTransferencia = 0;
                 const salesByVendedor = {};
@@ -1485,9 +1601,15 @@
 
 
                 const salesSummaryRows = Object.keys(salesByVendedor).sort().map(vendedor => [salesByVendedor[vendedor].originalName, this.formatCurrency(salesByVendedor[vendedor].total)]);
+                
+                finalY = doc.autoTable.previous.finalY + 10;
+                if (finalY > 250) {
+                    doc.addPage();
+                    finalY = 20;
+                }
 
                 doc.autoTable({
-                    startY: doc.autoTable.previous.finalY + 10,
+                    startY: finalY,
                     theme: 'plain',
                     body: [
                         [{content: 'Resumen de Ingresos (Bonos)', colSpan: 2, styles: {fontStyle: 'bold'}}],
@@ -2590,3 +2712,4 @@
     </script>
 </body>
 </html>
+
