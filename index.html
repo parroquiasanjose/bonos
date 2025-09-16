@@ -159,6 +159,9 @@
                 <button id="goToBalanceButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-orange-500 to-orange-700 hover:from-orange-600 hover:to-orange-800 rounded-lg">
                     Balance
                 </button>
+                 <button id="goToWinnerButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 rounded-lg">
+                    Gestionar Sorteo
+                </button>
                  <button id="goToRecycleBinButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-yellow-500 to-yellow-700 hover:from-yellow-600 hover:to-yellow-800 rounded-lg">
                     Papelera
                 </button>
@@ -400,6 +403,33 @@
             <div id="recycleBinListContainer" class="mb-6 max-h-96 overflow-y-auto space-y-3"></div>
             <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 rounded-lg">Volver al Inicio</button>
         </div>
+        
+        <!-- 12. Pantalla de Gestión de Ganadores (NUEVA) -->
+        <div id="winnerScreen" class="screen p-8 bg-gray-50 rounded-xl shadow-lg fade-in">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Gestión de Sorteo</h2>
+            <form id="winnerForm" class="space-y-4 mb-6 p-4 border rounded-lg">
+                <h3 class="text-lg font-semibold text-gray-700">Buscar Ganador</h3>
+                <div>
+                    <label for="winnerNumberInput" class="block text-sm font-medium text-gray-700">Número de Bono Ganador</label>
+                    <input type="number" id="winnerNumberInput" placeholder="000" oninput="this.value = this.value.slice(0, 3);" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
+                </div>
+                 <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 rounded-lg">Buscar</button>
+            </form>
+            
+            <div id="winnerResultContainer" class="mb-6 p-4 bg-white rounded-lg border min-h-[100px]">
+                 <!-- Resultado de la búsqueda del ganador -->
+            </div>
+
+            <hr class="my-6 border-gray-300">
+
+            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Historial de Ganadores</h3>
+             <div id="pastWinnersContainer" class="mb-6 max-h-80 overflow-y-auto space-y-3">
+                 <!-- Lista de ganadores anteriores -->
+            </div>
+
+            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Volver al Inicio</button>
+        </div>
+
 
     </div>
 
@@ -473,7 +503,7 @@
                 sessionToEditId: null,
                 sessionToEditRawDate: null, 
                 winnersData: [],
-                searchResult: [], 
+                searchResult: null, 
                 db: null,
                 auth: null,
                 userId: null,
@@ -482,6 +512,7 @@
                 unsubscribeExpenses: null,
                 unsubscribeVendedorBonos: null,
                 unsubscribeDeleted: null,
+                unsubscribeWinners: null, // NUEVO
                 showAllDeposits: false,
                 showAllExpenses: false,
                 showAllVendedorBonos: false,
@@ -583,6 +614,13 @@
                     recycleBinListContainer: document.getElementById('recycleBinListContainer'),
                     goToRecycleBinButton: document.getElementById('goToRecycleBinButton'),
                     downloadAllLoadsPdfButton: document.getElementById('downloadAllLoadsPdfButton'),
+                    // NUEVOS ELEMENTOS PARA GANADORES
+                    goToWinnerButton: document.getElementById('goToWinnerButton'),
+                    winnerScreen: document.getElementById('winnerScreen'),
+                    winnerForm: document.getElementById('winnerForm'),
+                    winnerNumberInput: document.getElementById('winnerNumberInput'),
+                    winnerResultContainer: document.getElementById('winnerResultContainer'),
+                    pastWinnersContainer: document.getElementById('pastWinnersContainer'),
                 };
             },
 
@@ -652,6 +690,9 @@
                 this.dom.runReportButton.addEventListener('click', () => this.handleReportQuery());
                 this.dom.downloadVendedorReportPdfButton.addEventListener('click', () => this.downloadVendedorReportPDF());
                 this.dom.downloadAllLoadsPdfButton.addEventListener('click', () => this.downloadAllLoadsPDF());
+                // NUEVOS EVENTOS PARA GANADORES
+                this.dom.goToWinnerButton.addEventListener('click', () => this.showWinnerScreen());
+                this.dom.winnerForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleFindWinner(); });
             },
 
             // --- AUTENTICACIÓN Y NAVEGÁCIÓn ---
@@ -706,12 +747,14 @@
                 if (this.state.unsubscribeExpenses) this.state.unsubscribeExpenses();
                 if (this.state.unsubscribeVendedorBonos) this.state.unsubscribeVendedorBonos();
                 if (this.state.unsubscribeDeleted) this.state.unsubscribeDeleted();
+                if (this.state.unsubscribeWinners) this.state.unsubscribeWinners(); // NUEVO
 
                 this.state.allSessions = [];
                 this.state.bankDeposits = [];
                 this.state.expenses = [];
                 this.state.vendedorBonos = [];
                 this.state.deletedItems = [];
+                this.state.winnersData = []; // NUEVO
 
                 this.showScreen('loginScreen');
             },
@@ -735,7 +778,7 @@
                     this.updateReportInput();
                 }
                  if(screenId === 'recycleBinScreen'){
-                     this.renderRecycleBin();
+                      this.renderRecycleBin();
                  }
             },
 
@@ -747,6 +790,7 @@
                 this.dom.adminDashboard.style.display = isAdmin ? 'block' : 'none';
                 this.dom.goToVendedorBonoButton.style.display = 'block';
                 this.dom.goToRecycleBinButton.style.display = isAdmin ? 'block' : 'none';
+                this.dom.goToWinnerButton.style.display = isAdmin ? 'block' : 'none'; // NUEVO
 
                 if (isAdmin) {
                     this.updateDashboard();
@@ -1001,12 +1045,13 @@
 
             // --- GESTIÓN DE DATOS EN FIRESTORE ---
              loadAllDataFromFirestore() {
-                 this.loadHistoryFromFirestore();
-                 this.loadBankDepositsFromFirestore();
-                 this.loadExpensesFromFirestore();
-                 this.loadVendedorBonosFromFirestore();
-                 this.loadDeletedItemsFromFirestore();
-            },
+                  this.loadHistoryFromFirestore();
+                  this.loadBankDepositsFromFirestore();
+                  this.loadExpensesFromFirestore();
+                  this.loadVendedorBonosFromFirestore();
+                  this.loadDeletedItemsFromFirestore();
+                  this.loadWinnersFromFirestore();
+             },
 
             loadHistoryFromFirestore() {
                 if (this.state.unsubscribeHistory) this.state.unsubscribeHistory();
@@ -1231,10 +1276,10 @@
                     if (permanent) {
                         await deleteDoc(docRef);
                          if (type === 'session') {
-                             const recordsSnapshot = await getDocs(collection(docRef, 'records'));
-                             const batch = writeBatch(this.state.db);
-                             recordsSnapshot.forEach(doc => batch.delete(doc.ref));
-                             await batch.commit();
+                              const recordsSnapshot = await getDocs(collection(docRef, 'records'));
+                              const batch = writeBatch(this.state.db);
+                              recordsSnapshot.forEach(doc => batch.delete(doc.ref));
+                              await batch.commit();
                          }
                         this.showToast('Elemento eliminado permanentemente.');
                     } else {
@@ -1250,7 +1295,7 @@
                 } finally {
                     this.showLoading(false);
                     if(this.dom.recycleBinScreen.classList.contains('active-screen')){
-                        this.renderRecycleBin(); // Refresh recycle bin view
+                         this.renderRecycleBin(); // Refresh recycle bin view
                     }
                 }
             },
@@ -1259,42 +1304,57 @@
             showBalanceScreen() {
                 this.dom.balanceListContainer.innerHTML = '';
                 this.dom.balanceSummaryContainer.innerHTML = '';
-                let totalBonosEfectivo = 0, totalBonosTransferencia = 0, totalBonos = 0;
-                let totalExpenses = 0;
                 
-                // Objeto para agrupar ventas por vendedor (normalizado para evitar duplicados)
+                let totalBonosEfectivo = 0, totalBonosTransferencia = 0;
                 const salesByVendedor = {};
 
-                const allRecords = [];
+                const allRecords = []; // Para la lista detallada
                 this.state.allSessions.forEach(session => {
                     session.records.forEach(record => {
                         allRecords.push(Object.assign({ sessionDate: session.id.replace(/-/g, '/') }, record));
-                    });
-                });
-                allRecords.sort((a, b) => (this.parseIdToDate(a.sessionDate)).localeCompare(this.parseIdToDate(b.sessionDate))).reverse();
-
-                let balanceHTML = '<div><h3 class="text-lg font-semibold text-gray-700 mb-2 border-b pb-2">Ingresos por Bonos</h3>';
-                if (allRecords.length === 0) {
-                    balanceHTML += '<p class="text-center text-gray-500">No hay registros de bonos.</p>';
-                } else {
-                    allRecords.forEach(record => {
                         const monto = record.cuotas == 1 ? 15000 : 30000;
-                        totalBonos += monto;
-                        if (record.tipoPago === 'Efectivo') totalBonosEfectivo += monto;
-                        else totalBonosTransferencia += monto;
+                        if (record.tipoPago === 'Efectivo') {
+                            totalBonosEfectivo += monto;
+                        } else {
+                            totalBonosTransferencia += monto;
+                        }
 
-                        // Lógica de agrupación mejorada: normaliza el nombre del vendedor
                         if (record.vendedor && record.vendedor.trim() !== '') {
                             const normalizedVendedor = record.vendedor.trim().toLowerCase();
                             if (!salesByVendedor[normalizedVendedor]) {
                                 salesByVendedor[normalizedVendedor] = {
-                                    originalName: record.vendedor.trim(), // Guardar el nombre original para mostrar
+                                    originalName: record.vendedor.trim(),
                                     total: 0
                                 };
                             }
                             salesByVendedor[normalizedVendedor].total += monto;
                         }
+                    });
+                });
 
+                let totalExpensesEfectivo = 0, totalExpensesTransferencia = 0;
+                this.state.expenses.forEach(expense => {
+                    const monto = parseFloat(expense.amount);
+                    if (expense.type === 'Efectivo') {
+                        totalExpensesEfectivo += monto;
+                    } else {
+                        totalExpensesTransferencia += monto;
+                    }
+                });
+
+                const totalBonos = totalBonosEfectivo + totalBonosTransferencia;
+                const totalExpenses = totalExpensesEfectivo + totalExpensesTransferencia;
+                const calculoA = totalBonosEfectivo - totalBonosTransferencia - totalExpenses;
+                const balanceGeneral = totalBonos - totalExpenses;
+
+                // Renderizar la lista detallada de ingresos y egresos
+                let balanceHTML = '<div><h3 class="text-lg font-semibold text-gray-700 mb-2 border-b pb-2">Ingresos por Bonos</h3>';
+                if (allRecords.length === 0) {
+                    balanceHTML += '<p class="text-center text-gray-500">No hay registros de bonos.</p>';
+                } else {
+                    allRecords.sort((a, b) => (this.parseIdToDate(a.sessionDate)).localeCompare(this.parseIdToDate(b.sessionDate))).reverse();
+                    allRecords.forEach(record => {
+                        const monto = record.cuotas == 1 ? 15000 : 30000;
                         balanceHTML += `<div class="p-3 mb-2 border rounded-md bg-white grid grid-cols-3 gap-2 items-center text-sm"><div><p class="font-semibold">${record.nombre}</p><p class="text-xs text-gray-500">${record.sessionDate}</p></div><p class="text-center">${record.tipoPago}</p><p class="text-right font-semibold">${this.formatCurrency(monto)}</p></div>`;
                     });
                 }
@@ -1306,24 +1366,22 @@
                 } else {
                     this.state.expenses.forEach(expense => {
                         const monto = parseFloat(expense.amount);
-                        totalExpenses += monto;
                         balanceHTML += `<div class="p-3 mb-2 border rounded-md bg-white grid grid-cols-3 gap-2 items-center text-sm"><div><p class="font-semibold">${expense.description}</p><p class="text-xs text-gray-500">${this.formatDateForId(expense.date)}</p></div><p class="text-center">${expense.type}</p><p class="text-right font-semibold text-red-600">-${this.formatCurrency(monto)}</p></div>`;
                     });
                 }
                 balanceHTML += '</div>';
-                
                 this.dom.balanceListContainer.innerHTML = balanceHTML;
+
 
                 let salesSummaryHTML = '';
                 if (Object.keys(salesByVendedor).length > 0) {
-                    salesSummaryHTML += '<div class="p-4 border rounded-lg bg-white mb-4"><h4 class="font-bold text-lg mb-2 text-gray-800">Resumen de Ventas por Vendedor</h4>';
-                    // Ordenar vendedores alfabéticamente para una vista consistente
-                    const sortedVendedores = Object.keys(salesByVendedor).sort();
-                    for (const normalizedVendedor of sortedVendedores) {
-                        const data = salesByVendedor[normalizedVendedor];
-                        salesSummaryHTML += `<div class="flex justify-between items-center"><span class="font-medium text-gray-600">${data.originalName}:</span><span class="font-bold text-gray-800">${this.formatCurrency(data.total)}</span></div>`;
-                    }
-                    salesSummaryHTML += '</div>';
+                     salesSummaryHTML += '<div class="p-4 border rounded-lg bg-white mb-4"><h4 class="font-bold text-lg mb-2 text-gray-800">Resumen de Ventas por Vendedor</h4>';
+                     const sortedVendedores = Object.keys(salesByVendedor).sort();
+                     for (const normalizedVendedor of sortedVendedores) {
+                         const data = salesByVendedor[normalizedVendedor];
+                         salesSummaryHTML += `<div class="flex justify-between items-center"><span class="font-medium text-gray-600">${data.originalName}:</span><span class="font-bold text-gray-800">${this.formatCurrency(data.total)}</span></div>`;
+                     }
+                     salesSummaryHTML += '</div>';
                 }
 
                 this.dom.balanceSummaryContainer.innerHTML = `
@@ -1332,119 +1390,134 @@
                         <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Total Efectivo:</span><span class="font-bold text-green-700">${this.formatCurrency(totalBonosEfectivo)}</span></div>
                         <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Total Transferencia:</span><span class="font-bold text-blue-700">${this.formatCurrency(totalBonosTransferencia)}</span></div>
                         <hr class="my-2 border-gray-200">
-                        <div class="flex justify-between items-center text-lg"><span class="font-bold text-gray-800">Total Bonos:</span><span class="font-extrabold text-gray-900">${this.formatCurrency(totalBonos)}</span></div>
+                        <div class="flex justify-between items-center text-lg"><span class="font-bold text-gray-800">Total Ingresos Bonos:</span><span class="font-extrabold text-gray-900">${this.formatCurrency(totalBonos)}</span></div>
                     </div>
                     ${salesSummaryHTML}
                     <div class="p-4 border rounded-lg bg-white mb-4">
                         <h4 class="font-bold text-lg mb-2 text-gray-800">Resumen de Egresos</h4>
-                        <div class="flex justify-between items-center text-lg"><span class="font-bold text-gray-800">Total Egresos:</span><span class="font-extrabold text-red-600">-${this.formatCurrency(totalExpenses)}</span></div>
+                        <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Total Egresos Efectivo:</span><span class="font-bold text-red-600">-${this.formatCurrency(totalExpensesEfectivo)}</span></div>
+                        <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Total Egresos Transferencia:</span><span class="font-bold text-red-600">-${this.formatCurrency(totalExpensesTransferencia)}</span></div>
+                        <hr class="my-2 border-gray-200">
+                        <div class="flex justify-between items-center text-lg"><span class="font-bold text-gray-800">Total Egresos:</span><span class="font-extrabold text-red-700">-${this.formatCurrency(totalExpenses)}</span></div>
                     </div>
-                    <div class="p-4 border rounded-lg bg-gray-800 text-white">
-                        <h4 class="font-bold text-xl mb-2">Balance Final</h4>
-                        <div class="flex justify-between items-center text-2xl"><span class="font-bold">TOTAL:</span><span class="font-extrabold">${this.formatCurrency(totalBonos - totalExpenses)}</span></div>
+                    <div class="p-4 border rounded-lg bg-gray-800 text-white space-y-3">
+                        <h4 class="font-bold text-xl mb-2">Balances Finales</h4>
+                        <div class="flex justify-between items-center text-base border-b border-gray-600 pb-2">
+                            <span class="font-semibold">Total Ventas de Bonos:</span>
+                            <span class="font-extrabold">${this.formatCurrency(totalBonos)}</span>
+                        </div>
+                        <div class="flex justify-between items-center text-base border-b border-gray-600 pb-2">
+                            <span class="font-semibold">Cálculo (Efectivo - Transf. - Egresos):</span>
+                            <span class="font-extrabold">${this.formatCurrency(calculoA)}</span>
+                        </div>
+                        <div class="flex justify-between items-center text-2xl pt-2">
+                            <span class="font-bold">BALANCE GENERAL:</span>
+                            <span class="font-extrabold">${this.formatCurrency(balanceGeneral)}</span>
+                        </div>
                     </div>
                 `;
+
                 this.showScreen('balanceScreen');
             },
 
-            // --- CÓDIGO ACTUALIZADO PARA PDF DE BALANCE ---
             downloadBalancePDF() {
                 const doc = new jsPDF();
                 let startY = this.addPdfHeader(doc, "Balance General");
                 
-                let totalBonosEfectivo = 0, totalBonosTransferencia = 0, totalBonos = 0;
-                let totalExpenses = 0;
-                
-                // Objeto para agrupar ventas por vendedor (normalizado)
+                let totalBonosEfectivo = 0, totalBonosTransferencia = 0;
                 const salesByVendedor = {};
 
                 const bonoRecords = [];
                 this.state.allSessions.forEach(session => {
                     session.records.forEach(record => {
                         bonoRecords.push(Object.assign({ sessionDate: session.id.replace(/-/g, '/') }, record));
+                        const monto = record.cuotas == 1 ? 15000 : 30000;
+                        if (record.tipoPago === 'Efectivo') totalBonosEfectivo += monto;
+                        else totalBonosTransferencia += monto;
+
+                        if (record.vendedor && record.vendedor.trim() !== '') {
+                            const normalizedVendedor = record.vendedor.trim().toLowerCase();
+                            if (!salesByVendedor[normalizedVendedor]) {
+                                salesByVendedor[normalizedVendedor] = { originalName: record.vendedor.trim(), total: 0 };
+                            }
+                            salesByVendedor[normalizedVendedor].total += monto;
+                        }
                     });
                 });
-                bonoRecords.sort((a, b) => (this.parseIdToDate(a.sessionDate)).localeCompare(this.parseIdToDate(b.sessionDate))).reverse();
-
-                const bonoTableRows = bonoRecords.map(record => {
-                    const monto = record.cuotas == 1 ? 15000 : 30000;
-                    totalBonos += monto;
-                    if (record.tipoPago === 'Efectivo') totalBonosEfectivo += monto;
-                    else totalBonosTransferencia += monto;
-
-                    // Lógica de agrupación mejorada
-                    if (record.vendedor && record.vendedor.trim() !== '') {
-                        const normalizedVendedor = record.vendedor.trim().toLowerCase();
-                        if (!salesByVendedor[normalizedVendedor]) {
-                            salesByVendedor[normalizedVendedor] = {
-                                originalName: record.vendedor.trim(),
-                                total: 0
-                            };
-                        }
-                        salesByVendedor[normalizedVendedor].total += monto;
-                    }
-                    return [record.sessionDate, record.nombre, `${record.bonoNro1}-${record.bonoNro2}`, record.tipoPago, this.formatCurrency(monto)];
+                
+                let totalExpensesEfectivo = 0, totalExpensesTransferencia = 0;
+                this.state.expenses.forEach(expense => {
+                    const monto = parseFloat(expense.amount);
+                    if (expense.type === 'Efectivo') totalExpensesEfectivo += monto;
+                    else totalExpensesTransferencia += monto;
                 });
                 
+                const totalBonos = totalBonosEfectivo + totalBonosTransferencia;
+                const totalExpenses = totalExpensesEfectivo + totalExpensesTransferencia;
+                const calculoA = totalBonosEfectivo - totalBonosTransferencia - totalExpenses;
+                const balanceGeneral = totalBonos - totalExpenses;
+
+                // Tablas de detalle
                 doc.setFontSize(14);
                 doc.text('Ingresos por Bonos', 14, startY);
-                doc.autoTable({
-                    head: [["Fecha", "Nombre", "Bonos", "Tipo de Pago", "Monto"]],
-                    body: bonoTableRows,
-                    startY: startY + 7,
-                    theme: 'grid',
-                    headStyles: { fillColor: [67, 56, 202] },
+                const bonoTableRows = bonoRecords.sort((a,b) => (this.parseIdToDate(a.sessionDate)).localeCompare(this.parseIdToDate(b.sessionDate))).reverse().map(record => {
+                    const monto = record.cuotas == 1 ? 15000 : 30000;
+                    return [record.sessionDate, record.nombre, record.tipoPago, this.formatCurrency(monto)];
                 });
-
-                const expenseTableRows = this.state.expenses.map(expense => {
-                    const monto = parseFloat(expense.amount);
-                    totalExpenses += monto;
-                    return [this.formatDateForId(expense.date), expense.description, expense.type, `-${this.formatCurrency(monto)}`];
+                doc.autoTable({
+                    head: [["Fecha", "Nombre", "Tipo de Pago", "Monto"]],
+                    body: bonoTableRows,
+                    startY: startY + 7, theme: 'grid', headStyles: { fillColor: [67, 56, 202] }
                 });
                 
                 let finalY = doc.autoTable.previous.finalY + 15;
                 doc.setFontSize(14);
                 doc.text('Egresos', 14, finalY);
-                doc.autoTable({
+                const expenseTableRows = this.state.expenses.map(expense => {
+                    const monto = parseFloat(expense.amount);
+                    return [this.formatDateForId(expense.date), expense.description, expense.type, `-${this.formatCurrency(monto)}`];
+                });
+                 doc.autoTable({
                     head: [["Fecha", "Descripción", "Tipo de Pago", "Monto"]],
                     body: expenseTableRows,
-                    startY: finalY + 7,
-                    theme: 'grid',
-                    headStyles: { fillColor: [220, 38, 38] },
+                    startY: finalY + 7, theme: 'grid', headStyles: { fillColor: [220, 38, 38] }
                 });
-                
-                const salesSummaryRows = Object.keys(salesByVendedor)
-                    .sort() // Ordenar alfabéticamente
-                    .map(normalizedVendedor => {
-                        const data = salesByVendedor[normalizedVendedor];
-                        return [data.originalName, this.formatCurrency(data.total)];
-                    });
+
+
+                const salesSummaryRows = Object.keys(salesByVendedor).sort().map(vendedor => [salesByVendedor[vendedor].originalName, this.formatCurrency(salesByVendedor[vendedor].total)]);
 
                 doc.autoTable({
                     startY: doc.autoTable.previous.finalY + 10,
                     theme: 'plain',
                     body: [
-                        ['Resumen de Bonos', ''],
+                        [{content: 'Resumen de Ingresos (Bonos)', colSpan: 2, styles: {fontStyle: 'bold'}}],
                         ['Total Efectivo (Bonos):', this.formatCurrency(totalBonosEfectivo)],
                         ['Total Transferencia (Bonos):', this.formatCurrency(totalBonosTransferencia)],
-                        [{content: 'Total Bonos:', styles: {fontStyle: 'bold'}}, {content: this.formatCurrency(totalBonos), styles: {fontStyle: 'bold'}}],
+                        [{content: 'Total Ingresos Bonos:', styles: {fontStyle: 'bold'}}, {content: this.formatCurrency(totalBonos), styles: {fontStyle: 'bold'}}],
                         ['', ''],
-                        ['Resumen de Ventas por Vendedor', ''],
+                        [{content: 'Resumen de Ventas por Vendedor', colSpan: 2, styles: {fontStyle: 'bold'}}],
                         ...salesSummaryRows,
                         ['', ''],
-                        ['Resumen de Egresos', ''],
+                        [{content: 'Resumen de Egresos', colSpan: 2, styles: {fontStyle: 'bold'}}],
+                        ['Total Egresos Efectivo:', `-${this.formatCurrency(totalExpensesEfectivo)}`],
+                        ['Total Egresos Transferencia:', `-${this.formatCurrency(totalExpensesTransferencia)}`],
                         [{content: 'Total Egresos:', styles: {fontStyle: 'bold'}}, {content: `-${this.formatCurrency(totalExpenses)}`, styles: {fontStyle: 'bold'}}],
                         ['', ''],
-                        [{content: 'Balance Final (Ingresos Bonos - Egresos):', styles: {fontStyle: 'bold', fontSize: 12}}, {content: this.formatCurrency(totalBonos - totalExpenses), styles: {fontStyle: 'bold', fontSize: 12}}],
+                        [{content: 'Balances Finales', colSpan: 2, styles: {fontStyle: 'bold', fontSize: 12}}],
+                        ['Total Ventas de Bonos:', this.formatCurrency(totalBonos)],
+                        ['Cálculo (Efectivo - Transf. - Egresos):', this.formatCurrency(calculoA)],
+                        [{content: 'BALANCE GENERAL:', styles: {fontStyle: 'bold', fontSize: 12}}, {content: this.formatCurrency(balanceGeneral), styles: {fontStyle: 'bold', fontSize: 12}}],
                     ],
-                    columnStyles: {
-                        0: { halign: 'right', fontStyle: 'bold' },
-                        1: { halign: 'right' }
+                    columnStyles: { 0: { halign: 'right' }, 1: { halign: 'right' } },
+                    didParseCell: (data) => {
+                        if (data.cell.raw.colSpan === 2) {
+                            data.cell.styles.halign = 'left';
+                        }
                     }
                 });
-
+                
                 const currentDate = this.getCurrentDateFormatted();
-                doc.save(`balance_${currentDate}.pdf`);
+                doc.save(`balance_detallado_${currentDate}.pdf`);
             },
             
             // --- LÓGICA DE BANCO Y EGRESOS ---
@@ -2231,6 +2304,225 @@
                 } finally {
                     this.showLoading(false);
                 }
+            },
+             // --- NUEVAS FUNCIONES DE GESTIÓN DE GANADORES ---
+
+            showWinnerScreen() {
+                this.dom.winnerResultContainer.innerHTML = '<p class="text-center text-gray-500">Ingrese un número de bono para buscar al ganador.</p>';
+                this.dom.winnerForm.reset();
+                this.renderPastWinners();
+                this.showScreen('winnerScreen');
+            },
+
+            loadWinnersFromFirestore() {
+                if (this.state.unsubscribeWinners) this.state.unsubscribeWinners();
+                const winnersColRef = collection(this.state.db, "winners");
+                this.state.unsubscribeWinners = onSnapshot(query(winnersColRef), (snapshot) => {
+                    this.state.winnersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    this.state.winnersData.sort((a, b) => (b.timestamp?.toDate() || 0) - (a.timestamp?.toDate() || 0));
+                    if (this.dom.winnerScreen.classList.contains('active-screen')) {
+                        this.renderPastWinners();
+                    }
+                });
+            },
+
+            renderPastWinners() {
+                const container = this.dom.pastWinnersContainer;
+                container.innerHTML = '';
+                if (this.state.winnersData.length === 0) {
+                    container.innerHTML = '<p class="text-center text-gray-500">Aún no hay ganadores confirmados.</p>';
+                    return;
+                }
+                this.state.winnersData.forEach(winner => {
+                    const winnerDiv = document.createElement('div');
+                    winnerDiv.className = 'p-3 bg-white rounded-lg border';
+                    winnerDiv.innerHTML = `
+                        <div>
+                            <p class="font-bold text-indigo-700">Ganador: ${winner.nombre}</p>
+                            <p class="text-sm text-gray-600"><span class="font-semibold">Nº Bono:</span> ${winner.winnerNumber} | <span class="font-semibold">Tel:</span> ${winner.telefono}</p>
+                             <p class="text-xs text-gray-500">Confirmado: ${this.formatTimestamp(winner.timestamp)}</p>
+                        </div>
+                    `;
+                    container.appendChild(winnerDiv);
+                });
+            },
+            
+            handleFindWinner() {
+                const winnerNumberInput = this.dom.winnerNumberInput.value;
+                if (!winnerNumberInput) {
+                    this.showToast('Por favor, ingrese un número de bono.', 'error');
+                    return;
+                }
+                const winnerNumber = parseInt(winnerNumberInput, 10);
+                let foundWinner = null;
+
+                for (const session of this.state.allSessions) {
+                    for (const record of session.records) {
+                        const bonoNro1 = parseInt(record.bonoNro1, 10);
+                        const bonoNro2 = parseInt(record.bonoNro2, 10);
+                        if (winnerNumber >= bonoNro1 && winnerNumber <= bonoNro2) {
+                            foundWinner = { ...record, winnerNumber: winnerNumber, sessionDate: this.formatDateForId(record.fecha) };
+                            break;
+                        }
+                    }
+                    if (foundWinner) break;
+                }
+                
+                this.state.searchResult = foundWinner; // Guardar el resultado para la confirmación
+                this.renderWinnerResult(foundWinner);
+            },
+            
+            renderWinnerResult(winnerData) {
+                const container = this.dom.winnerResultContainer;
+                if (winnerData) {
+                    const isAlreadyWinner = this.state.winnersData.some(w => w.winnerNumber === winnerData.winnerNumber);
+                    container.innerHTML = `
+                        <h4 class="font-bold text-lg text-green-700 mb-2">¡Bono Encontrado!</h4>
+                        <p><span class="font-semibold">Número Ganador:</span> ${winnerData.winnerNumber}</p>
+                        <p><span class="font-semibold">Comprador:</span> ${winnerData.nombre}</p>
+                        <p><span class="font-semibold">Teléfono:</span> ${winnerData.telefono}</p>
+                        <p><span class="font-semibold">Vendedor:</span> ${winnerData.vendedor}</p>
+                        <p><span class="font-semibold">Fecha de Carga:</span> ${winnerData.sessionDate}</p>
+                        ${isAlreadyWinner ?
+                            '<p class="mt-4 p-2 bg-yellow-100 text-yellow-800 rounded-md">Este número ya fue registrado como ganador.</p>' :
+                            '<button onclick="App.confirmWinner()" class="w-full mt-4 px-4 py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 rounded-lg">Confirmar Ganador</button>'
+                        }
+                    `;
+                } else {
+                    container.innerHTML = '<p class="text-center text-red-600 font-semibold">No se encontró ningún comprador para el número de bono ingresado.</p>';
+                }
+            },
+
+            async confirmWinner() {
+                const winnerData = this.state.searchResult;
+                if (!winnerData) {
+                    this.showToast('No hay un ganador para confirmar.', 'error');
+                    return;
+                }
+                
+                const dataToSave = {
+                    ...winnerData,
+                    timestamp: serverTimestamp()
+                };
+
+                this.showLoading(true);
+                try {
+                    await addDoc(collection(this.state.db, "winners"), dataToSave);
+                    this.showToast('Ganador confirmado y guardado.');
+                    this.dom.winnerResultContainer.innerHTML = '<p class="text-center text-gray-500">El ganador fue confirmado. Ingrese otro número para buscar.</p>';
+                    this.dom.winnerForm.reset();
+                } catch(error) {
+                    console.error("Error al confirmar el ganador:", error);
+                    this.showToast('Error al guardar el ganador.', 'error');
+                } finally {
+                    this.showLoading(false);
+                }
+            },
+            
+             // --- FUNCIONES PARA PDFS ---
+
+            downloadSessionPDF(sessionId) {
+                const sessionToDownload = sessionId 
+                    ? this.state.allSessions.find(s => s.id === sessionId)
+                    : { id: this.formatDateForId(this.state.currentSessionRecords[0].fecha, true), records: this.state.currentSessionRecords };
+                
+                if (!sessionToDownload || sessionToDownload.records.length === 0) {
+                    this.showToast('No hay datos para generar el PDF.', 'error');
+                    return;
+                }
+
+                const doc = new jsPDF();
+                const displayId = sessionToDownload.id.replace(/-/g, '/');
+                let startY = this.addPdfHeader(doc, `Detalle de Carga - ${displayId}`);
+
+                let subtotal = 0, totalEfectivo = 0, totalTransferencia = 0;
+                const tableRows = sessionToDownload.records.map(record => {
+                    const monto = record.cuotas == 1 ? 15000 : 30000;
+                    subtotal += monto;
+                    if (record.tipoPago === 'Efectivo') totalEfectivo += monto;
+                    else totalTransferencia += monto;
+                    return [
+                        record.nombre,
+                        record.telefono,
+                        `${record.bonoNro1}-${record.bonoNro2}`,
+                        record.vendedor,
+                        record.tipoPago,
+                        this.formatCurrency(monto)
+                    ];
+                });
+
+                doc.autoTable({
+                    head: [["Nombre", "Teléfono", "Bonos", "Vendedor", "Pago", "Monto"]],
+                    body: tableRows,
+                    startY: startY,
+                    theme: 'grid',
+                    headStyles: { fillColor: [67, 56, 202] }
+                });
+
+                doc.autoTable({
+                    startY: doc.autoTable.previous.finalY + 10,
+                    theme: 'plain',
+                    body: [
+                        ['Subtotal:', this.formatCurrency(subtotal)],
+                        ['Total Efectivo:', this.formatCurrency(totalEfectivo)],
+                        ['Total Transferencia:', this.formatCurrency(totalTransferencia)]
+                    ],
+                    columnStyles: { 
+                        0: { halign: 'right', fontStyle: 'bold' },
+                        1: { halign: 'right' }
+                    }
+                });
+
+                doc.save(`carga_${sessionToDownload.id}.pdf`);
+            },
+            
+            downloadAllLoadsPDF() {
+                const doc = new jsPDF();
+                let startY = this.addPdfHeader(doc, "Reporte de Todas las Cargas");
+                
+                const sortedSessions = [...this.state.allSessions].sort((a, b) => (a.rawDate || this.parseIdToDate(a.id)).localeCompare(b.rawDate || this.parseIdToDate(b.id)));
+
+                sortedSessions.forEach(session => {
+                    if (session.records.length > 0) {
+                        doc.setFontSize(14);
+                        doc.setFont(undefined, 'bold');
+                        doc.text(`Carga del: ${session.id.replace(/-/g, '/')}`, 14, startY);
+                        startY += 7;
+
+                        const tableRows = session.records.map(record => {
+                            const monto = record.cuotas == 1 ? 15000 : 30000;
+                            return [
+                                record.nombre,
+                                record.telefono,
+                                `${record.bonoNro1}-${record.bonoNro2}`,
+                                record.vendedor,
+                                record.tipoPago,
+                                this.formatCurrency(monto)
+                            ];
+                        });
+
+                        doc.autoTable({
+                            head: [["Nombre", "Teléfono", "Bonos", "Vendedor", "Pago", "Monto"]],
+                            body: tableRows,
+                            startY: startY,
+                            theme: 'grid',
+                            headStyles: { fillColor: [67, 56, 202] },
+                            didDrawPage: (data) => {
+                                startY = data.cursor.y + 15; // Reset startY for next table
+                            }
+                        });
+                        startY = doc.autoTable.previous.finalY + 15;
+
+                        // Check if we need a new page
+                        if (startY > 270) {
+                           doc.addPage();
+                           startY = 20;
+                        }
+                    }
+                });
+
+                const currentDate = this.getCurrentDateFormatted();
+                doc.save(`reporte_todas_las_cargas_${currentDate}.pdf`);
             },
 
 
