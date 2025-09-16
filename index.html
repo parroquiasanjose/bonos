@@ -1538,7 +1538,7 @@
 
             downloadBalancePDF() {
                 const doc = new jsPDF();
-                let startY = this.addPdfHeader(doc, "Balance General - Detalle Completo");
+                let startY = this.addPdfHeader(doc, "Balance Detallado");
                 
                 let totalBonosEfectivo = 0, totalBonosTransferencia = 0;
                 const salesByVendedor = {};
@@ -1602,14 +1602,14 @@
 
                 const salesSummaryRows = Object.keys(salesByVendedor).sort().map(vendedor => [salesByVendedor[vendedor].originalName, this.formatCurrency(salesByVendedor[vendedor].total)]);
                 
-                finalY = doc.autoTable.previous.finalY + 10;
-                if (finalY > 250) {
+                let finalY_summary = doc.autoTable.previous.finalY + 10;
+                if (finalY_summary > 220) {
                     doc.addPage();
-                    finalY = 20;
+                    finalY_summary = 20;
                 }
 
                 doc.autoTable({
-                    startY: finalY,
+                    startY: finalY_summary,
                     theme: 'plain',
                     body: [
                         [{content: 'Resumen de Ingresos (Bonos)', colSpan: 2, styles: {fontStyle: 'bold'}}],
