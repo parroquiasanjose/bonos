@@ -1898,7 +1898,53 @@
                             startY = 20;
                         }
                     });
+                    startY = doc.autoTable.previous.finalY + 15;
                 }
+                
+                // --- AÑADIR SECCIÓN DE RESUMEN ---
+                const totalTwoInstallments = paidTwoInstallments.length * 30000;
+                const totalOneInstallment = paidOneInstallment.length * 15000;
+                const grandTotal = totalTwoInstallments + totalOneInstallment;
+
+                const countTwoInstallments = paidTwoInstallments.length;
+                const countOneInstallment = paidOneInstallment.length;
+                const amountToCollect = countOneInstallment * 15000;
+
+                if (startY > 220) {
+                    doc.addPage();
+                    startY = 20;
+                }
+
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text("Resumen de Totales", 14, startY);
+                startY += 7;
+                
+                doc.autoTable({
+                    startY: startY,
+                    theme: 'plain',
+                    body: [
+                        ['Total Recaudado (2 Cuotas Pagadas):', this.formatCurrency(totalTwoInstallments)],
+                        ['Total Recaudado (1 Cuota Pagada):', this.formatCurrency(totalOneInstallment)],
+                        [{content: 'Total General Recaudado:', styles: {fontStyle: 'bold', fontSize: 12}}, {content: this.formatCurrency(grandTotal), styles: {fontStyle: 'bold', fontSize: 12}}],
+                        ['', ''], // Spacer row
+                        ['Cantidad de Bonos (2 Cuotas Pagadas):', countTwoInstallments.toString()],
+                        ['Cantidad de Bonos (1 Cuota Pagada):', countOneInstallment.toString()],
+                        ['', ''], // Spacer row
+                        [{content: 'Detalle Faltante a Cobrar', colSpan: 2, styles: { fontStyle: 'bold', halign: 'left', fillColor: [255, 235, 59] }}],
+                        ['Monto Faltante a Cobrar (de bonos con 1 cuota):', this.formatCurrency(amountToCollect)],
+                    ],
+                    columnStyles: { 
+                        0: { halign: 'right', fontStyle: 'bold' },
+                        1: { halign: 'right' }
+                    },
+                    didParseCell: (data) => {
+                        if (data.cell.raw.colSpan === 2) {
+                            data.cell.styles.halign = 'left';
+                        }
+                    }
+                });
+
 
                 const currentDate = this.getCurrentDateFormatted();
                 doc.save(`reporte_general_bonos_${currentDate}.pdf`);
