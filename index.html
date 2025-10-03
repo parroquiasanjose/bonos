@@ -868,9 +868,9 @@
 
             // --- GESTIÓN DE DATOS EN FIRESTORE ---
              loadAllDataFromFirestore() {
-                  this.loadHistoryFromFirestore();
-                  this.loadExpensesFromFirestore();
-                  this.loadDeletedItemsFromFirestore();
+                   this.loadHistoryFromFirestore();
+                   this.loadExpensesFromFirestore();
+                   this.loadDeletedItemsFromFirestore();
              },
 
             loadHistoryFromFirestore() {
@@ -1094,10 +1094,10 @@
                     if (permanent) {
                         await deleteDoc(docRef);
                          if (type === 'session') {
-                             const recordsSnapshot = await getDocs(collection(docRef, 'records'));
-                             const batch = writeBatch(this.state.db);
-                             recordsSnapshot.forEach(doc => batch.delete(doc.ref));
-                             await batch.commit();
+                            const recordsSnapshot = await getDocs(collection(docRef, 'records'));
+                            const batch = writeBatch(this.state.db);
+                            recordsSnapshot.forEach(doc => batch.delete(doc.ref));
+                            await batch.commit();
                          }
                         this.showToast('Elemento eliminado permanentemente.');
                     } else {
@@ -1944,6 +1944,47 @@
                         }
                     }
                 });
+
+                // --- INICIO: Nueva sección de cantidad de bonos por vendedor ---
+                const salesCountByVendedor = {};
+                allRecords.forEach(record => {
+                    if (record.vendedor && record.vendedor.trim() !== '') {
+                        const normalizedVendedor = record.vendedor.trim().toLowerCase();
+                        if (!salesCountByVendedor[normalizedVendedor]) {
+                            salesCountByVendedor[normalizedVendedor] = {
+                                originalName: record.vendedor.trim(),
+                                count: 0
+                            };
+                        }
+                        salesCountByVendedor[normalizedVendedor].count++;
+                    }
+                });
+
+                startY = doc.autoTable.previous.finalY + 15;
+
+                if (startY > 250) {
+                    doc.addPage();
+                    startY = 20;
+                }
+
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text("Cantidad de Bonos por Vendedor", 14, startY);
+                startY += 7;
+
+                const salesCountRows = Object.keys(salesCountByVendedor).sort((a, b) => salesCountByVendedor[b].count - salesCountByVendedor[a].count).map(vendedor => {
+                    const data = salesCountByVendedor[vendedor];
+                    return [data.originalName, data.count.toString()];
+                });
+
+                doc.autoTable({
+                    head: [["Vendedor", "Bonos Vendidos"]],
+                    body: salesCountRows,
+                    startY: startY,
+                    theme: 'grid',
+                    headStyles: { fillColor: [79, 70, 229] }, // Indigo color
+                });
+                // --- FIN: Nueva sección ---
 
 
                 const currentDate = this.getCurrentDateFormatted();
