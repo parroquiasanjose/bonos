@@ -2048,6 +2048,67 @@
                 // --- FIN: Nueva sección ---
 
 
+                // --- INICIO: Nueva sección de cobranzas pendientes por vendedor ---
+                startY = doc.autoTable.previous.finalY + 15;
+
+                if (paidOneInstallment.length > 0) {
+                    if (startY > 230) { // Salto de página si no hay espacio
+                        doc.addPage();
+                        startY = 20;
+                    }
+
+                    doc.setFontSize(16);
+                    doc.setFont(undefined, 'bold');
+                    doc.text("Detalle de Cobranzas Pendientes por Vendedor", 14, startY);
+                    startY += 10;
+
+                    // Agrupar bonos pendientes por vendedor
+                    const pendingByVendedor = {};
+                    paidOneInstallment.forEach(record => {
+                        const vendedor = record.vendedor || 'Sin Vendedor Asignado';
+                        if (!pendingByVendedor[vendedor]) {
+                            pendingByVendedor[vendedor] = [];
+                        }
+                        pendingByVendedor[vendedor].push(record);
+                    });
+
+                    // Crear una tabla para cada vendedor con cobranzas pendientes
+                    Object.keys(pendingByVendedor).sort().forEach(vendedor => {
+                        if (startY > 250) { // Salto de página antes de cada tabla de vendedor
+                            doc.addPage();
+                            startY = 20;
+                        }
+
+                        doc.setFontSize(12);
+                        doc.setFont(undefined, 'bold');
+                        doc.text(`Vendedor: ${vendedor}`, 14, startY);
+                        startY += 7;
+
+                        const vendorRows = pendingByVendedor[vendedor].map(record => {
+                            return [
+                                record.nombre,
+                                record.telefono,
+                                `${record.bonoNro1}-${record.bonoNro2}`
+                            ];
+                        });
+
+                        doc.autoTable({
+                            head: [["Comprador", "Teléfono", "Nro. Bono"]],
+                            body: vendorRows,
+                            startY: startY,
+                            theme: 'striped',
+                            headStyles: { fillColor: [249, 115, 22] }, // Naranja para pendientes
+                            didDrawPage: (data) => {
+                                startY = 20; // Resetear Y en nueva página
+                            }
+                        });
+
+                        startY = doc.autoTable.previous.finalY + 10;
+                    });
+                }
+                // --- FIN: Nueva sección ---
+
+
                 const currentDate = this.getCurrentDateFormatted();
                 doc.save(`reporte_general_bonos_${currentDate}.pdf`);
             },
@@ -2117,7 +2178,3 @@
     </script>
 </body>
 </html>
-
-
-
-
