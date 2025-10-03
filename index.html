@@ -156,6 +156,7 @@
                  <button id="goToRecycleBinButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-yellow-500 to-yellow-700 hover:from-yellow-600 hover:to-yellow-800 rounded-lg">
                     Papelera
                 </button>
+                <button id="downloadReportFromMainButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 rounded-lg">Descargar Reporte</button>
                 <button id="logoutButton" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cerrar Sesión</button>
             </div>
         </div>
@@ -257,7 +258,7 @@
         <div id="historyScreen" class="screen p-8 bg-gray-50 rounded-xl shadow-lg fade-in">
             <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Historial de Cargas</h2>
             <div id="historyListContainer" class="mb-6 max-h-96 overflow-y-auto space-y-3"></div>
-            <button id="downloadAllLoadsPdfButton" class="w-full mb-2 px-4 py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 rounded-lg">Descargar PDF de todas las cargas</button>
+            <button id="downloadAllLoadsPdfButton" class="w-full mb-2 px-4 py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 rounded-lg">Descargar reporte completo</button>
             <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 rounded-lg">Volver al Inicio</button>
         </div>
 
@@ -466,6 +467,7 @@
                     recycleBinListContainer: document.getElementById('recycleBinListContainer'),
                     goToRecycleBinButton: document.getElementById('goToRecycleBinButton'),
                     downloadAllLoadsPdfButton: document.getElementById('downloadAllLoadsPdfButton'),
+                    downloadReportFromMainButton: document.getElementById('downloadReportFromMainButton'),
                 };
             },
 
@@ -528,6 +530,7 @@
                 this.dom.goBackToInitialScreenButton.addEventListener('click', () => this.showScreen('initialScreen'));
                 this.dom.expenseAmountInput.addEventListener('input', (e) => this.formatCurrencyInput(e));
                 this.dom.downloadAllLoadsPdfButton.addEventListener('click', () => this.downloadAllLoadsPDF());
+                this.dom.downloadReportFromMainButton.addEventListener('click', () => this.downloadAllLoadsPDF());
             },
 
             // --- AUTENTICACIÓN Y NAVEGÁCIÓn ---
