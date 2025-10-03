@@ -354,6 +354,19 @@
             </div>
         </div>
     </div>
+    <div id="secondInstallmentConfirmModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+        <div class="bg-gray-50 p-6 rounded-lg shadow-xl text-center fade-in w-full max-w-md">
+            <h3 class="text-lg font-bold text-gray-900">Confirmar Segunda Cuota</h3>
+            <p class="text-sm text-gray-600 my-4">Este número de bono ya tiene una cuota pagada. ¿Desea registrar el pago de la segunda cuota?</p>
+            <div id="secondInstallmentDetails" class="p-4 bg-white border rounded-lg text-left mb-4 space-y-1">
+                <!-- Los detalles del bono existente se insertarán aquí -->
+            </div>
+            <div class="flex justify-center gap-4">
+                <button id="cancelSecondInstallmentButton" class="px-5 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">Cancelar</button>
+                <button id="confirmSecondInstallmentButton" class="px-5 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Confirmar Pago</button>
+            </div>
+        </div>
+    </div>
     
     <!-- Firebase SDK -->
     <script type="module">
@@ -391,6 +404,7 @@
                 datePromptType: null,
                 liveSummaryPage: 1,
                 recordsPerPage: 3,
+                pendingSecondInstallmentRecord: null, // Para guardar temporalmente el registro
             },
 
             // --- INICIALIZACIÓN ---
@@ -422,6 +436,10 @@
                     deleteConfirmModal: document.getElementById('deleteConfirmModal'),
                     deleteConfirmTitle: document.getElementById('deleteConfirmTitle'),
                     deleteConfirmMessage: document.getElementById('deleteConfirmMessage'),
+                    secondInstallmentConfirmModal: document.getElementById('secondInstallmentConfirmModal'),
+                    secondInstallmentDetails: document.getElementById('secondInstallmentDetails'),
+                    confirmSecondInstallmentButton: document.getElementById('confirmSecondInstallmentButton'),
+                    cancelSecondInstallmentButton: document.getElementById('cancelSecondInstallmentButton'),
                     dateConfirmModal: document.getElementById('dateConfirmModal'),
                     dateConfirmTitle: document.getElementById('dateConfirmTitle'),
                     modalDateInput: document.getElementById('modalDateInput'),
@@ -464,6 +482,8 @@
                     goBackToInitialScreenButton: document.getElementById('goBackToInitialScreenButton'),
                     expenseAmountInput: document.getElementById('expenseAmount'),
                     recycleBinScreen: document.getElementById('recycleBinScreen'),
+                    bonoNro1Input: document.getElementById('bonoNro1'),
+                    bonoNro2Input: document.getElementById('bonoNro2'),
                     recycleBinListContainer: document.getElementById('recycleBinListContainer'),
                     goToRecycleBinButton: document.getElementById('goToRecycleBinButton'),
                     downloadAllLoadsPdfButton: document.getElementById('downloadAllLoadsPdfButton'),
@@ -520,6 +540,19 @@
                 this.dom.goBackToFormButton.addEventListener('click', () => this.dom.confirmAllModal.classList.add('hidden'));
                 document.getElementById('cancelDeleteButton').addEventListener('click', () => this.dom.deleteConfirmModal.classList.add('hidden'));
                 document.getElementById('confirmDeleteButton').addEventListener('click', () => this.handleConfirmDelete());
+                this.dom.confirmSecondInstallmentButton.addEventListener('click', () => this.handleConfirmSecondInstallment());
+                this.dom.cancelSecondInstallmentButton.addEventListener('click', () => this.handleCancelSecondInstallment());
+                
+                // --- INICIO: Verificación automática de bono ---
+                this.dom.bonoNro1Input.addEventListener('input', () => {
+                    // Mover el foco automáticamente al siguiente campo
+                    if (this.dom.bonoNro1Input.value.length === 3) {
+                        this.dom.bonoNro2Input.focus();
+                    }
+                });
+                this.dom.bonoNro2Input.addEventListener('input', () => this.checkBonoExistence());
+                // --- FIN: Verificación automática de bono ---
+
                 this.dom.downloadBalancePdfButton.addEventListener('click', () => this.downloadBalancePDF());
                 this.dom.downloadBalanceSummaryPdfButton.addEventListener('click', () => this.downloadBalanceSummaryPDF());
                 this.dom.expenseForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleExpenseFormSubmit(); });
@@ -632,6 +665,87 @@
                     this.dom.eyeOffIcon.classList.add('hidden');
                 }
             },
+            
+            async checkBonoExistence() {
+                const bonoNro1 = this.dom.bonoNro1Input.value;
+                const bonoNro2 = this.dom.bonoNro2Input.value;
+
+                // Solo continuar si ambos campos tienen 3 dígitos
+                if (bonoNro1.length < 3 || bonoNro2.length < 3) {
+                    return;
+                }
+                
+                // No hacer nada si el modal ya está abierto
+                if (!this.dom.secondInstallmentConfirmModal.classList.contains('hidden')) {
+                    return;
+                }
+
+                const allHistoricalRecords = this.state.allSessions.flatMap(s => s.records);
+                const historicalRecord = allHistoricalRecords.find(r => r.bonoNro1 === bonoNro1 && r.bonoNro2 === bonoNro2);
+
+                if (historicalRecord) {
+                    if (historicalRecord.cuotas === '2') {
+                        this.showToast(`Error: El bono ${bonoNro1}-${bonoNro2} ya fue pagado en su totalidad.`, 'error');
+                    } else {
+                        // Se encontró el bono con 1 cuota pagada, se muestra el modal de confirmación.
+                        this.promptForSecondInstallment(historicalRecord);
+                    }
+                }
+            },
+
+            promptForSecondInstallment(existingRecord) {
+                this.state.pendingSecondInstallmentRecord = existingRecord;
+                this.dom.secondInstallmentDetails.innerHTML = `
+                    <p><span class="font-semibold">Nro Bono:</span> ${existingRecord.bonoNro1}-${existingRecord.bonoNro2}</p>
+                    <p><span class="font-semibold">Comprador:</span> ${existingRecord.nombre}</p>
+                    <p><span class="font-semibold">Teléfono:</span> ${existingRecord.telefono}</p>
+                    <p><span class="font-semibold">Vendedor:</span> ${existingRecord.vendedor}</p>
+                `;
+                this.dom.secondInstallmentConfirmModal.classList.remove('hidden');
+            },
+
+            handleConfirmSecondInstallment() {
+                const existingRecord = this.state.pendingSecondInstallmentRecord;
+                if (!existingRecord) return;
+
+                // Construir el nuevo registro para la sesión actual
+                const newRecordForSession = {
+                    fecha: document.getElementById('fecha').value,
+                    vendedor: document.getElementById('vendedor').value,
+                    bonoNro1: existingRecord.bonoNro1,
+                    bonoNro2: existingRecord.bonoNro2,
+                    nombre: existingRecord.nombre,
+                    telefono: existingRecord.telefono,
+                    tipoPago: document.getElementById('tipoPago').value,
+                    cuotas: '2',
+                };
+                
+                if (!newRecordForSession.vendedor) {
+                     this.showToast('Por favor, ingrese un vendedor antes de confirmar.', 'error');
+                     return;
+                }
+
+                this.state.currentSessionRecords.push(newRecordForSession);
+                
+                this.showToast(`Se registró la 2da cuota para el bono ${newRecordForSession.bonoNro1}-${newRecordForSession.bonoNro2}.`);
+                
+                this.state.liveSummaryPage = Math.ceil(this.state.currentSessionRecords.length / this.state.recordsPerPage);
+                this.renderLiveSummary();
+                // Limpiar campos para la siguiente carga
+                this.dom.bonoNro1Input.value = '';
+                this.dom.bonoNro2Input.value = '';
+                document.getElementById('nombre').value = '';
+                document.getElementById('telefono').value = '';
+                this.dom.bonoNro1Input.focus();
+                
+                this.handleCancelSecondInstallment(); // Limpiar estado y cerrar modal
+            },
+
+            handleCancelSecondInstallment() {
+                this.dom.secondInstallmentConfirmModal.classList.add('hidden');
+                this.state.pendingSecondInstallmentRecord = null;
+            },
+
 
             // --- FLUJO DE ENTRADA DE NUEVOS DATOS ---
 
@@ -694,43 +808,33 @@
                         this.clearForm(false);
                     }
                 } else { // Si estamos agregando un nuevo registro.
-                    // 1. Revisa duplicados en la sesión de carga ACTUAL.
-                    const existingRecordIndex = this.state.currentSessionRecords.findIndex(
-                        r => r.bonoNro1 === record.bonoNro1 && r.bonoNro2 === record.bonoNro2
-                    );
+                    const allHistoricalRecords = this.state.allSessions.flatMap(s => s.records);
+                    const historicalRecord = allHistoricalRecords.find(r => r.bonoNro1 === record.bonoNro1 && r.bonoNro2 === record.bonoNro2);
 
-                    if (existingRecordIndex !== -1) {
-                        const existingRecord = this.state.currentSessionRecords[existingRecordIndex];
-                        if (existingRecord.cuotas === '2') {
-                            this.showToast(`Error: El bono ${record.bonoNro1}-${record.bonoNro2} ya tiene ambas cuotas pagadas en esta carga.`, 'error');
+                    if (historicalRecord) {
+                        if (historicalRecord.cuotas === '2') {
+                            this.showToast(`Error: El bono ${record.bonoNro1}-${record.bonoNro2} ya fue pagado en su totalidad en una carga anterior.`, 'error');
                             return;
-                        } else {
-                            // Actualiza el bono en la carga actual a 2 cuotas.
-                            this.state.currentSessionRecords[existingRecordIndex] = { ...record, cuotas: '2' };
-                            this.showToast(`Se registró la 2da cuota para el bono ${record.bonoNro1}-${record.bonoNro2}.`);
-                        }
-                    } else {
-                        // 2. Si no está en la carga actual, revisa el HISTORIAL completo.
-                        const allHistoricalRecords = this.state.allSessions.flatMap(s => s.records);
-                        const historicalRecord = allHistoricalRecords.find(r => r.bonoNro1 === record.bonoNro1 && r.bonoNro2 === record.bonoNro2);
-
-                        if (historicalRecord) {
-                            if (historicalRecord.cuotas === '2') {
-                                this.showToast(`Error: El bono ${record.bonoNro1}-${record.bonoNro2} ya fue pagado en su totalidad en una carga anterior.`, 'error');
-                                return;
-                            } else {
-                                // Encontró el bono con 1 cuota, así que este nuevo registro será la 2da.
-                                this.showToast(`Bono encontrado con 1 cuota. Se registrará la 2da cuota.`, 'success');
-                                record.cuotas = '2'; // Forza a que el nuevo registro tenga 2 cuotas.
-                                this.state.currentSessionRecords.push(record);
-                            }
-                        } else {
-                            // Si no lo encontró en ningún lado, es un bono nuevo.
-                            this.state.currentSessionRecords.push(record);
-                            this.showToast('Bono añadido al resumen.');
+                        } else { // Encontró el bono con 1 cuota, se abre el modal de confirmación.
+                            this.promptForSecondInstallment(historicalRecord);
+                            return; // Detiene la ejecución hasta que el usuario confirme en el modal
                         }
                     }
 
+                    // Revisa duplicados en la sesión de carga ACTUAL (por si se carga dos veces antes de guardar).
+                    const existingRecordInSession = this.state.currentSessionRecords.find(
+                        r => r.bonoNro1 === record.bonoNro1 && r.bonoNro2 === record.bonoNro2
+                    );
+
+                    if (existingRecordInSession) {
+                        this.showToast(`Error: El bono ${record.bonoNro1}-${record.bonoNro2} ya fue ingresado en esta misma carga.`, 'error');
+                        return;
+                    } 
+                    
+                    // Si no lo encontró en ningún lado, es un bono nuevo.
+                    this.state.currentSessionRecords.push(record);
+                    this.showToast('Bono añadido al resumen.');
+                    
                     this.state.liveSummaryPage = Math.ceil(this.state.currentSessionRecords.length / this.state.recordsPerPage);
                     this.renderLiveSummary();
                     this.clearForm(false);
