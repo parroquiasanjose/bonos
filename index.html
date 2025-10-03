@@ -676,6 +676,7 @@
                     return;
                 }
                 
+                // Si estamos editando un registro existente desde el resumen o detalles.
                 if (this.state.recordToEditIndex !== null) {
                     this.state.currentSessionRecords[this.state.recordToEditIndex] = record;
                     this.showToast('Registro modificado con éxito.');
@@ -692,10 +693,45 @@
                         this.renderLiveSummary();
                         this.clearForm(false);
                     }
-                } else {
-                    this.state.currentSessionRecords.push(record);
+                } else { // Si estamos agregando un nuevo registro.
+                    // 1. Revisa duplicados en la sesión de carga ACTUAL.
+                    const existingRecordIndex = this.state.currentSessionRecords.findIndex(
+                        r => r.bonoNro1 === record.bonoNro1 && r.bonoNro2 === record.bonoNro2
+                    );
+
+                    if (existingRecordIndex !== -1) {
+                        const existingRecord = this.state.currentSessionRecords[existingRecordIndex];
+                        if (existingRecord.cuotas === '2') {
+                            this.showToast(`Error: El bono ${record.bonoNro1}-${record.bonoNro2} ya tiene ambas cuotas pagadas en esta carga.`, 'error');
+                            return;
+                        } else {
+                            // Actualiza el bono en la carga actual a 2 cuotas.
+                            this.state.currentSessionRecords[existingRecordIndex] = { ...record, cuotas: '2' };
+                            this.showToast(`Se registró la 2da cuota para el bono ${record.bonoNro1}-${record.bonoNro2}.`);
+                        }
+                    } else {
+                        // 2. Si no está en la carga actual, revisa el HISTORIAL completo.
+                        const allHistoricalRecords = this.state.allSessions.flatMap(s => s.records);
+                        const historicalRecord = allHistoricalRecords.find(r => r.bonoNro1 === record.bonoNro1 && r.bonoNro2 === record.bonoNro2);
+
+                        if (historicalRecord) {
+                            if (historicalRecord.cuotas === '2') {
+                                this.showToast(`Error: El bono ${record.bonoNro1}-${record.bonoNro2} ya fue pagado en su totalidad en una carga anterior.`, 'error');
+                                return;
+                            } else {
+                                // Encontró el bono con 1 cuota, así que este nuevo registro será la 2da.
+                                this.showToast(`Bono encontrado con 1 cuota. Se registrará la 2da cuota.`, 'success');
+                                record.cuotas = '2'; // Forza a que el nuevo registro tenga 2 cuotas.
+                                this.state.currentSessionRecords.push(record);
+                            }
+                        } else {
+                            // Si no lo encontró en ningún lado, es un bono nuevo.
+                            this.state.currentSessionRecords.push(record);
+                            this.showToast('Bono añadido al resumen.');
+                        }
+                    }
+
                     this.state.liveSummaryPage = Math.ceil(this.state.currentSessionRecords.length / this.state.recordsPerPage);
-                    this.showToast('Bono añadido al resumen.');
                     this.renderLiveSummary();
                     this.clearForm(false);
                 }
@@ -1809,20 +1845,45 @@
                 const doc = new jsPDF();
                 let startY = this.addPdfHeader(doc, "Reporte General de Bonos Vendidos");
 
-                let allRecords = [];
+                let allRecordsRaw = [];
                 this.state.allSessions.forEach(session => {
                     session.records.forEach(record => {
-                        allRecords.push({
+                        allRecordsRaw.push({
                             ...record,
                             fechaCarga: session.id.replace(/-/g, '/')
                         });
                     });
                 });
 
-                if (allRecords.length === 0) {
+                if (allRecordsRaw.length === 0) {
                     this.showToast('No hay cargas para generar el PDF.', 'error');
                     return;
                 }
+
+                // Lógica mejorada para consolidar bonos y sus cuotas
+                const definitiveBonos = {};
+                allRecordsRaw.forEach(record => {
+                    const key = `${record.bonoNro1}-${record.bonoNro2}`;
+                    const existing = definitiveBonos[key];
+                    
+                    if (!existing) {
+                        // Si es la primera vez que vemos este bono, lo agregamos.
+                        definitiveBonos[key] = { ...record }; 
+                    } else {
+                        // Si ya existe, decidimos cómo consolidarlo.
+                        // Si el registro actual o el existente ya tienen 2 cuotas, el estado final es 2 cuotas.
+                        if (record.cuotas === '2' || existing.cuotas === '2') {
+                            definitiveBonos[key] = { ...record, cuotas: '2' };
+                        } 
+                        // Si ambos registros son de 1 cuota, significa que se completó el pago.
+                        else if (record.cuotas === '1' && existing.cuotas === '1') {
+                            // Se actualiza a 2 cuotas, manteniendo los datos del último registro cargado.
+                            definitiveBonos[key] = { ...record, cuotas: '2' };
+                        }
+                    }
+                });
+                const allRecords = Object.values(definitiveBonos);
+
 
                 const paidTwoInstallments = allRecords.filter(r => r.cuotas === '2');
                 const paidOneInstallment = allRecords.filter(r => r.cuotas === '1');
@@ -2056,4 +2117,7 @@
     </script>
 </body>
 </html>
+
+
+
 
