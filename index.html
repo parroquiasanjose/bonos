@@ -147,20 +147,11 @@
                 <button id="goToHistoryButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 rounded-lg">
                     Historial de Carga
                 </button>
-                <button id="goToVendedorBonoButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-teal-500 to-teal-700 hover:from-teal-600 hover:to-teal-800 rounded-lg">
-                    Bonos por Vendedor
-                </button>
-                <button id="goToBankButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-cyan-500 to-cyan-700 hover:from-cyan-600 hover:to-cyan-800 rounded-lg">
-                    Banco
-                </button>
                 <button id="goToExpenseButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 rounded-lg">
                     Egresos
                 </button>
                 <button id="goToBalanceButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-orange-500 to-orange-700 hover:from-orange-600 hover:to-orange-800 rounded-lg">
                     Balance
-                </button>
-                 <button id="goToWinnerButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 rounded-lg">
-                    Gestionar Sorteo
                 </button>
                  <button id="goToRecycleBinButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-yellow-500 to-yellow-700 hover:from-yellow-600 hover:to-yellow-800 rounded-lg">
                     Papelera
@@ -282,35 +273,6 @@
             </div>
         </div>
         
-        <!-- 8. Pantalla de Banco -->
-        <div id="bankScreen" class="screen p-8 bg-gray-50 rounded-xl shadow-lg fade-in">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Gestión de Banco</h2>
-            <form id="bankForm" class="space-y-4 mb-6 p-4 border rounded-lg">
-                <h3 class="text-lg font-semibold text-gray-700" id="bankFormTitle">Nuevo Depósito</h3>
-                <div>
-                    <label for="bankDate" class="block text-sm font-medium text-gray-700">Fecha</label>
-                    <input type="date" id="bankDate" name="bankDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" readonly>
-                </div>
-                <div>
-                    <label for="bankAmount" class="block text-sm font-medium text-gray-700">Importe</label>
-                    <input type="text" inputmode="numeric" id="bankAmount" name="bankAmount" required placeholder="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
-                </div>
-                <div>
-                    <label for="bankType" class="block text-sm font-medium text-gray-700">Tipo</label>
-                    <select id="bankType" name="bankType" required class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
-                        <option value="Efectivo">Efectivo</option>
-                        <option value="Transferencia">Transferencia</option>
-                    </select>
-                </div>
-                <div id="bankFormActions">
-                    <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-cyan-500 to-cyan-700 hover:from-cyan-600 hover:to-cyan-800 rounded-lg">Confirmar</button>
-                </div>
-            </form>
-            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Depósitos Registrados</h3>
-            <div id="bankDepositsListContainer" class="mb-6 space-y-3"></div>
-            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Volver al Inicio</button>
-        </div>
-
         <!-- 9. Pantalla de Egresos -->
         <div id="expenseScreen" class="screen p-8 bg-gray-50 rounded-xl shadow-lg fade-in">
             <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Gestión de Egresos</h2>
@@ -344,62 +306,6 @@
             <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Volver al Inicio</button>
         </div>
 
-        <!-- 10. Pantalla de Bonos por Vendedor -->
-        <div id="vendedorBonoScreen" class="screen p-8 bg-gray-50 rounded-xl shadow-lg fade-in">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Asignar Bonos a Vendedor</h2>
-            <form id="vendedorBonoForm" class="space-y-4 mb-6 p-4 border rounded-lg">
-                <h3 class="text-lg font-semibold text-gray-700" id="vendedorBonoFormTitle">Nueva Asignación</h3>
-                <div>
-                    <label for="vendedorBonoNombre" class="block text-sm font-medium text-gray-700">Nombre del Vendedor</label>
-                    <input type="text" id="vendedorBonoNombre" name="vendedorBonoNombre" required class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" placeholder="Nombre del Vendedor" list="vendedoresList">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Rango de Bonos Asignados</label>
-                    <div class="flex items-center gap-4 mt-1">
-                        <div class="w-1/2">
-                            <label for="vendedorBonoNro1" class="text-xs text-gray-500">Desde Nro.</label>
-                            <input type="number" id="vendedorBonoNro1" name="vendedorBonoNro1" required placeholder="000" oninput="this.value = this.value.slice(0, 3);" class="block w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
-                        </div>
-                        <div class="w-1/2">
-                            <label for="vendedorBonoNro2" class="text-xs text-gray-500">Hasta Nro.</label>
-                            <input type="number" id="vendedorBonoNro2" name="vendedorBonoNro2" required placeholder="999" oninput="this.value = this.value.slice(0, 3);" class="block w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
-                        </div>
-                    </div>
-                </div>
-                <div id="vendedorBonoFormActions">
-                    <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-teal-500 to-teal-700 hover:from-teal-600 hover:to-teal-800 rounded-lg">Confirmar Asignación</button>
-                </div>
-            </form>
-            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Historial de Asignaciones</h3>
-            <div id="vendedorBonoHistoryContainer" class="mb-6 max-h-80 overflow-y-auto space-y-4"></div>
-            
-            <!-- SECCIÓN DE CONSULTA MODIFICADA -->
-            <hr class="my-8 border-gray-300">
-            <div id="vendedorReportSection">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Consulta y Reportes</h2>
-                <div class="space-y-4 mb-6 p-4 border rounded-lg">
-                    <div>
-                        <label for="reportType" class="block text-sm font-medium text-gray-700">Consultar por:</label>
-                        <select id="reportType" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
-                            <option value="vendedor">Nombre de Vendedor</option>
-                            <option value="numero">Rango de Números de Bono</option>
-                        </select>
-                    </div>
-                    <div id="reportInputContainer">
-                        <!-- El input cambiará dinámicamente -->
-                    </div>
-                    <button id="runReportButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-indigo-500 to-indigo-700 hover:from-indigo-600 hover:to-indigo-800 rounded-lg">Consultar</button>
-                </div>
-                <div id="vendedorReportResultContainer" class="p-4 bg-white rounded-lg border min-h-[100px]">
-                    <!-- Los resultados de la consulta aparecerán aquí -->
-                </div>
-                <button id="downloadVendedorReportPdfButton" class="hidden w-full mt-4 px-4 py-3 font-semibold text-white bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 rounded-lg">Descargar PDF del Reporte</button>
-            </div>
-            <!-- FIN SECCIÓN MODIFICADA -->
-
-            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-8 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Volver al Inicio</button>
-        </div>
-
         <!-- 11. Pantalla de Papelera de Reciclaje -->
         <div id="recycleBinScreen" class="screen p-8 bg-gray-50 rounded-xl shadow-lg fade-in">
             <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Papelera de Reciclaje</h2>
@@ -407,33 +313,6 @@
             <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 rounded-lg">Volver al Inicio</button>
         </div>
         
-        <!-- 12. Pantalla de Gestión de Ganadores (NUEVA) -->
-        <div id="winnerScreen" class="screen p-8 bg-gray-50 rounded-xl shadow-lg fade-in">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Gestión de Sorteo</h2>
-            <form id="winnerForm" class="space-y-4 mb-6 p-4 border rounded-lg">
-                <h3 class="text-lg font-semibold text-gray-700">Buscar Ganador</h3>
-                <div>
-                    <label for="winnerNumberInput" class="block text-sm font-medium text-gray-700">Número de Bono Ganador</label>
-                    <input type="number" id="winnerNumberInput" placeholder="000" oninput="this.value = this.value.slice(0, 3);" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500">
-                </div>
-                 <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 rounded-lg">Buscar</button>
-            </form>
-            
-            <div id="winnerResultContainer" class="mb-6 p-4 bg-white rounded-lg border min-h-[100px]">
-                 <!-- Resultado de la búsqueda del ganador -->
-            </div>
-
-            <hr class="my-6 border-gray-300">
-
-            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Historial de Ganadores</h3>
-             <div id="pastWinnersContainer" class="mb-6 max-h-80 overflow-y-auto space-y-3">
-                 <!-- Lista de ganadores anteriores -->
-            </div>
-
-            <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Volver al Inicio</button>
-        </div>
-
-
     </div>
 
     <!-- Modales de la aplicación -->
@@ -492,34 +371,22 @@
                 isAdmin: false,
                 currentSessionRecords: [],
                 allSessions: [],
-                bankDeposits: [],
                 expenses: [],
-                vendedorBonos: [],
                 deletedItems: [], // Para la papelera
-                vendedorReportData: null,
-                balanceData: null, // <-- OPTIMIZATION: Store calculated balance data
+                balanceData: null,
                 recordToEditIndex: null,
-                depositToEditId: null,
                 expenseToEditId: null,
-                vendedorBonoToEditId: null,
                 editOrigin: null,
                 itemToDelete: { id: null, type: null, index: null, permanent: false },
                 sessionToEditId: null,
                 sessionToEditRawDate: null, 
-                winnersData: [],
-                searchResult: null, 
                 db: null,
                 auth: null,
                 userId: null,
                 unsubscribeHistory: null,
-                unsubscribeBank: null,
                 unsubscribeExpenses: null,
-                unsubscribeVendedorBonos: null,
                 unsubscribeDeleted: null,
-                unsubscribeWinners: null, // NUEVO
-                showAllDeposits: false,
                 showAllExpenses: false,
-                showAllVendedorBonos: false,
                 datePromptType: null,
                 liveSummaryPage: 1,
                 recordsPerPage: 3,
@@ -531,7 +398,6 @@
                 this.bindEvents();
                 this.showLoading(true);
                 await this.initializeFirebase();
-                this.updateReportInput(); // Inicializar el input de reporte
             },
 
             cacheDOMElements() {
@@ -574,15 +440,9 @@
                     balanceListContainer: document.getElementById('balanceListContainer'),
                     balanceSummaryContainer: document.getElementById('balanceSummaryContainer'),
                     downloadBalancePdfButton: document.getElementById('downloadBalancePdfButton'),
-                    downloadBalanceSummaryPdfButton: document.getElementById('downloadBalanceSummaryPdfButton'), // NUEVO
+                    downloadBalanceSummaryPdfButton: document.getElementById('downloadBalanceSummaryPdfButton'),
                     goToBalanceButton: document.getElementById('goToBalanceButton'),
-                    goToBankButton: document.getElementById('goToBankButton'),
                     logoutButton: document.getElementById('logoutButton'),
-                    bankScreen: document.getElementById('bankScreen'),
-                    bankForm: document.getElementById('bankForm'),
-                    bankFormTitle: document.getElementById('bankFormTitle'),
-                    bankFormActions: document.getElementById('bankFormActions'),
-                    bankDepositsListContainer: document.getElementById('bankDepositsListContainer'),
                     expenseScreen: document.getElementById('expenseScreen'),
                     expenseForm: document.getElementById('expenseForm'),
                     expenseFormTitle: document.getElementById('expenseFormTitle'),
@@ -601,31 +461,11 @@
                     confirmAllButton: document.getElementById('confirmAllButton'),
                     clearAllButton: document.getElementById('clearAllButton'),
                     goBackToInitialScreenButton: document.getElementById('goBackToInitialScreenButton'),
-                    bankAmountInput: document.getElementById('bankAmount'),
                     expenseAmountInput: document.getElementById('expenseAmount'),
-                    goToVendedorBonoButton: document.getElementById('goToVendedorBonoButton'),
-                    vendedorBonoScreen: document.getElementById('vendedorBonoScreen'),
-                    vendedorBonoForm: document.getElementById('vendedorBonoForm'),
-                    vendedorBonoFormTitle: document.getElementById('vendedorBonoFormTitle'),
-                    vendedorBonoFormActions: document.getElementById('vendedorBonoFormActions'),
-                    vendedorBonoHistoryContainer: document.getElementById('vendedorBonoHistoryContainer'),
-                    vendedorReportSection: document.getElementById('vendedorReportSection'),
-                    reportType: document.getElementById('reportType'),
-                    reportInputContainer: document.getElementById('reportInputContainer'),
-                    runReportButton: document.getElementById('runReportButton'),
-                    vendedorReportResultContainer: document.getElementById('vendedorReportResultContainer'),
-                    downloadVendedorReportPdfButton: document.getElementById('downloadVendedorReportPdfButton'),
                     recycleBinScreen: document.getElementById('recycleBinScreen'),
                     recycleBinListContainer: document.getElementById('recycleBinListContainer'),
                     goToRecycleBinButton: document.getElementById('goToRecycleBinButton'),
                     downloadAllLoadsPdfButton: document.getElementById('downloadAllLoadsPdfButton'),
-                    // NUEVOS ELEMENTOS PARA GANADORES
-                    goToWinnerButton: document.getElementById('goToWinnerButton'),
-                    winnerScreen: document.getElementById('winnerScreen'),
-                    winnerForm: document.getElementById('winnerForm'),
-                    winnerNumberInput: document.getElementById('winnerNumberInput'),
-                    winnerResultContainer: document.getElementById('winnerResultContainer'),
-                    pastWinnersContainer: document.getElementById('pastWinnersContainer'),
                 };
             },
 
@@ -667,10 +507,8 @@
             bindEvents() {
                 this.dom.loginForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleLogin(); });
                 this.dom.passwordToggle.addEventListener('click', () => this.togglePasswordVisibility());
-                document.getElementById('goToFormButton').addEventListener('click', () => this.promptForDate('bono'));
+                document.getElementById('goToFormButton').addEventListener('click', () => this.promptForDate());
                 document.getElementById('goToHistoryButton').addEventListener('click', () => this.showHistoryScreen());
-                this.dom.goToVendedorBonoButton.addEventListener('click', () => this.showScreen('vendedorBonoScreen'));
-                document.getElementById('goToBankButton').addEventListener('click', () => this.promptForDate('banco'));
                 this.dom.goToExpenseButton.addEventListener('click', () => this.showExpenseScreen());
                 this.dom.goToBalanceButton.addEventListener('click', () => this.showBalanceScreen());
                 this.dom.goToRecycleBinButton.addEventListener('click', () => this.showRecycleBinScreen());
@@ -681,24 +519,15 @@
                 document.getElementById('cancelDeleteButton').addEventListener('click', () => this.dom.deleteConfirmModal.classList.add('hidden'));
                 document.getElementById('confirmDeleteButton').addEventListener('click', () => this.handleConfirmDelete());
                 this.dom.downloadBalancePdfButton.addEventListener('click', () => this.downloadBalancePDF());
-                this.dom.downloadBalanceSummaryPdfButton.addEventListener('click', () => this.downloadBalanceSummaryPDF()); // NUEVO
-                this.dom.bankForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleBankFormSubmit(); });
+                this.dom.downloadBalanceSummaryPdfButton.addEventListener('click', () => this.downloadBalanceSummaryPDF());
                 this.dom.expenseForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleExpenseFormSubmit(); });
-                this.dom.vendedorBonoForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleVendedorBonoSubmit(); });
                 this.dom.confirmDateButton.addEventListener('click', () => this.handleDateConfirm());
                 this.dom.cancelDateButton.addEventListener('click', () => this.dom.dateConfirmModal.classList.add('hidden'));
                 this.dom.confirmAllButton.addEventListener('click', () => this.handleConfirmAll());
                 this.dom.clearAllButton.addEventListener('click', () => this.handleClearAll());
                 this.dom.goBackToInitialScreenButton.addEventListener('click', () => this.showScreen('initialScreen'));
-                this.dom.bankAmountInput.addEventListener('input', (e) => this.formatCurrencyInput(e));
                 this.dom.expenseAmountInput.addEventListener('input', (e) => this.formatCurrencyInput(e));
-                this.dom.reportType.addEventListener('change', () => this.updateReportInput());
-                this.dom.runReportButton.addEventListener('click', () => this.handleReportQuery());
-                this.dom.downloadVendedorReportPdfButton.addEventListener('click', () => this.downloadVendedorReportPDF());
                 this.dom.downloadAllLoadsPdfButton.addEventListener('click', () => this.downloadAllLoadsPDF());
-                // NUEVOS EVENTOS PARA GANADORES
-                this.dom.goToWinnerButton.addEventListener('click', () => this.showWinnerScreen());
-                this.dom.winnerForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleFindWinner(); });
             },
 
             // --- AUTENTICACIÓN Y NAVEGÁCIÓn ---
@@ -749,18 +578,12 @@
                 this.state.isAdmin = false;
                 
                 if (this.state.unsubscribeHistory) this.state.unsubscribeHistory();
-                if (this.state.unsubscribeBank) this.state.unsubscribeBank();
                 if (this.state.unsubscribeExpenses) this.state.unsubscribeExpenses();
-                if (this.state.unsubscribeVendedorBonos) this.state.unsubscribeVendedorBonos();
                 if (this.state.unsubscribeDeleted) this.state.unsubscribeDeleted();
-                if (this.state.unsubscribeWinners) this.state.unsubscribeWinners(); // NUEVO
 
                 this.state.allSessions = [];
-                this.state.bankDeposits = [];
                 this.state.expenses = [];
-                this.state.vendedorBonos = [];
                 this.state.deletedItems = [];
-                this.state.winnersData = []; // NUEVO
 
                 this.showScreen('loginScreen');
             },
@@ -777,12 +600,6 @@
                 if (screenId === 'initialScreen') {
                     this.updateUIForUser();
                 }
-                if (screenId === 'vendedorBonoScreen') {
-                    this.state.showAllVendedorBonos = false; // Reset pagination
-                    this.resetVendedorBonoForm();
-                    this.renderVendedorBonoHistory();
-                    this.updateReportInput();
-                }
                  if(screenId === 'recycleBinScreen'){
                       this.renderRecycleBin();
                  }
@@ -792,11 +609,8 @@
                 const isAdmin = this.state.isAdmin;
                 this.dom.goToBalanceButton.style.display = isAdmin ? 'block' : 'none';
                 this.dom.goToExpenseButton.style.display = isAdmin ? 'block' : 'none';
-                this.dom.goToBankButton.style.display = isAdmin ? 'block' : 'none';
                 this.dom.adminDashboard.style.display = isAdmin ? 'block' : 'none';
-                this.dom.goToVendedorBonoButton.style.display = 'block';
                 this.dom.goToRecycleBinButton.style.display = isAdmin ? 'block' : 'none';
-                this.dom.goToWinnerButton.style.display = isAdmin ? 'block' : 'none'; // NUEVO
 
                 if (isAdmin) {
                     this.updateDashboard();
@@ -1052,11 +866,8 @@
             // --- GESTIÓN DE DATOS EN FIRESTORE ---
              loadAllDataFromFirestore() {
                   this.loadHistoryFromFirestore();
-                  this.loadBankDepositsFromFirestore();
                   this.loadExpensesFromFirestore();
-                  this.loadVendedorBonosFromFirestore();
                   this.loadDeletedItemsFromFirestore();
-                  this.loadWinnersFromFirestore();
              },
 
             loadHistoryFromFirestore() {
@@ -1158,7 +969,7 @@
                 if (mode === 'new') {
                     const rawDate = this.state.currentSessionRecords[0].fecha;
                     this.dom.detailsTitle.textContent = `Detalle de Carga - ${this.formatDateForId(rawDate)}`;
-                    this.dom.detailsActions.innerHTML = `<button onclick="App.downloadSessionPDF(null)" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 rounded-lg">Descargar PDF</button><button onclick="App.promptForDate('bono')" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 rounded-lg">Nueva Carga</button><button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 rounded-lg">Volver al Inicio</button>`;
+                    this.dom.detailsActions.innerHTML = `<button onclick="App.downloadSessionPDF(null)" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 rounded-lg">Descargar PDF</button><button onclick="App.promptForDate()" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 rounded-lg">Nueva Carga</button><button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 rounded-lg">Volver al Inicio</button>`;
                 } else if (mode === 'edit') {
                     this.dom.detailsTitle.textContent = `Modificando Carga del ${this.state.sessionToEditId.replace(/-/g, '/')}`;
                     this.dom.detailsActions.innerHTML = `<button onclick="App.saveModifiedSession()" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 rounded-lg">Guardar Cambios</button><button onclick="App.showHistoryScreen()" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 rounded-lg">Cancelar</button>`;
@@ -1266,9 +1077,7 @@
                 let docRef;
                 const collectionName = {
                     'session': 'sessions',
-                    'deposit': 'bank_deposits',
                     'expense': 'expenses',
-                    'vendedorBono': 'vendedor_bonos'
                 }[type];
 
                 if (!collectionName) {
@@ -1621,113 +1430,10 @@
                 doc.save(`balance_detallado_${currentDate}.pdf`);
             },
             
-            // --- LÓGICA DE BANCO Y EGRESOS ---
-            showBankScreen(date = null) {
-                this.state.showAllDeposits = false;
-                this.dom.bankForm.reset();
-                const dateInput = document.getElementById('bankDate');
-                if (date) dateInput.value = date;
-                else dateInput.valueAsDate = new Date();
-                this.dom.bankFormTitle.textContent = 'Nuevo Depósito';
-                this.dom.bankFormActions.innerHTML = `<button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-cyan-600 rounded-lg hover:bg-cyan-700">Confirmar</button>`;
-                this.state.depositToEditId = null;
-                this.renderBankDeposits();
-                this.showScreen('bankScreen');
-            },
-
-            loadBankDepositsFromFirestore() {
-                if (this.state.unsubscribeBank) this.state.unsubscribeBank();
-                const bankColRef = collection(this.state.db, "bank_deposits");
-                this.state.unsubscribeBank = onSnapshot(query(bankColRef), (snapshot) => {
-                    const allDeposits = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    this.state.bankDeposits = allDeposits.filter(deposit => deposit.deleted !== true);
-                    this.state.bankDeposits.sort((a, b) => b.date.localeCompare(a.date));
-                    if (document.getElementById('bankScreen').classList.contains('active-screen')) {
-                        this.renderBankDeposits();
-                    }
-                });
-            },
-
-            renderBankDeposits() {
-                this.dom.bankDepositsListContainer.innerHTML = '';
-                const deposits = this.state.bankDeposits;
-                if (deposits.length === 0) {
-                    this.dom.bankDepositsListContainer.innerHTML = '<p class="text-center text-gray-500">No hay depósitos registrados.</p>';
-                    return;
-                }
-                const depositsToShow = this.state.showAllDeposits ? deposits : deposits.slice(0, 3);
-                depositsToShow.forEach(deposit => {
-                    const depositDiv = document.createElement('div');
-                    depositDiv.className = 'flex justify-between items-center p-3 bg-white rounded-lg border';
-                    depositDiv.innerHTML = `<div><p class="font-semibold text-gray-800">${'Depósito'} - ${this.formatDateForId(deposit.date)}</p><p class="text-sm text-gray-600">${this.formatCurrency(parseFloat(deposit.amount))} (${deposit.type})</p></div><div class="flex gap-2"><button onclick="App.editBankDeposit('${deposit.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button><button onclick="App.promptDeleteItem('${deposit.id}', 'deposit')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button><button onclick="App.downloadDepositPDF('${deposit.id}')" class="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">PDF</button></div>`;
-                    this.dom.bankDepositsListContainer.appendChild(depositDiv);
-                });
-                if (!this.state.showAllDeposits && deposits.length > 3) {
-                    const seeMoreButton = document.createElement('button');
-                    seeMoreButton.className = 'w-full mt-2 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300';
-                    seeMoreButton.textContent = 'Ver más';
-                    seeMoreButton.onclick = () => { this.state.showAllDeposits = true; this.renderBankDeposits(); };
-                    this.dom.bankDepositsListContainer.appendChild(seeMoreButton);
-                }
-            },
-
-            async handleBankFormSubmit() {
-                const formData = new FormData(this.dom.bankForm);
-                const amountValue = formData.get('bankAmount');
-                const depositData = { 
-                    date: formData.get('bankDate'), 
-                    amount: this.getNumericValue(amountValue), 
-                    type: formData.get('bankType'),
-                    deleted: false
-                };
-                this.showLoading(true);
-                try {
-                    if (this.state.depositToEditId) {
-                        await updateDoc(doc(this.state.db, "bank_deposits", this.state.depositToEditId), depositData);
-                        this.showToast('Depósito modificado.');
-                    } else {
-                        await addDoc(collection(this.state.db, "bank_deposits"), depositData);
-                        this.showToast('Depósito guardado.');
-                    }
-                    this.showBankScreen();
-                } catch (error) {
-                    console.error("Error al guardar depósito:", error);
-                    this.showToast('Error al guardar depósito.', 'error');
-                } finally {
-                    this.showLoading(false);
-                }
-            },
-
-            editBankDeposit(depositId) {
-                const deposit = this.state.bankDeposits.find(d => d.id === depositId);
-                if (!deposit) return;
-                this.state.depositToEditId = depositId;
-                document.getElementById('bankDate').value = deposit.date;
-                document.getElementById('bankAmount').value = deposit.amount.toLocaleString('es-ES');
-                document.getElementById('bankType').value = deposit.type;
-                this.dom.bankFormTitle.textContent = 'Modificar Depósito';
-                this.dom.bankFormActions.innerHTML = `<button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">Guardar Cambios</button><button type="button" onclick="App.showBankScreen()" class="w-full mt-2 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cancelar</button>`;
-                window.scrollTo(0, 0);
-            },
-
-            downloadDepositPDF(depositId) {
-                const deposit = this.state.bankDeposits.find(d => d.id === depositId);
-                if (!deposit) return;
-                const doc = new jsPDF();
-                const startY = this.addPdfHeader(doc, "Detalle de Depósito");
-                doc.autoTable({
-                    head: [["Campo", "Valor"]],
-                    body: [["Fecha", this.formatDateForId(deposit.date)], ["Importe", this.formatCurrency(parseFloat(deposit.amount))], ["Tipo", deposit.type]],
-                    startY: startY, theme: 'grid', headStyles: { fillColor: [8, 145, 178] }
-                });
-                doc.save(`deposito_${deposit.id}.pdf`);
-            },
-
-            promptForDate(type) {
-                this.state.datePromptType = type;
+            // --- LÓGICA DE EGRESOS ---
+            promptForDate() {
                 this.dom.modalDateInput.valueAsDate = new Date();
-                if (type === 'bono') this.dom.dateConfirmTitle.textContent = 'Confirmar Fecha de Carga';
-                else if (type === 'banco') this.dom.dateConfirmTitle.textContent = 'Confirmar Fecha de Depósito';
+                this.dom.dateConfirmTitle.textContent = 'Confirmar Fecha de Carga';
                 this.dom.dateConfirmModal.classList.remove('hidden');
             },
 
@@ -1737,10 +1443,8 @@
                     this.showToast('Por favor, seleccione una fecha.', 'error');
                     return;
                 }
-                if (this.state.datePromptType === 'bono') this.startNewSession(selectedDate);
-                else if (this.state.datePromptType === 'banco') this.showBankScreen(selectedDate);
+                this.startNewSession(selectedDate);
                 this.dom.dateConfirmModal.classList.add('hidden');
-                this.state.datePromptType = null;
             },
 
             showExpenseScreen() {
@@ -1832,356 +1536,6 @@
                 window.scrollTo(0, 0);
             },
             
-            // --- BONOS POR VENDEDOR Y REPORTES ---
-            loadVendedorBonosFromFirestore() {
-                if (this.state.unsubscribeVendedorBonos) this.state.unsubscribeVendedorBonos();
-                const vendedorBonosColRef = collection(this.state.db, "vendedor_bonos");
-                this.state.unsubscribeVendedorBonos = onSnapshot(query(vendedorBonosColRef), (snapshot) => {
-                    const allVendedorBonos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    this.state.vendedorBonos = allVendedorBonos.filter(bono => bono.deleted !== true);
-                    this.state.vendedorBonos.sort((a, b) => {
-                        const dateA = a.fechaAsignacion?.toDate() || 0;
-                        const dateB = b.fechaAsignacion?.toDate() || 0;
-                        return dateB - dateA;
-                    });
-                    if (document.getElementById('vendedorBonoScreen').classList.contains('active-screen')) {
-                        this.renderVendedorBonoHistory();
-                    }
-                });
-            },
-
-            renderVendedorBonoHistory() {
-                this.dom.vendedorBonoHistoryContainer.innerHTML = '';
-                if (this.state.vendedorBonos.length === 0) {
-                    this.dom.vendedorBonoHistoryContainer.innerHTML = '<p class="text-center text-gray-500">No hay bonos asignados a vendedores.</p>';
-                    return;
-                }
-
-                const bonosByVendedor = this.state.vendedorBonos.reduce((acc, bono) => {
-                    const vendedor = bono.vendedor;
-                    if (!acc[vendedor]) {
-                        acc[vendedor] = [];
-                    }
-                    acc[vendedor].push(bono);
-                    return acc;
-                }, {});
-                
-                const allVendors = Object.keys(bonosByVendedor).sort();
-                const vendorsToShow = this.state.showAllVendedorBonos ? allVendors : allVendors.slice(0, 3);
-
-                vendorsToShow.forEach(vendedor => {
-                    const vendedorSection = document.createElement('div');
-                    vendedorSection.className = 'p-4 border rounded-lg bg-white';
-                    let recordsHTML = `<h4 class="text-lg font-bold text-gray-800 mb-2">${vendedor}</h4><div class="space-y-2">`;
-                    
-                    const vendorAssignments = bonosByVendedor[vendedor];
-
-                    vendorAssignments.forEach(bono => {
-                        const fecha = bono.fechaAsignacion ? this.formatTimestamp(bono.fechaAsignacion) : 'Sin fecha';
-                        recordsHTML += `
-                            <div class="flex justify-between items-center p-2 bg-gray-100 rounded-md border">
-                                <div>
-                                    <p class="font-semibold text-gray-700">Rango: ${bono.bonoNro1} - ${bono.bonoNro2}</p>
-                                    <p class="text-xs text-gray-500">Asignado: ${fecha}</p>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button onclick="App.editVendedorBono('${bono.id}')" class="text-xs px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modificar</button>
-                                    <button onclick="App.promptDeleteItem('${bono.id}', 'vendedorBono')" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    recordsHTML += '</div>';
-                    vendedorSection.innerHTML = recordsHTML;
-                    this.dom.vendedorBonoHistoryContainer.appendChild(vendedorSection);
-                });
-
-                if (!this.state.showAllVendedorBonos && allVendors.length > 3) {
-                    const seeMoreButton = document.createElement('button');
-                    seeMoreButton.className = 'w-full mt-4 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300';
-                    seeMoreButton.textContent = 'Ver más';
-                    seeMoreButton.onclick = () => { 
-                        this.state.showAllVendedorBonos = true; 
-                        this.renderVendedorBonoHistory(); 
-                    };
-                    this.dom.vendedorBonoHistoryContainer.appendChild(seeMoreButton);
-                }
-            },
-
-            async handleVendedorBonoSubmit() {
-                const formData = new FormData(this.dom.vendedorBonoForm);
-                const bonoData = {
-                    vendedor: formData.get('vendedorBonoNombre'),
-                    bonoNro1: formData.get('vendedorBonoNro1'),
-                    bonoNro2: formData.get('vendedorBonoNro2'),
-                };
-
-                if (!bonoData.vendedor || !bonoData.bonoNro1 || !bonoData.bonoNro2) {
-                    this.showToast('Por favor, complete todos los campos.', 'error');
-                    return;
-                }
-                
-                this.showLoading(true);
-                try {
-                    if (this.state.vendedorBonoToEditId) {
-                        await updateDoc(doc(this.state.db, "vendedor_bonos", this.state.vendedorBonoToEditId), bonoData);
-                        this.showToast('Asignación modificada con éxito.');
-                    } else {
-                        bonoData.fechaAsignacion = serverTimestamp();
-                        bonoData.deleted = false;
-                        await addDoc(collection(this.state.db, "vendedor_bonos"), bonoData);
-                        this.showToast('Bonos asignados con éxito.');
-                    }
-                    this.resetVendedorBonoForm();
-                } catch (error) {
-                    console.error("Error al guardar asignación:", error);
-                    this.showToast('Error al guardar la asignación.', 'error');
-                } finally {
-                    this.showLoading(false);
-                }
-            },
-
-            editVendedorBono(bonoId) {
-                const bono = this.state.vendedorBonos.find(b => b.id === bonoId);
-                if (!bono) return;
-                this.state.vendedorBonoToEditId = bonoId;
-                document.getElementById('vendedorBonoNombre').value = bono.vendedor;
-                document.getElementById('vendedorBonoNro1').value = bono.bonoNro1;
-                document.getElementById('vendedorBonoNro2').value = bono.bonoNro2;
-                
-                this.dom.vendedorBonoFormTitle.textContent = 'Modificar Asignación';
-                this.dom.vendedorBonoFormActions.innerHTML = `
-                    <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">Guardar Cambios</button>
-                    <button type="button" onclick="App.resetVendedorBonoForm()" class="w-full mt-2 px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cancelar</button>
-                `;
-                window.scrollTo(0, 0);
-            },
-
-            resetVendedorBonoForm() {
-                this.dom.vendedorBonoForm.reset();
-                this.state.vendedorBonoToEditId = null;
-                this.dom.vendedorBonoFormTitle.textContent = 'Nueva Asignación';
-                this.dom.vendedorBonoFormActions.innerHTML = `
-                    <button type="submit" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-teal-500 to-teal-700 hover:from-teal-600 hover:to-teal-800 rounded-lg">Confirmar Asignación</button>
-                `;
-            },
-            
-            updateReportInput() {
-                const reportType = this.dom.reportType.value;
-                const container = this.dom.reportInputContainer;
-                container.innerHTML = '';
-                if (reportType === 'vendedor') {
-                    container.innerHTML = `
-                        <label for="reportVendedorInput" class="block text-sm font-medium text-gray-700">Nombre del Vendedor</label>
-                        <input type="text" id="reportVendedorInput" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" placeholder="Seleccione un vendedor" list="vendedoresList">
-                    `;
-                } else if (reportType === 'numero') {
-                    container.innerHTML = `
-                        <label class="block text-sm font-medium text-gray-700">Rango de Números de Bono</label>
-                        <div class="flex items-center gap-4 mt-1">
-                            <div class="w-1/2">
-                                <input type="number" id="reportNumeroInput1" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" placeholder="Desde Nro." oninput="this.value = this.value.slice(0, 3);">
-                            </div>
-                            <div class="w-1/2">
-                                <input type="number" id="reportNumeroInput2" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" placeholder="Hasta Nro." oninput="this.value = this.value.slice(0, 3);">
-                            </div>
-                        </div>
-                    `;
-                }
-            },
-
-            handleReportQuery() {
-                const reportType = this.dom.reportType.value;
-                this.dom.vendedorReportResultContainer.innerHTML = '';
-                this.dom.downloadVendedorReportPdfButton.classList.add('hidden');
-                this.state.vendedorReportData = null;
-
-                if (reportType === 'vendedor') {
-                    const vendedorNombre = document.getElementById('reportVendedorInput').value;
-                    if (!vendedorNombre) {
-                        this.showToast('Por favor, ingrese un nombre de vendedor.', 'error');
-                        return;
-                    }
-                    this.generateVendedorReport(vendedorNombre);
-                } else if (reportType === 'numero') {
-                    const numeroDesde = parseInt(document.getElementById('reportNumeroInput1').value, 10);
-                    const numeroHasta = parseInt(document.getElementById('reportNumeroInput2').value, 10) || numeroDesde;
-                    if (isNaN(numeroDesde)) {
-                        this.showToast('Por favor, ingrese al menos el primer número del rango.', 'error');
-                        return;
-                    }
-                    this.findBonoStatusByRange(numeroDesde, numeroHasta);
-                }
-            },
-
-            generateVendedorReport(vendedorNombre) {
-                // 1. Calcular bonos asignados
-                const asignaciones = this.state.vendedorBonos.filter(b => b.vendedor === vendedorNombre);
-                let totalAsignados = 0;
-                asignaciones.forEach(asig => {
-                    totalAsignados += (parseInt(asig.bonoNro2) - parseInt(asig.bonoNro1) + 1);
-                });
-
-                // 2. Calcular bonos vendidos
-                const ventas = [];
-                let totalVendidos = 0;
-                this.state.allSessions.forEach(session => {
-                    session.records.forEach(record => {
-                        if (record.vendedor === vendedorNombre) {
-                            const cantidadVendida = (parseInt(record.bonoNro2) - parseInt(record.bonoNro1) + 1);
-                            totalVendidos += cantidadVendida;
-                            ventas.push({
-                                ...record,
-                                cantidad: cantidadVendida,
-                                fechaVenta: this.formatDateForId(record.fecha)
-                            });
-                        }
-                    });
-                });
-                
-                // Guardar datos para el PDF
-                this.state.vendedorReportData = {
-                    vendedor: vendedorNombre,
-                    totalAsignados,
-                    totalVendidos,
-                    asignaciones,
-                    ventas
-                };
-
-                // 3. Mostrar resultados en HTML
-                const resultHTML = `
-                    <h4 class="text-lg font-bold text-gray-800 mb-3">Reporte para: ${vendedorNombre}</h4>
-                    <div class="space-y-2 text-gray-700">
-                        <div class="flex justify-between p-2 bg-gray-100 rounded">
-                            <span class="font-semibold">Total de Bonos Asignados:</span>
-                            <span class="font-bold text-blue-600 text-lg">${totalAsignados}</span>
-                        </div>
-                        <div class="flex justify-between p-2 bg-gray-100 rounded">
-                            <span class="font-semibold">Total de Bonos Vendidos:</span>
-                            <span class="font-bold text-green-600 text-lg">${totalVendidos}</span>
-                        </div>
-                    </div>
-                `;
-                this.dom.vendedorReportResultContainer.innerHTML = resultHTML;
-                this.dom.downloadVendedorReportPdfButton.classList.remove('hidden');
-            },
-
-            findBonoStatusByRange(numeroDesde, numeroHasta) {
-                let resultHTML = `<h4 class="text-lg font-bold text-gray-800 mb-3">Estado de Bonos N° ${numeroDesde} - ${numeroHasta}</h4>`;
-                
-                // 1. Find assigned ranges that overlap
-                const overlappingAssignments = this.state.vendedorBonos.filter(asig => {
-                    const asigDesde = parseInt(asig.bonoNro1, 10);
-                    const asigHasta = parseInt(asig.bonoNro2, 10);
-                    return Math.max(numeroDesde, asigDesde) <= Math.min(numeroHasta, asigHasta);
-                });
-
-                // 2. Find sold ranges that overlap
-                const overlappingSales = [];
-                this.state.allSessions.forEach(session => {
-                    session.records.forEach(record => {
-                        const recDesde = parseInt(record.bonoNro1, 10);
-                        const recHasta = parseInt(record.bonoNro2, 10);
-                        if (Math.max(numeroDesde, recDesde) <= Math.min(numeroHasta, recHasta)) {
-                            overlappingSales.push(record);
-                        }
-                    });
-                });
-
-                if (overlappingAssignments.length === 0 && overlappingSales.length === 0) {
-                    resultHTML += '<p class="text-center text-gray-500">No se encontraron asignaciones ni ventas para este rango de bonos.</p>';
-                } else {
-                    if (overlappingAssignments.length > 0) {
-                        resultHTML += '<div class="mb-4"><h5 class="font-semibold text-gray-700">Asignaciones Encontradas:</h5><ul class="list-disc list-inside space-y-1 mt-1">';
-                        overlappingAssignments.forEach(asig => {
-                            resultHTML += `<li class="text-sm">Rango ${asig.bonoNro1}-${asig.bonoNro2} asignado a <strong>${asig.vendedor}</strong>.</li>`;
-                        });
-                        resultHTML += '</ul></div>';
-                    } else {
-                         resultHTML += '<div class="mb-4"><h5 class="font-semibold text-gray-700">Asignaciones Encontradas:</h5><p class="text-sm text-gray-500">Ninguna.</p></div>';
-                    }
-
-                    if (overlappingSales.length > 0) {
-                        resultHTML += '<div><h5 class="font-semibold text-gray-700">Ventas Encontradas:</h5><ul class="list-disc list-inside space-y-1 mt-1">';
-                        overlappingSales.forEach(rec => {
-                            resultHTML += `<li class="text-sm">Rango ${rec.bonoNro1}-${rec.bonoNro2} vendido a <strong>${rec.nombre}</strong> por ${rec.vendedor}.</li>`;
-                        });
-                        resultHTML += '</ul></div>';
-                    } else {
-                        resultHTML += '<div><h5 class="font-semibold text-gray-700">Ventas Encontradas:</h5><p class="text-sm text-gray-500">Ninguna.</p></div>';
-                    }
-                }
-
-                this.dom.vendedorReportResultContainer.innerHTML = resultHTML;
-                this.dom.downloadVendedorReportPdfButton.classList.add('hidden'); // PDF for range query is not implemented.
-            },
-
-            downloadVendedorReportPDF() {
-                const data = this.state.vendedorReportData;
-                if (!data) {
-                    this.showToast('No hay datos de reporte para descargar.', 'error');
-                    return;
-                }
-
-                const doc = new jsPDF();
-                let startY = this.addPdfHeader(doc, `Reporte de Bonos - ${data.vendedor}`);
-
-                // Resumen
-                doc.setFontSize(12);
-                doc.text('Resumen General', 14, startY);
-                doc.autoTable({
-                    startY: startY + 5,
-                    theme: 'plain',
-                    body: [
-                        ['Total de Bonos Asignados:', data.totalAsignados.toString()],
-                        ['Total de Bonos Vendidos:', data.totalVendidos.toString()],
-                    ],
-                    columnStyles: { 0: { fontStyle: 'bold' } }
-                });
-                let finalY = doc.autoTable.previous.finalY;
-
-                // Detalle de Asignaciones
-                if (data.asignaciones.length > 0) {
-                    doc.setFontSize(12);
-                    doc.text('Detalle de Bonos Asignados', 14, finalY + 15);
-                    const asignacionesRows = data.asignaciones.map(a => [
-                        a.bonoNro1,
-                        a.bonoNro2,
-                        (parseInt(a.bonoNro2) - parseInt(a.bonoNro1) + 1).toString()
-                    ]);
-                    doc.autoTable({
-                        head: [['Desde Nro.', 'Hasta Nro.', 'Cantidad']],
-                        body: asignacionesRows,
-                        startY: finalY + 20,
-                        theme: 'grid',
-                        headStyles: { fillColor: [13, 148, 136] } // Teal color
-                    });
-                    finalY = doc.autoTable.previous.finalY;
-                }
-
-                // Detalle de Ventas
-                if (data.ventas.length > 0) {
-                    doc.setFontSize(12);
-                    doc.text('Detalle de Bonos Vendidos', 14, finalY + 15);
-                    const ventasRows = data.ventas.map(v => [
-                        v.fechaVenta,
-                        v.nombre,
-                        `${v.bonoNro1} - ${v.bonoNro2}`,
-                        v.cantidad.toString()
-                    ]);
-                    doc.autoTable({
-                        head: [['Fecha Venta', 'Comprador', 'Bonos', 'Cantidad']],
-                        body: ventasRows,
-                        startY: finalY + 20,
-                        theme: 'grid',
-                        headStyles: { fillColor: [34, 197, 94] } // Green color
-                    });
-                }
-                
-                const currentDate = this.getCurrentDateFormatted();
-                doc.save(`reporte_${data.vendedor.replace(/\s/g, '_')}_${currentDate}.pdf`);
-            },
-
             showToast(message, type = 'success') {
                 const toastContainer = this.dom.toastContainer;
                 const toast = document.createElement('div');
@@ -2277,12 +1631,6 @@
                         }
                     });
                 });
-                this.state.vendedorBonos.forEach(bono => {
-                    if(bono.vendedor) {
-                        vendedores.add(bono.vendedor);
-                    }
-                });
-
 
                 this.dom.vendedoresList.innerHTML = '';
                 [...vendedores].sort().forEach(vendedor => {
@@ -2304,9 +1652,7 @@
                 
                 const collectionsToWatch = {
                     'sessions': 'session',
-                    'bank_deposits': 'deposit',
                     'expenses': 'expense',
-                    'vendedor_bonos': 'vendedorBono'
                 };
                 let allDeletedItems = [];
 
@@ -2352,14 +1698,8 @@
                         case 'session':
                             description = `Carga del ${item.id.replace(/-/g, '/')}`;
                             break;
-                        case 'deposit':
-                            description = `Depósito de ${this.formatCurrency(item.data.amount || 0)} del ${this.formatDateForId(item.data.date)}`;
-                            break;
                         case 'expense':
                              description = `Egreso: ${item.data.description} por ${this.formatCurrency(item.data.amount || 0)}`;
-                            break;
-                        case 'vendedorBono':
-                             description = `Asignación de bonos ${item.data.bonoNro1}-${item.data.bonoNro2} a ${item.data.vendedor}`;
                             break;
                     }
 
@@ -2381,9 +1721,7 @@
                 this.showLoading(true);
                 const collectionName = {
                     'session': 'sessions',
-                    'deposit': 'bank_deposits',
                     'expense': 'expenses',
-                    'vendedorBono': 'vendedor_bonos'
                 }[type];
 
                 if (!collectionName) {
@@ -2402,119 +1740,6 @@
                 } catch (error) {
                     console.error("Error al restaurar:", error);
                     this.showToast('Error al restaurar el elemento.', 'error');
-                } finally {
-                    this.showLoading(false);
-                }
-            },
-             // --- NUEVAS FUNCIONES DE GESTIÓN DE GANADORES ---
-
-            showWinnerScreen() {
-                this.dom.winnerResultContainer.innerHTML = '<p class="text-center text-gray-500">Ingrese un número de bono para buscar al ganador.</p>';
-                this.dom.winnerForm.reset();
-                this.renderPastWinners();
-                this.showScreen('winnerScreen');
-            },
-
-            loadWinnersFromFirestore() {
-                if (this.state.unsubscribeWinners) this.state.unsubscribeWinners();
-                const winnersColRef = collection(this.state.db, "winners");
-                this.state.unsubscribeWinners = onSnapshot(query(winnersColRef), (snapshot) => {
-                    this.state.winnersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    this.state.winnersData.sort((a, b) => (b.timestamp?.toDate() || 0) - (a.timestamp?.toDate() || 0));
-                    if (this.dom.winnerScreen.classList.contains('active-screen')) {
-                        this.renderPastWinners();
-                    }
-                });
-            },
-
-            renderPastWinners() {
-                const container = this.dom.pastWinnersContainer;
-                container.innerHTML = '';
-                if (this.state.winnersData.length === 0) {
-                    container.innerHTML = '<p class="text-center text-gray-500">Aún no hay ganadores confirmados.</p>';
-                    return;
-                }
-                this.state.winnersData.forEach(winner => {
-                    const winnerDiv = document.createElement('div');
-                    winnerDiv.className = 'p-3 bg-white rounded-lg border';
-                    winnerDiv.innerHTML = `
-                        <div>
-                            <p class="font-bold text-indigo-700">Ganador: ${winner.nombre}</p>
-                            <p class="text-sm text-gray-600"><span class="font-semibold">Nº Bono:</span> ${winner.winnerNumber} | <span class="font-semibold">Tel:</span> ${winner.telefono}</p>
-                             <p class="text-xs text-gray-500">Confirmado: ${this.formatTimestamp(winner.timestamp)}</p>
-                        </div>
-                    `;
-                    container.appendChild(winnerDiv);
-                });
-            },
-            
-            handleFindWinner() {
-                const winnerNumberInput = this.dom.winnerNumberInput.value;
-                if (!winnerNumberInput) {
-                    this.showToast('Por favor, ingrese un número de bono.', 'error');
-                    return;
-                }
-                const winnerNumber = parseInt(winnerNumberInput, 10);
-                let foundWinner = null;
-
-                for (const session of this.state.allSessions) {
-                    for (const record of session.records) {
-                        const bonoNro1 = parseInt(record.bonoNro1, 10);
-                        const bonoNro2 = parseInt(record.bonoNro2, 10);
-                        if (winnerNumber >= bonoNro1 && winnerNumber <= bonoNro2) {
-                            foundWinner = { ...record, winnerNumber: winnerNumber, sessionDate: this.formatDateForId(record.fecha) };
-                            break;
-                        }
-                    }
-                    if (foundWinner) break;
-                }
-                
-                this.state.searchResult = foundWinner; // Guardar el resultado para la confirmación
-                this.renderWinnerResult(foundWinner);
-            },
-            
-            renderWinnerResult(winnerData) {
-                const container = this.dom.winnerResultContainer;
-                if (winnerData) {
-                    const isAlreadyWinner = this.state.winnersData.some(w => w.winnerNumber === winnerData.winnerNumber);
-                    container.innerHTML = `
-                        <h4 class="font-bold text-lg text-green-700 mb-2">¡Bono Encontrado!</h4>
-                        <p><span class="font-semibold">Número Ganador:</span> ${winnerData.winnerNumber}</p>
-                        <p><span class="font-semibold">Comprador:</span> ${winnerData.nombre}</p>
-                        <p><span class="font-semibold">Teléfono:</span> ${winnerData.telefono}</p>
-                        <p><span class="font-semibold">Vendedor:</span> ${winnerData.vendedor}</p>
-                        <p><span class="font-semibold">Fecha de Carga:</span> ${winnerData.sessionDate}</p>
-                        ${isAlreadyWinner ?
-                            '<p class="mt-4 p-2 bg-yellow-100 text-yellow-800 rounded-md">Este número ya fue registrado como ganador.</p>' :
-                            '<button onclick="App.confirmWinner()" class="w-full mt-4 px-4 py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 rounded-lg">Confirmar Ganador</button>'
-                        }
-                    `;
-                } else {
-                    container.innerHTML = '<p class="text-center text-red-600 font-semibold">No se encontró ningún comprador para el número de bono ingresado.</p>';
-                }
-            },
-
-            async confirmWinner() {
-                const winnerData = this.state.searchResult;
-                if (!winnerData) {
-                    this.showToast('No hay un ganador para confirmar.', 'error');
-                    return;
-                }
-                
-                const dataToSave = {
-                    ...winnerData,
-                    timestamp: serverTimestamp()
-                };
-
-                this.showLoading(true);
-                try {
-                    await addDoc(collection(this.state.db, "winners"), dataToSave);
-                    this.showToast('Ganador confirmado y guardado.');
-                    this.dom.winnerResultContainer.innerHTML = '<p class="text-center text-gray-500">El ganador fue confirmado. Ingrese otro número para buscar.</p>';
-                    this.dom.winnerForm.reset();
-                } catch(error) {
-                    console.error("Error al confirmar el ganador:", error);
-                    this.showToast('Error al guardar el ganador.', 'error');
                 } finally {
                     this.showLoading(false);
                 }
