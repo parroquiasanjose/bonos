@@ -1266,10 +1266,37 @@
                 let totalBonosEfectivo = 0, totalBonosTransferencia = 0;
                 const salesByVendedor = {};
 
-                const allRecords = []; // Para la lista detallada
+                // --- INICIO: Lógica de consolidación de bonos ---
+                let allRecordsRaw = [];
                 this.state.allSessions.forEach(session => {
                     session.records.forEach(record => {
-                        allRecords.push(Object.assign({ sessionDate: session.id.replace(/-/g, '/') }, record));
+                        allRecordsRaw.push({
+                            ...record,
+                            sessionDate: session.id.replace(/-/g, '/')
+                        });
+                    });
+                });
+
+                const definitiveBonos = {};
+                allRecordsRaw.forEach(record => {
+                    const key = `${record.bonoNro1}-${record.bonoNro2}`;
+                    const existing = definitiveBonos[key];
+                    
+                    if (!existing) {
+                        definitiveBonos[key] = { ...record }; 
+                    } else {
+                        if (record.cuotas === '2' || existing.cuotas === '2') {
+                            definitiveBonos[key] = { ...record, cuotas: '2' };
+                        } 
+                        else if (record.cuotas === '1' && existing.cuotas === '1') {
+                            definitiveBonos[key] = { ...record, cuotas: '2' };
+                        }
+                    }
+                });
+                const allRecords = Object.values(definitiveBonos);
+                // --- FIN: Lógica de consolidación de bonos ---
+
+                allRecords.forEach(record => {
                         const monto = record.cuotas == 1 ? 15000 : 30000;
                         if (record.tipoPago === 'Efectivo') {
                             totalBonosEfectivo += monto;
@@ -1287,7 +1314,6 @@
                             }
                             salesByVendedor[normalizedVendedor].total += monto;
                         }
-                    });
                 });
 
                 let totalExpensesEfectivo = 0, totalExpensesTransferencia = 0;
@@ -1302,15 +1328,16 @@
 
                 const totalBonos = totalBonosEfectivo + totalBonosTransferencia;
                 const totalExpenses = totalExpensesEfectivo + totalExpensesTransferencia;
-                const calculoA = totalBonosEfectivo - totalBonosTransferencia - totalExpenses;
-                const balanceGeneral = totalBonos - totalExpenses;
+                const detalleEfectivoMenosEgresos = totalBonosEfectivo - totalExpenses;
+                const calculoCompleto = totalBonosEfectivo - totalExpenses - totalBonosTransferencia;
 
-                // <-- OPTIMIZATION: Store calculated data for reuse in PDFs
+
                 this.state.balanceData = {
                     totalBonosEfectivo, totalBonosTransferencia, totalBonos,
                     salesByVendedor,
                     totalExpensesEfectivo, totalExpensesTransferencia, totalExpenses,
-                    calculoA, balanceGeneral,
+                    detalleEfectivoMenosEgresos,
+                    calculoCompleto,
                     allRecords,
                     expenses: this.state.expenses
                 };
@@ -1371,16 +1398,31 @@
                     <div class="p-4 border rounded-lg bg-gray-800 text-white space-y-3">
                         <h4 class="font-bold text-xl mb-2">Balances Finales</h4>
                         <div class="flex justify-between items-center text-base border-b border-gray-600 pb-2">
-                            <span class="font-semibold">Total Ventas de Bonos:</span>
+                            <span class="font-semibold">Total Ventas (Efectivo):</span>
+                            <span class="font-extrabold text-green-400">${this.formatCurrency(totalBonosEfectivo)}</span>
+                        </div>
+                        <div class="flex justify-between items-center text-base border-b border-gray-600 pb-2">
+                            <span class="font-semibold">Total Ventas (Transferencia):</span>
+                            <span class="font-extrabold text-blue-400">${this.formatCurrency(totalBonosTransferencia)}</span>
+                        </div>
+                        <div class="flex justify-between items-center text-base border-b border-gray-600 pb-2">
+                            <span class="font-semibold">Total General de Ventas:</span>
                             <span class="font-extrabold">${this.formatCurrency(totalBonos)}</span>
                         </div>
                         <div class="flex justify-between items-center text-base border-b border-gray-600 pb-2">
-                            <span class="font-semibold">Cálculo (Efectivo - Transf. - Egresos):</span>
-                            <span class="font-extrabold">${this.formatCurrency(calculoA)}</span>
+                            <span class="font-semibold">Total Egresos:</span>
+                            <span class="font-extrabold text-red-400">-${this.formatCurrency(totalExpenses)}</span>
                         </div>
-                        <div class="flex justify-between items-center text-2xl pt-2">
-                            <span class="font-bold">BALANCE GENERAL:</span>
-                            <span class="font-extrabold">${this.formatCurrency(balanceGeneral)}</span>
+                        <div class="pt-3">
+                            <h5 class="font-bold text-lg mb-2 text-gray-300">Más Detalles</h5>
+                            <div class="flex justify-between items-center text-base border-b border-gray-700 pb-2">
+                                <span class="font-semibold">Total Ventas Efectivo - Total Egresos:</span>
+                                <span class="font-extrabold">${this.formatCurrency(detalleEfectivoMenosEgresos)}</span>
+                            </div>
+                            <div class="flex justify-between items-center text-base border-b border-gray-700 pt-2 pb-2">
+                                <span class="font-semibold">Efectivo - Egresos - Transferencias:</span>
+                                <span class="font-extrabold">${this.formatCurrency(calculoCompleto)}</span>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -1389,7 +1431,6 @@
             },
             
             downloadBalanceSummaryPDF() {
-                // <-- OPTIMIZATION: Use pre-calculated data from state
                 if (!this.state.balanceData) {
                     this.showToast('Por favor, genere el balance en pantalla primero.', 'error');
                     return;
@@ -1397,13 +1438,15 @@
                 const {
                     salesByVendedor,
                     expenses,
+                    totalBonosEfectivo,
+                    totalBonosTransferencia,
                     totalBonos,
-                    calculoA,
-                    balanceGeneral
+                    totalExpenses,
+                    detalleEfectivoMenosEgresos,
+                    calculoCompleto
                 } = this.state.balanceData;
 
                 const doc = new jsPDF();
-                // Custom title for this specific PDF
                 doc.setFontSize(16);
                 doc.setFont(undefined, 'bold');
                 doc.text("Parroquia San José", 105, 15, { align: 'center' });
@@ -1419,7 +1462,6 @@
 
                 let startY = 40;
                 
-                // --- Section 1: Ventas por Vendedor ---
                 doc.setFontSize(14);
                 doc.setFont(undefined, 'bold');
                 doc.text('Detalle de Ventas por Vendedor', 14, startY);
@@ -1434,7 +1476,6 @@
                 });
                 startY = doc.autoTable.previous.finalY + 15;
 
-                // --- Section 2: Detalle de Egresos ---
                 doc.setFontSize(14);
                 doc.setFont(undefined, 'bold');
                 doc.text('Detalle de Egresos', 14, startY);
@@ -1452,7 +1493,6 @@
                 });
                 startY = doc.autoTable.previous.finalY + 15;
 
-                // --- Section 3: Balances Finales ---
                 if (startY > 250) { 
                     doc.addPage();
                     startY = 20; 
@@ -1466,13 +1506,23 @@
                     startY: startY,
                     theme: 'plain',
                     body: [
-                        ['Total Ventas de Bonos:', this.formatCurrency(totalBonos)],
-                        ['Cálculo (Efectivo - Transf. - Egresos):', this.formatCurrency(calculoA)],
-                        [{content: 'BALANCE GENERAL:', styles: {fontStyle: 'bold'}}, {content: this.formatCurrency(balanceGeneral), styles: {fontStyle: 'bold'}}],
+                        ['Total Ventas (Efectivo):', this.formatCurrency(totalBonosEfectivo)],
+                        ['Total Ventas (Transferencia):', this.formatCurrency(totalBonosTransferencia)],
+                        ['Total General de Ventas:', this.formatCurrency(totalBonos)],
+                        ['Total Egresos:', `-${this.formatCurrency(totalExpenses)}`],
+                        ['', ''], // Spacer
+                        [{content: 'Más Detalles', colSpan: 2, styles: { fontStyle: 'bold', halign: 'left' }}],
+                        ['Total Ventas Efectivo - Total Egresos:', this.formatCurrency(detalleEfectivoMenosEgresos)],
+                        ['Efectivo - Egresos - Transferencias:', this.formatCurrency(calculoCompleto)]
                     ],
                     columnStyles: { 
                         0: { halign: 'right', fontStyle: 'bold' },
                         1: { halign: 'right' }
+                    },
+                    didParseCell: (data) => {
+                        if (data.cell.raw.colSpan === 2) {
+                            data.cell.styles.halign = 'left';
+                        }
                     }
                 });
 
@@ -1481,7 +1531,6 @@
             },
 
             downloadBalancePDF() {
-                // <-- OPTIMIZATION: Use pre-calculated data from state
                 if (!this.state.balanceData) {
                     this.showToast('Por favor, genere el balance en pantalla primero.', 'error');
                     return;
@@ -1497,14 +1546,13 @@
                     totalExpensesEfectivo,
                     totalExpensesTransferencia,
                     totalExpenses,
-                    calculoA,
-                    balanceGeneral
+                    detalleEfectivoMenosEgresos,
+                    calculoCompleto
                 } = this.state.balanceData;
 
                 const doc = new jsPDF();
                 let startY = this.addPdfHeader(doc, "Balance Detallado");
                 
-                // Tablas de detalle
                 doc.setFontSize(14);
                 doc.text('Ingresos por Bonos', 14, startY);
                 const bonoTableRows = bonoRecords.sort((a,b) => (this.parseIdToDate(a.sessionDate)).localeCompare(this.parseIdToDate(b.sessionDate))).reverse().map(record => {
@@ -1534,7 +1582,7 @@
                 const salesSummaryRows = Object.keys(salesByVendedor).sort().map(vendedor => [salesByVendedor[vendedor].originalName, this.formatCurrency(salesByVendedor[vendedor].total)]);
                 
                 let finalY_summary = doc.autoTable.previous.finalY + 10;
-                if (finalY_summary > 220) {
+                if (finalY_summary > 180) { // Adjusted margin for better spacing
                     doc.addPage();
                     finalY_summary = 20;
                 }
@@ -1557,9 +1605,14 @@
                         [{content: 'Total Egresos:', styles: {fontStyle: 'bold'}}, {content: `-${this.formatCurrency(totalExpenses)}`, styles: {fontStyle: 'bold'}}],
                         ['', ''],
                         [{content: 'Balances Finales', colSpan: 2, styles: {fontStyle: 'bold', fontSize: 12}}],
-                        ['Total Ventas de Bonos:', this.formatCurrency(totalBonos)],
-                        ['Cálculo (Efectivo - Transf. - Egresos):', this.formatCurrency(calculoA)],
-                        [{content: 'BALANCE GENERAL:', styles: {fontStyle: 'bold', fontSize: 12}}, {content: this.formatCurrency(balanceGeneral), styles: {fontStyle: 'bold', fontSize: 12}}],
+                        ['Total Ventas (Efectivo):', this.formatCurrency(totalBonosEfectivo)],
+                        ['Total Ventas (Transferencia):', this.formatCurrency(totalBonosTransferencia)],
+                        ['Total General de Ventas:', this.formatCurrency(totalBonos)],
+                        ['Total Egresos:', `-${this.formatCurrency(totalExpenses)}`],
+                        ['', ''],
+                        [{content: 'Más Detalles', colSpan: 2, styles: {fontStyle: 'bold', fontSize: 12}}],
+                        ['Total Ventas Efectivo - Total Egresos:', this.formatCurrency(detalleEfectivoMenosEgresos)],
+                        ['Efectivo - Egresos - Transferencias:', this.formatCurrency(calculoCompleto)]
                     ],
                     columnStyles: { 0: { halign: 'right' }, 1: { halign: 'right' } },
                     didParseCell: (data) => {
@@ -1729,15 +1782,36 @@
                 const currentYear = now.getFullYear();
                 const currentMonth = now.getMonth();
 
-                let monthlyIncome = 0;
+                // --- Lógica de consolidación para ingresos del mes ---
+                let monthlyRecordsRaw = [];
                 this.state.allSessions.forEach(session => {
                     const sessionDate = new Date(session.rawDate);
                     if (sessionDate.getFullYear() === currentYear && sessionDate.getMonth() === currentMonth) {
                         session.records.forEach(record => {
-                            monthlyIncome += record.cuotas == 1 ? 15000 : 30000;
+                            monthlyRecordsRaw.push(record);
                         });
                     }
                 });
+                const monthlyDefinitiveBonos = {};
+                monthlyRecordsRaw.forEach(record => {
+                    const key = `${record.bonoNro1}-${record.bonoNro2}`;
+                    const existing = monthlyDefinitiveBonos[key];
+                    if (!existing) {
+                        monthlyDefinitiveBonos[key] = { ...record };
+                    } else {
+                        if (record.cuotas === '2' || existing.cuotas === '2') {
+                            monthlyDefinitiveBonos[key] = { ...record, cuotas: '2' };
+                        } else if (record.cuotas === '1' && existing.cuotas === '1') {
+                            monthlyDefinitiveBonos[key] = { ...record, cuotas: '2' };
+                        }
+                    }
+                });
+                const monthlyRecords = Object.values(monthlyDefinitiveBonos);
+                let monthlyIncome = 0;
+                monthlyRecords.forEach(record => {
+                    monthlyIncome += record.cuotas == 1 ? 15000 : 30000;
+                });
+                // --- Fin consolidación ---
 
                 let monthlyExpenses = 0;
                 this.state.expenses.forEach(expense => {
@@ -1747,13 +1821,28 @@
                     }
                 });
 
+                // --- Lógica de consolidación para ingresos totales ---
+                let allRecordsRaw = this.state.allSessions.flatMap(s => s.records);
+                const allDefinitiveBonos = {};
+                allRecordsRaw.forEach(record => {
+                     const key = `${record.bonoNro1}-${record.bonoNro2}`;
+                    const existing = allDefinitiveBonos[key];
+                    if (!existing) {
+                        allDefinitiveBonos[key] = { ...record };
+                    } else {
+                        if (record.cuotas === '2' || existing.cuotas === '2') {
+                            allDefinitiveBonos[key] = { ...record, cuotas: '2' };
+                        } else if (record.cuotas === '1' && existing.cuotas === '1') {
+                            allDefinitiveBonos[key] = { ...record, cuotas: '2' };
+                        }
+                    }
+                });
+                const allRecords = Object.values(allDefinitiveBonos);
                 let totalIncome = 0;
-                this.state.allSessions.forEach(session => {
-                    session.records.forEach(record => {
-                        totalIncome += record.cuotas == 1 ? 15000 : 30000;
-                    });
-                }
-                );
+                allRecords.forEach(record => {
+                    totalIncome += record.cuotas == 1 ? 15000 : 30000;
+                });
+                // --- Fin consolidación ---
 
                 let totalExpenses = 0;
                 this.state.expenses.forEach(expense => {
@@ -2282,3 +2371,4 @@
     </script>
 </body>
 </html>
+
