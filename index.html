@@ -680,14 +680,17 @@
                     return;
                 }
 
-                const allHistoricalRecords = this.state.allSessions.flatMap(s => s.records);
-                const historicalRecord = allHistoricalRecords.find(r => r.bonoNro1 === bonoNro1 && r.bonoNro2 === bonoNro2);
+                // Utilizar la lógica de consolidación para obtener el estado real de los bonos históricos
+                const allHistoricalRecordsRaw = this.state.allSessions.flatMap(s => s.records);
+                const consolidatedHistoricalRecords = this._consolidateBonoRecords(allHistoricalRecordsRaw);
+                const historicalRecord = consolidatedHistoricalRecords.find(r => r.bonoNro1 === bonoNro1 && r.bonoNro2 === bonoNro2);
 
                 if (historicalRecord) {
+                    // La comprobación ahora funciona sobre el registro consolidado, que tendrá correctamente cuotas: '2'
                     if (historicalRecord.cuotas === '2') {
-                        this.showToast(`Error: El bono ${bonoNro1}-${bonoNro2} ya fue pagado en su totalidad.`, 'error');
+                        this.showToast(`El bono ${bonoNro1}-${bonoNro2} ya pagó todas las cuotas.`, 'error');
                     } else {
-                        // Se encontró el bono con 1 cuota pagada, se muestra el modal de confirmación.
+                        // Encontró un bono con un solo pago, por lo que solicita el segundo.
                         this.promptForSecondInstallment(historicalRecord);
                     }
                 }
@@ -814,12 +817,15 @@
                         this.clearForm(false);
                     }
                 } else { // Si estamos agregando un nuevo registro.
-                    const allHistoricalRecords = this.state.allSessions.flatMap(s => s.records);
-                    const historicalRecord = allHistoricalRecords.find(r => r.bonoNro1 === record.bonoNro1 && r.bonoNro2 === record.bonoNro2);
+                    // Utilizar la lógica de consolidación para obtener el estado real de los bonos históricos
+                    const allHistoricalRecordsRaw = this.state.allSessions.flatMap(s => s.records);
+                    const consolidatedHistoricalRecords = this._consolidateBonoRecords(allHistoricalRecordsRaw);
+                    const historicalRecord = consolidatedHistoricalRecords.find(r => r.bonoNro1 === record.bonoNro1 && r.bonoNro2 === record.bonoNro2);
+
 
                     if (historicalRecord) {
                         if (historicalRecord.cuotas === '2') {
-                            this.showToast(`Error: El bono ${record.bonoNro1}-${record.bonoNro2} ya fue pagado en su totalidad en una carga anterior.`, 'error');
+                            this.showToast(`El bono ${record.bonoNro1}-${record.bonoNro2} ya pagó todas las cuotas.`, 'error');
                             return;
                         } else { // Encontró el bono con 1 cuota, se abre el modal de confirmación.
                             this.promptForSecondInstallment(historicalRecord);
@@ -2341,4 +2347,3 @@
     </script>
 </body>
 </html>
-
