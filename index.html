@@ -2138,21 +2138,25 @@
                     }
                 });
 
-                // --- INICIO: Nueva sección de cantidad de bonos por vendedor ---
-                const salesCountByVendedor = {};
-                allRecords.forEach(record => {
+                // --- INICIO: Corrección en Resumen por Vendedor ---
+                const salesBySeller = {};
+                // Usamos los registros CRUDOS (allRecordsRaw) para sumar lo que cada vendedor recaudó realmente.
+                allRecordsRaw.forEach(record => {
                     if (record.vendedor && record.vendedor.trim() !== '') {
                         const normalizedVendedor = record.vendedor.trim().toLowerCase();
-                        const monto = record.cuotas == 1 ? 15000 : 30000;
-                        if (!salesCountByVendedor[normalizedVendedor]) {
-                            salesCountByVendedor[normalizedVendedor] = {
+                        const montoTransaccion = this._getRecordMonto(record); // Obtiene el valor de ESTA transacción (ej: 15.000)
+                        
+                        if (!salesBySeller[normalizedVendedor]) {
+                            salesBySeller[normalizedVendedor] = {
                                 originalName: record.vendedor.trim(),
-                                count: 0,
-                                total: 0
+                                uniqueBonos: new Set(),
+                                totalRecaudado: 0
                             };
                         }
-                        salesCountByVendedor[normalizedVendedor].count++;
-                        salesCountByVendedor[normalizedVendedor].total += monto;
+                        
+                        const bonoKey = `${record.bonoNro1}-${record.bonoNro2}`;
+                        salesBySeller[normalizedVendedor].uniqueBonos.add(bonoKey);
+                        salesBySeller[normalizedVendedor].totalRecaudado += montoTransaccion;
                     }
                 });
 
@@ -2168,19 +2172,19 @@
                 doc.text("Resumen por Vendedor", 14, startY);
                 startY += 7;
 
-                const salesCountRows = Object.keys(salesCountByVendedor).sort((a, b) => salesCountByVendedor[b].count - salesCountByVendedor[a].count).map(vendedor => {
-                    const data = salesCountByVendedor[vendedor];
-                    return [data.originalName, data.count.toString(), this.formatCurrency(data.total)];
+                const salesCountRows = Object.keys(salesBySeller).sort((a, b) => salesBySeller[b].totalRecaudado - salesBySeller[a].totalRecaudado).map(vendedor => {
+                    const data = salesBySeller[vendedor];
+                    return [data.originalName, data.uniqueBonos.size.toString(), this.formatCurrency(data.totalRecaudado)];
                 });
 
                 doc.autoTable({
-                    head: [["Vendedor", "Bonos Vendidos", "Total Vendido"]],
+                    head: [["Vendedor", "Bonos Vendidos (únicos)", "Total Recaudado"]],
                     body: salesCountRows,
                     startY: startY,
                     theme: 'grid',
                     headStyles: { fillColor: [79, 70, 229] }, // Indigo color
                 });
-                // --- FIN: Nueva sección ---
+                // --- FIN: Corrección en Resumen por Vendedor ---
 
 
                 // --- INICIO: Nueva sección de cobranzas pendientes por vendedor ---
@@ -2260,27 +2264,48 @@
             },
     
             _consolidateBonoRecords(rawRecords) {
-                const definitiveBonos = {};
-                 // Create a parsable date for sorting
-                const recordsWithSortableDate = rawRecords.map(r => ({...r, sortDate: this.parseIdToDate(r.fechaCarga || r.fecha)}));
+                const bonosGrouped = new Map();
 
-                recordsWithSortableDate.sort((a, b) => a.sortDate.localeCompare(b.sortDate));
+                // 1. Group all transaction records by bono number, normalizing the keys to prevent errors.
+                for (const record of rawRecords) {
+                    const bonoNro1 = String(record.bonoNro1 || '').trim();
+                    const bonoNro2 = String(record.bonoNro2 || '').trim();
 
-                recordsWithSortableDate.forEach(record => {
-                    const key = `${record.bonoNro1}-${record.bonoNro2}`;
-                    const existing = definitiveBonos[key];
+                    // Skip records that don't have valid bono numbers
+                    if (bonoNro1.length < 1 || bonoNro2.length < 1) continue;
 
-                    if (!existing) {
-                        definitiveBonos[key] = { ...record };
-                    } else {
-                        const isFullyPaid = existing.cuotas === '2' || record.cuotas === '2' || (existing.cuotas === '1' && record.cuotas === '1');
-                        definitiveBonos[key] = {
-                            ...record, // Take data from the latest record
-                            cuotas: isFullyPaid ? '2' : '1'
-                        };
+                    const key = `${bonoNro1}-${bonoNro2}`;
+                    if (!bonosGrouped.has(key)) {
+                        bonosGrouped.set(key, []);
                     }
-                });
-                return Object.values(definitiveBonos);
+                    bonosGrouped.get(key).push(record);
+                }
+
+                const definitiveBonos = [];
+
+                // 2. Process each group to determine the final state of each bono
+                for (const [key, records] of bonosGrouped.entries()) {
+                    // Sort records for this specific bono by date to find the latest one
+                    const recordsWithSortableDate = records.map(r => ({...r, sortDate: this.parseIdToDate(r.fechaCarga || r.fecha)}));
+                    recordsWithSortableDate.sort((a, b) => a.sortDate.localeCompare(b.sortDate));
+                    
+                    // The latest record provides the most up-to-date contact/seller info
+                    const latestRecord = { ...recordsWithSortableDate[recordsWithSortableDate.length - 1] };
+
+                    // 3. Determine final payment status by analyzing all transactions for the bono
+                    const hasCuota2 = records.some(r => String(r.cuotas) === '2');
+                    const cuota1Count = records.filter(r => String(r.cuotas) === '1').length;
+
+                    if (hasCuota2 || cuota1Count >= 2) {
+                        latestRecord.cuotas = '2'; // Fully paid
+                    } else {
+                        latestRecord.cuotas = '1'; // Partially paid
+                    }
+                    
+                    definitiveBonos.push(latestRecord);
+                }
+
+                return definitiveBonos;
             },
 
             formatCurrencyInput(event) {
@@ -2346,3 +2371,11 @@
     </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
