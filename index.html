@@ -726,7 +726,7 @@
                     nombre: existingRecord.nombre,
                     telefono: existingRecord.telefono,
                     tipoPago: document.getElementById('tipoPago').value,
-                    cuotas: '2', // Indica que el bono ahora está totalmente pago
+                    cuotas: '1', // CORRECTO: Esta transacción es por UNA cuota (la segunda).
                     isSecondInstallment: true, // Marca esta transacción como el pago de la 2da cuota
                 };
                 
