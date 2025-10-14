@@ -680,18 +680,20 @@
                     return;
                 }
 
-                // Utilizar la lógica de consolidación para obtener el estado real de los bonos históricos
+                // Unificar registros históricos Y de la sesión actual para una validación completa
                 const allHistoricalRecordsRaw = this.state.allSessions.flatMap(s => s.records);
-                const consolidatedHistoricalRecords = this._consolidateBonoRecords(allHistoricalRecordsRaw);
-                const historicalRecord = consolidatedHistoricalRecords.find(r => r.bonoNro1 === bonoNro1 && r.bonoNro2 === bonoNro2);
+                const allCurrentRecordsRaw = this.state.currentSessionRecords;
+                const allRecordsForCheck = [...allHistoricalRecordsRaw, ...allCurrentRecordsRaw];
+                const consolidatedRecords = this._consolidateBonoRecords(allRecordsForCheck);
+                const recordState = consolidatedRecords.find(r => r.bonoNro1 === bonoNro1 && r.bonoNro2 === bonoNro2);
 
-                if (historicalRecord) {
-                    // La comprobación ahora funciona sobre el registro consolidado, que tendrá correctamente cuotas: '2'
-                    if (historicalRecord.cuotas === '2') {
+
+                if (recordState) {
+                    if (recordState.cuotas === '2') {
                         this.showToast(`El bono ${bonoNro1}-${bonoNro2} ya pagó todas las cuotas.`, 'error');
                     } else {
-                        // Encontró un bono con un solo pago, por lo que solicita el segundo.
-                        this.promptForSecondInstallment(historicalRecord);
+                        // Encontró un bono con un solo pago (histórico o en la sesión actual), por lo que solicita el segundo.
+                        this.promptForSecondInstallment(recordState);
                     }
                 }
             },
@@ -817,33 +819,30 @@
                         this.clearForm(false);
                     }
                 } else { // Si estamos agregando un nuevo registro.
-                    // Utilizar la lógica de consolidación para obtener el estado real de los bonos históricos
+                     // 1. Unificar registros históricos Y de la sesión actual para una validación completa
                     const allHistoricalRecordsRaw = this.state.allSessions.flatMap(s => s.records);
-                    const consolidatedHistoricalRecords = this._consolidateBonoRecords(allHistoricalRecordsRaw);
-                    const historicalRecord = consolidatedHistoricalRecords.find(r => r.bonoNro1 === record.bonoNro1 && r.bonoNro2 === record.bonoNro2);
+                    const allCurrentRecordsRaw = this.state.currentSessionRecords;
+                    const allRecordsForCheck = [...allHistoricalRecordsRaw, ...allCurrentRecordsRaw];
 
+                    // 2. Consolidarlos para obtener el estado real
+                    const consolidatedRecords = this._consolidateBonoRecords(allRecordsForCheck);
 
-                    if (historicalRecord) {
-                        if (historicalRecord.cuotas === '2') {
+                    // 3. Revisar el bono que se intenta agregar contra el estado real consolidado
+                    const existingRecordState = consolidatedRecords.find(r => r.bonoNro1 === record.bonoNro1 && r.bonoNro2 === record.bonoNro2);
+
+                    if (existingRecordState) {
+                         // Si el bono ya está en el estado consolidado, significa que ya existe (parcial o totalmente pagado)
+                        if (existingRecordState.cuotas === '2') {
                             this.showToast(`El bono ${record.bonoNro1}-${record.bonoNro2} ya pagó todas las cuotas.`, 'error');
                             return;
-                        } else { // Encontró el bono con 1 cuota, se abre el modal de confirmación.
-                            this.promptForSecondInstallment(historicalRecord);
-                            return; // Detiene la ejecución hasta que el usuario confirme en el modal
+                        } else { 
+                            // Si existe pero solo tiene 1 cuota, se solicita la segunda.
+                            this.promptForSecondInstallment(existingRecordState);
+                            return;
                         }
                     }
-
-                    // Revisa duplicados en la sesión de carga ACTUAL (por si se carga dos veces antes de guardar).
-                    const existingRecordInSession = this.state.currentSessionRecords.find(
-                        r => r.bonoNro1 === record.bonoNro1 && r.bonoNro2 === record.bonoNro2
-                    );
-
-                    if (existingRecordInSession) {
-                        this.showToast(`Error: El bono ${record.bonoNro1}-${record.bonoNro2} ya fue ingresado en esta misma carga.`, 'error');
-                        return;
-                    } 
                     
-                    // Si no lo encontró en ningún lado, es un bono nuevo.
+                    // Si no se encontró en el estado consolidado, es un bono genuinamente nuevo.
                     this.state.currentSessionRecords.push(record);
                     this.showToast('Bono añadido al resumen.');
                     
