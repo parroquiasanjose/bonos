@@ -89,7 +89,7 @@
                     <input type="email" id="emailInput" class="w-full text-center px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" placeholder="Correo Electrónico" required>
                     <div class="relative">
                         <input type="password" id="passwordInput" class="w-full text-center px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" placeholder="Contraseña" required>
-                        <button type="button" id="passwordToggle" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700">
+                        <button type="button" id="passwordToggle" aria-label="Toggle password visibility" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700">
                             <svg id="eyeIcon" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -708,20 +708,26 @@
                 const existingRecord = this.state.pendingSecondInstallmentRecord;
                 if (!existingRecord) return;
 
+                // Prioritize the seller from the input field, but fallback to the existing record's seller.
+                const vendedorActual = document.getElementById('vendedor').value.trim();
+                const vendedor = vendedorActual || existingRecord.vendedor;
+
                 // Construir el nuevo registro para la sesión actual
                 const newRecordForSession = {
                     fecha: document.getElementById('fecha').value,
-                    vendedor: document.getElementById('vendedor').value,
+                    vendedor: vendedor,
                     bonoNro1: existingRecord.bonoNro1,
                     bonoNro2: existingRecord.bonoNro2,
                     nombre: existingRecord.nombre,
                     telefono: existingRecord.telefono,
                     tipoPago: document.getElementById('tipoPago').value,
-                    cuotas: '2',
+                    cuotas: '2', // Indica que el bono ahora está totalmente pago
+                    isSecondInstallment: true, // Marca esta transacción como el pago de la 2da cuota
                 };
                 
                 if (!newRecordForSession.vendedor) {
-                     this.showToast('Por favor, ingrese un vendedor antes de confirmar.', 'error');
+                     this.showToast('No se pudo determinar el vendedor. Por favor, ingréselo en el formulario.', 'error');
+                     document.getElementById('vendedor').focus();
                      return;
                 }
 
@@ -855,8 +861,6 @@
             renderLiveSummary() {
                 this.dom.liveSummaryContainer.innerHTML = '';
                 this.dom.liveSummaryPagination.innerHTML = '';
-                let subtotal = 0;
-                let totalEfectivo = 0;
 
                 if (this.state.currentSessionRecords.length === 0) {
                     this.dom.liveSummaryContainer.innerHTML = '<p class="text-center text-gray-500">Aún no hay bonos en esta carga.</p>';
@@ -872,7 +876,7 @@
 
                 paginatedRecords.forEach((record, index) => {
                     const originalIndex = startIndex + index;
-                    const monto = record.cuotas == 1 ? 15000 : 30000;
+                    const monto = this._getRecordMonto(record);
                     
                     const recordDiv = document.createElement('div');
                     recordDiv.className = 'p-3 border rounded-md bg-white grid grid-cols-[1fr_auto] gap-2 items-center';
@@ -889,8 +893,10 @@
                     this.dom.liveSummaryContainer.appendChild(recordDiv);
                 });
 
+                let subtotal = 0;
+                let totalEfectivo = 0;
                 this.state.currentSessionRecords.forEach(record => {
-                    const monto = record.cuotas == 1 ? 15000 : 30000;
+                    const monto = this._getRecordMonto(record);
                     subtotal += monto;
                     if (record.tipoPago === 'Efectivo') totalEfectivo += monto;
                 });
@@ -983,7 +989,7 @@
                 }
                 
                 let subtotal = 0;
-                this.state.currentSessionRecords.forEach(r => subtotal += (r.cuotas == 1 ? 15000 : 30000));
+                this.state.currentSessionRecords.forEach(r => subtotal += this._getRecordMonto(r));
 
                 this.dom.finalConfirmationData.innerHTML = `
                     <p>Vas a guardar una sesión con <strong>${this.state.currentSessionRecords.length} registros</strong>.</p>
@@ -1008,9 +1014,9 @@
 
             // --- GESTIÓN DE DATOS EN FIRESTORE ---
              loadAllDataFromFirestore() {
-                   this.loadHistoryFromFirestore();
-                   this.loadExpensesFromFirestore();
-                   this.loadDeletedItemsFromFirestore();
+                  this.loadHistoryFromFirestore();
+                  this.loadExpensesFromFirestore();
+                  this.loadDeletedItemsFromFirestore();
              },
 
             loadHistoryFromFirestore() {
@@ -1100,7 +1106,7 @@
                 }
                 let subtotal = 0, totalEfectivo = 0;
                 records.forEach((data, index) => {
-                    const monto = data.cuotas == 1 ? 15000 : 30000;
+                    const monto = this._getRecordMonto(data);
                     subtotal += monto;
                     if (data.tipoPago === 'Efectivo') totalEfectivo += monto;
                     const detailDiv = document.createElement('div');
@@ -1253,7 +1259,7 @@
                 } finally {
                     this.showLoading(false);
                     if(this.dom.recycleBinScreen.classList.contains('active-screen')){
-                          this.renderRecycleBin(); // Refresh recycle bin view
+                           this.renderRecycleBin(); // Refresh recycle bin view
                     }
                 }
             },
@@ -1263,38 +1269,20 @@
                 this.dom.balanceListContainer.innerHTML = '';
                 this.dom.balanceSummaryContainer.innerHTML = '';
                 
-                let totalBonosEfectivo = 0, totalBonosTransferencia = 0;
-                const salesByVendedor = {};
-
-                // --- INICIO: Lógica de consolidación de bonos ---
                 let allRecordsRaw = [];
                 this.state.allSessions.forEach(session => {
                     session.records.forEach(record => {
                         allRecordsRaw.push({
                             ...record,
-                            sessionDate: session.id.replace(/-/g, '/')
+                            fechaCarga: session.id.replace(/-/g, '/')
                         });
                     });
                 });
 
-                const definitiveBonos = {};
-                allRecordsRaw.forEach(record => {
-                    const key = `${record.bonoNro1}-${record.bonoNro2}`;
-                    const existing = definitiveBonos[key];
-                    
-                    if (!existing) {
-                        definitiveBonos[key] = { ...record }; 
-                    } else {
-                        if (record.cuotas === '2' || existing.cuotas === '2') {
-                            definitiveBonos[key] = { ...record, cuotas: '2' };
-                        } 
-                        else if (record.cuotas === '1' && existing.cuotas === '1') {
-                            definitiveBonos[key] = { ...record, cuotas: '2' };
-                        }
-                    }
-                });
-                const allRecords = Object.values(definitiveBonos);
-                // --- FIN: Lógica de consolidación de bonos ---
+                const allRecords = this._consolidateBonoRecords(allRecordsRaw);
+                
+                let totalBonosEfectivo = 0, totalBonosTransferencia = 0;
+                const salesByVendedor = {};
 
                 allRecords.forEach(record => {
                         const monto = record.cuotas == 1 ? 15000 : 30000;
@@ -1347,10 +1335,10 @@
                 if (allRecords.length === 0) {
                     balanceHTML += '<p class="text-center text-gray-500">No hay registros de bonos.</p>';
                 } else {
-                    allRecords.sort((a, b) => (this.parseIdToDate(a.sessionDate)).localeCompare(this.parseIdToDate(b.sessionDate))).reverse();
+                    allRecords.sort((a, b) => this.parseIdToDate(a.fechaCarga).localeCompare(this.parseIdToDate(b.fechaCarga))).reverse();
                     allRecords.forEach(record => {
                         const monto = record.cuotas == 1 ? 15000 : 30000;
-                        balanceHTML += `<div class="p-3 mb-2 border rounded-md bg-white grid grid-cols-3 gap-2 items-center text-sm"><div><p class="font-semibold">${record.nombre}</p><p class="text-xs text-gray-500">${record.sessionDate}</p></div><p class="text-center">${record.tipoPago}</p><p class="text-right font-semibold">${this.formatCurrency(monto)}</p></div>`;
+                        balanceHTML += `<div class="p-3 mb-2 border rounded-md bg-white grid grid-cols-3 gap-2 items-center text-sm"><div><p class="font-semibold">${record.nombre}</p><p class="text-xs text-gray-500">${record.fechaCarga}</p></div><p class="text-center">${record.tipoPago}</p><p class="text-right font-semibold">${this.formatCurrency(monto)}</p></div>`;
                     });
                 }
                 balanceHTML += '</div>';
@@ -1555,9 +1543,9 @@
                 
                 doc.setFontSize(14);
                 doc.text('Ingresos por Bonos', 14, startY);
-                const bonoTableRows = bonoRecords.sort((a,b) => (this.parseIdToDate(a.sessionDate)).localeCompare(this.parseIdToDate(b.sessionDate))).reverse().map(record => {
+                const bonoTableRows = bonoRecords.sort((a,b) => this.parseIdToDate(a.fechaCarga).localeCompare(this.parseIdToDate(b.fechaCarga))).reverse().map(record => {
                     const monto = record.cuotas == 1 ? 15000 : 30000;
-                    return [record.sessionDate, record.nombre, record.tipoPago, this.formatCurrency(monto)];
+                    return [record.fechaCarga, record.nombre, record.tipoPago, this.formatCurrency(monto)];
                 });
                 doc.autoTable({
                     head: [["Fecha", "Nombre", "Tipo de Pago", "Monto"]],
@@ -1782,7 +1770,6 @@
                 const currentYear = now.getFullYear();
                 const currentMonth = now.getMonth();
 
-                // --- Lógica de consolidación para ingresos del mes ---
                 let monthlyRecordsRaw = [];
                 this.state.allSessions.forEach(session => {
                     const sessionDate = new Date(session.rawDate);
@@ -1792,26 +1779,12 @@
                         });
                     }
                 });
-                const monthlyDefinitiveBonos = {};
-                monthlyRecordsRaw.forEach(record => {
-                    const key = `${record.bonoNro1}-${record.bonoNro2}`;
-                    const existing = monthlyDefinitiveBonos[key];
-                    if (!existing) {
-                        monthlyDefinitiveBonos[key] = { ...record };
-                    } else {
-                        if (record.cuotas === '2' || existing.cuotas === '2') {
-                            monthlyDefinitiveBonos[key] = { ...record, cuotas: '2' };
-                        } else if (record.cuotas === '1' && existing.cuotas === '1') {
-                            monthlyDefinitiveBonos[key] = { ...record, cuotas: '2' };
-                        }
-                    }
-                });
-                const monthlyRecords = Object.values(monthlyDefinitiveBonos);
+                
+                const monthlyRecords = this._consolidateBonoRecords(monthlyRecordsRaw);
                 let monthlyIncome = 0;
                 monthlyRecords.forEach(record => {
                     monthlyIncome += record.cuotas == 1 ? 15000 : 30000;
                 });
-                // --- Fin consolidación ---
 
                 let monthlyExpenses = 0;
                 this.state.expenses.forEach(expense => {
@@ -1821,28 +1794,12 @@
                     }
                 });
 
-                // --- Lógica de consolidación para ingresos totales ---
                 let allRecordsRaw = this.state.allSessions.flatMap(s => s.records);
-                const allDefinitiveBonos = {};
-                allRecordsRaw.forEach(record => {
-                     const key = `${record.bonoNro1}-${record.bonoNro2}`;
-                    const existing = allDefinitiveBonos[key];
-                    if (!existing) {
-                        allDefinitiveBonos[key] = { ...record };
-                    } else {
-                        if (record.cuotas === '2' || existing.cuotas === '2') {
-                            allDefinitiveBonos[key] = { ...record, cuotas: '2' };
-                        } else if (record.cuotas === '1' && existing.cuotas === '1') {
-                            allDefinitiveBonos[key] = { ...record, cuotas: '2' };
-                        }
-                    }
-                });
-                const allRecords = Object.values(allDefinitiveBonos);
+                const allRecords = this._consolidateBonoRecords(allRecordsRaw);
                 let totalIncome = 0;
                 allRecords.forEach(record => {
                     totalIncome += record.cuotas == 1 ? 15000 : 30000;
                 });
-                // --- Fin consolidación ---
 
                 let totalExpenses = 0;
                 this.state.expenses.forEach(expense => {
@@ -1995,7 +1952,7 @@
 
                 let subtotal = 0, totalEfectivo = 0, totalTransferencia = 0;
                 const tableRows = sessionToDownload.records.map(record => {
-                    const monto = record.cuotas == 1 ? 15000 : 30000;
+                    const monto = this._getRecordMonto(record);
                     subtotal += monto;
                     if (record.tipoPago === 'Efectivo') totalEfectivo += monto;
                     else totalTransferencia += monto;
@@ -2053,30 +2010,7 @@
                     return;
                 }
 
-                // Lógica mejorada para consolidar bonos y sus cuotas
-                const definitiveBonos = {};
-                allRecordsRaw.forEach(record => {
-                    const key = `${record.bonoNro1}-${record.bonoNro2}`;
-                    const existing = definitiveBonos[key];
-                    
-                    if (!existing) {
-                        // Si es la primera vez que vemos este bono, lo agregamos.
-                        definitiveBonos[key] = { ...record }; 
-                    } else {
-                        // Si ya existe, decidimos cómo consolidarlo.
-                        // Si el registro actual o el existente ya tienen 2 cuotas, el estado final es 2 cuotas.
-                        if (record.cuotas === '2' || existing.cuotas === '2') {
-                            definitiveBonos[key] = { ...record, cuotas: '2' };
-                        } 
-                        // Si ambos registros son de 1 cuota, significa que se completó el pago.
-                        else if (record.cuotas === '1' && existing.cuotas === '1') {
-                            // Se actualiza a 2 cuotas, manteniendo los datos del último registro cargado.
-                            definitiveBonos[key] = { ...record, cuotas: '2' };
-                        }
-                    }
-                });
-                const allRecords = Object.values(definitiveBonos);
-
+                const allRecords = this._consolidateBonoRecords(allRecordsRaw);
 
                 const paidTwoInstallments = allRecords.filter(r => r.cuotas === '2');
                 const paidOneInstallment = allRecords.filter(r => r.cuotas === '1');
@@ -2311,6 +2245,39 @@
 
 
             // --- FUNCIONES AUXILIARES ---
+            _getRecordMonto(record) {
+                // If it's explicitly marked as a second installment, the transaction value for the session is 15000.
+                if (record.isSecondInstallment) {
+                    return 15000;
+                }
+                // Otherwise, calculate based on the number of installments for a new record.
+                return record.cuotas == 1 ? 15000 : 30000;
+            },
+    
+            _consolidateBonoRecords(rawRecords) {
+                const definitiveBonos = {};
+                 // Create a parsable date for sorting
+                const recordsWithSortableDate = rawRecords.map(r => ({...r, sortDate: this.parseIdToDate(r.fechaCarga || r.fecha)}));
+
+                recordsWithSortableDate.sort((a, b) => a.sortDate.localeCompare(b.sortDate));
+
+                recordsWithSortableDate.forEach(record => {
+                    const key = `${record.bonoNro1}-${record.bonoNro2}`;
+                    const existing = definitiveBonos[key];
+
+                    if (!existing) {
+                        definitiveBonos[key] = { ...record };
+                    } else {
+                        const isFullyPaid = existing.cuotas === '2' || record.cuotas === '2' || (existing.cuotas === '1' && record.cuotas === '1');
+                        definitiveBonos[key] = {
+                            ...record, // Take data from the latest record
+                            cuotas: isFullyPaid ? '2' : '1'
+                        };
+                    }
+                });
+                return Object.values(definitiveBonos);
+            },
+
             formatCurrencyInput(event) {
                 const input = event.target;
                 let value = input.value.replace(/\./g, '');
