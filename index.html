@@ -709,6 +709,39 @@
                 this.dom.secondInstallmentConfirmModal.classList.remove('hidden');
             },
 
+            async saveSecondInstallmentToFirestore(record) {
+                this.showLoading(true);
+                const rawDate = record.fecha;
+                const sessionId = this.formatDateForId(rawDate, true);
+                const sessionDocRef = doc(this.state.db, "sessions", sessionId);
+                const recordsColRef = collection(sessionDocRef, 'records');
+                
+                try {
+                    const batch = writeBatch(this.state.db);
+                    
+                    // Ensure the session document for this date exists, or create it.
+                    batch.set(sessionDocRef, { 
+                        id: this.formatDateForId(rawDate), 
+                        rawDate: rawDate, 
+                        lastUpdated: serverTimestamp(), 
+                        deleted: false 
+                    }, { merge: true });
+
+                    // Add the new second installment record to the subcollection.
+                    const newRecordRef = doc(recordsColRef);
+                    batch.set(newRecordRef, { ...record, deleted: false });
+
+                    await batch.commit();
+                    this.showToast(`Segunda cuota del bono ${record.bonoNro1}-${record.bonoNro2} guardada exitosamente.`);
+
+                } catch (error) {
+                    console.error("Error al guardar la segunda cuota directamente:", error);
+                    this.showToast('Error al guardar la segunda cuota.', 'error');
+                } finally {
+                    this.showLoading(false);
+                }
+            },
+
             handleConfirmSecondInstallment() {
                 const existingRecord = this.state.pendingSecondInstallmentRecord;
                 if (!existingRecord) return;
@@ -717,7 +750,7 @@
                 const vendedorActual = document.getElementById('vendedor').value.trim();
                 const vendedor = vendedorActual || existingRecord.vendedor;
 
-                // Construir el nuevo registro para la sesión actual
+                // Build the record for the new transaction.
                 const newRecordForSession = {
                     fecha: document.getElementById('fecha').value,
                     vendedor: vendedor,
@@ -726,8 +759,8 @@
                     nombre: existingRecord.nombre,
                     telefono: existingRecord.telefono,
                     tipoPago: document.getElementById('tipoPago').value,
-                    cuotas: '1', // CORRECTO: Esta transacción es por UNA cuota (la segunda).
-                    isSecondInstallment: true, // Marca esta transacción como el pago de la 2da cuota
+                    cuotas: '1', // This transaction is for ONE installment (the second one).
+                    isSecondInstallment: true, // Mark it as the second payment.
                 };
                 
                 if (!newRecordForSession.vendedor) {
@@ -735,22 +768,21 @@
                      document.getElementById('vendedor').focus();
                      return;
                 }
+                
+                // Instead of adding to a temporary list, save it directly to Firestore.
+                this.saveSecondInstallmentToFirestore(newRecordForSession);
 
-                this.state.currentSessionRecords.push(newRecordForSession);
-                
-                this.showToast(`Se registró la 2da cuota para el bono ${newRecordForSession.bonoNro1}-${newRecordForSession.bonoNro2}.`);
-                
-                this.state.liveSummaryPage = Math.ceil(this.state.currentSessionRecords.length / this.state.recordsPerPage);
-                this.renderLiveSummary();
-                // Limpiar campos para la siguiente carga
+                // Clear form fields for the next entry.
                 this.dom.bonoNro1Input.value = '';
                 this.dom.bonoNro2Input.value = '';
                 document.getElementById('nombre').value = '';
                 document.getElementById('telefono').value = '';
                 this.dom.bonoNro1Input.focus();
                 
-                this.handleCancelSecondInstallment(); // Limpiar estado y cerrar modal
+                // Clean up and close the modal.
+                this.handleCancelSecondInstallment(); 
             },
+
 
             handleCancelSecondInstallment() {
                 this.dom.secondInstallmentConfirmModal.classList.add('hidden');
@@ -2371,11 +2403,4 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
 
