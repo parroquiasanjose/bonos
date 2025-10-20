@@ -288,6 +288,18 @@
         <div id="simpleBalanceScreen" class="screen p-8 bg-gray-50 rounded-xl shadow-lg fade-in">
             <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Balance</h2>
             
+            <div class="mb-6 p-4 bg-gray-100 rounded-lg border space-y-2 text-lg">
+                <h3 class="text-xl font-bold text-gray-800 mb-2 text-center border-b pb-2">Resumen de Ventas</h3>
+                <div class="flex justify-between items-center">
+                    <span class="font-semibold text-gray-700">Bonos Vendidos:</span>
+                    <span id="balanceBonosVendidos" class="font-extrabold text-gray-900"></span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="font-semibold text-gray-700">Bonos Faltantes:</span>
+                    <span id="balanceBonosFaltantes" class="font-extrabold text-gray-900"></span>
+                </div>
+            </div>
+
             <div class="space-y-4 text-lg p-4 bg-white rounded-lg border">
                 <div class="flex justify-between items-center text-xl">
                     <span class="font-semibold text-green-700">Total Ingresos (Bonos):</span>
@@ -315,6 +327,7 @@
                 </div>
             </div>
             <div class="mt-8 space-y-3">
+                <button id="downloadDetailedBalancePdfButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 rounded-lg">Descargar Balance Detallado (PDF)</button>
                 <button id="saveBalanceConfigButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 rounded-lg">Guardar Monto del Depósito</button>
                 <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 rounded-lg">Volver al Inicio</button>
             </div>
@@ -506,6 +519,9 @@
                     depositoBancoInput: document.getElementById('depositoBancoInput'),
                     depositosPorTransferencia: document.getElementById('depositosPorTransferencia'),
                     saveBalanceConfigButton: document.getElementById('saveBalanceConfigButton'),
+                    balanceBonosVendidos: document.getElementById('balanceBonosVendidos'),
+                    balanceBonosFaltantes: document.getElementById('balanceBonosFaltantes'),
+                    downloadDetailedBalancePdfButton: document.getElementById('downloadDetailedBalancePdfButton'),
                 };
             },
 
@@ -581,6 +597,7 @@
                     this.recalculateSimpleBalance();
                 });
                 this.dom.saveBalanceConfigButton.addEventListener('click', () => this.saveBalanceConfig());
+                this.dom.downloadDetailedBalancePdfButton.addEventListener('click', () => this.downloadDetailedBalancePDF());
             },
 
             // --- AUTENTICACIÓN Y NAVEGÁCIÓn ---
@@ -1484,8 +1501,13 @@
                 let totalIngresos = 0;
                 
                 consolidatedRecords.forEach(record => {
-                    totalIngresos += record.cuotas === '2' ? this.state.config.BONO_PRICE_TWO_INSTALLMENTS : this.state.config.BONO_PRICE_ONE_INSTALLMENT;
+                    const monto = record.cuotas === '2' ? this.state.config.BONO_PRICE_TWO_INSTALLMENTS : this.state.config.BONO_PRICE_ONE_INSTALLMENT;
+                    totalIngresos += monto;
                 });
+
+                const totalSold = consolidatedRecords.length;
+                const totalPrinted = this.state.config.totalPrinted;
+                const remainingToSell = totalPrinted - totalSold;
 
                 let totalEgresos = 0;
                 this.state.expenses.forEach(expense => {
@@ -1497,6 +1519,8 @@
                 this.state.simpleBalanceCache.totalEgresos = totalEgresos;
 
                 // Populate UI
+                this.dom.balanceBonosVendidos.textContent = totalSold;
+                this.dom.balanceBonosFaltantes.textContent = remainingToSell;
                 this.dom.totalIngresosBonos.textContent = this.formatCurrency(totalIngresos);
                 this.dom.totalEgresosGeneral.textContent = `-${this.formatCurrency(totalEgresos)}`;
                 
@@ -1544,21 +1568,22 @@
                 const definitiveBonos = [];
 
                 for (const [key, records] of bonosGrouped.entries()) {
-                    const recordsWithSortableDate = records.map(r => ({...r, sortDate: this.parseIdToDate(r.fechaCarga || r.fecha)}));
-                    recordsWithSortableDate.sort((a, b) => a.sortDate.localeCompare(b.sortDate));
+                    records.sort((a, b) => a.fecha.localeCompare(b.fecha));
                     
-                    const latestRecord = { ...recordsWithSortableDate[recordsWithSortableDate.length - 1] };
+                    const firstRecord = { ...records[0] }; 
 
                     const hasCuota2 = records.some(r => String(r.cuotas) === '2');
                     const cuota1Count = records.filter(r => String(r.cuotas) === '1').length;
 
                     if (hasCuota2 || cuota1Count >= 2) {
-                        latestRecord.cuotas = '2';
+                        firstRecord.cuotas = '2'; 
                     } else {
-                        latestRecord.cuotas = '1';
+                        firstRecord.cuotas = '1';
                     }
                     
-                    definitiveBonos.push(latestRecord);
+                    firstRecord.tipoPago = records[records.length - 1].tipoPago;
+
+                    definitiveBonos.push(firstRecord);
                 }
 
                 return definitiveBonos;
@@ -1566,66 +1591,51 @@
 
             downloadAllLoadsPDF() {
                 const doc = new jsPDF();
-                this.addPdfHeader(doc, "Reporte Completo de Cargas");
-                let startY = 45;
+                this.addPdfHeader(doc, "Reporte Completo de Bonos");
+                
+                let allRecordsRaw = [];
+                this.state.allSessions.forEach(session => {
+                    allRecordsRaw = allRecordsRaw.concat(session.records);
+                });
 
-                const sortedSessions = this.state.allSessions.sort((a, b) => (a.rawDate || this.parseIdToDate(a.id)).localeCompare(b.rawDate || this.parseIdToDate(b.id))).reverse();
+                const consolidatedRecords = this._consolidateBonoRecords(allRecordsRaw);
 
-                sortedSessions.forEach(session => {
-                    if (session.records.length === 0) return;
-
-                    const displayId = session.id.replace(/-/g, '/');
-                    
-                    if (startY > 250) {
-                        doc.addPage();
-                        startY = this.addPdfHeader(doc, "Reporte Completo de Cargas (cont.)");
+                const sortedRecords = consolidatedRecords.sort((a, b) => {
+                    const numA1 = parseInt(a.bonoNro1, 10);
+                    const numB1 = parseInt(b.bonoNro1, 10);
+                    if (numA1 !== numB1) {
+                        return numA1 - numB1;
                     }
-                    
-                    doc.setFontSize(14);
-                    doc.setFont(undefined, 'bold');
-                    doc.text(`Carga del ${displayId}`, 14, startY);
-                    
-                    const head = [['Nro Bono', 'Nombre', 'Teléfono', 'Vendedor', 'Pago', 'Cuotas', 'Monto']];
-                    
-                    const sortedRecords = session.records.sort((a, b) => {
-                        const numA1 = parseInt(a.bonoNro1, 10);
-                        const numB1 = parseInt(b.bonoNro1, 10);
-                        if (numA1 !== numB1) {
-                            return numA1 - numB1;
-                        }
-                        const numA2 = parseInt(a.bonoNro2, 10);
-                        const numB2 = parseInt(b.bonoNro2, 10);
-                        return numA2 - numB2;
-                    });
+                    const numA2 = parseInt(a.bonoNro2, 10);
+                    const numB2 = parseInt(b.bonoNro2, 10);
+                    return numA2 - numB2;
+                });
 
-                    const body = sortedRecords.map(record => {
-                        const monto = this._getRecordMonto(record);
-                        return [
-                            `${record.bonoNro1}-${record.bonoNro2}`,
-                            record.nombre,
-                            record.telefono,
-                            record.vendedor,
-                            record.tipoPago,
-                            record.cuotas,
-                            this.formatCurrency(monto)
-                        ];
-                    });
-                    
-                    doc.autoTable({
-                        head: head,
-                        body: body,
-                        startY: startY + 7,
-                        theme: 'grid',
-                        headStyles: { fillColor: [46, 64, 83] },
-                        didDrawPage: (data) => {
-                            startY = data.cursor.y + 15;
-                        }
-                    });
-                    startY = doc.autoTable.previous.finalY + 15;
+                const head = [['Nro Bono', 'Nombre', 'Teléfono', 'Vendedor', 'Último Pago', 'Estado', 'Monto Total']];
+                const body = sortedRecords.map(record => {
+                    const monto = record.cuotas === '2' ? this.state.config.BONO_PRICE_TWO_INSTALLMENTS : this.state.config.BONO_PRICE_ONE_INSTALLMENT;
+                    const estado = record.cuotas === '2' ? 'Pago Total' : '1ra Cuota';
+                    return [
+                        `${record.bonoNro1}-${record.bonoNro2}`,
+                        record.nombre,
+                        record.telefono,
+                        record.vendedor,
+                        record.tipoPago,
+                        estado,
+                        this.formatCurrency(monto)
+                    ];
+                });
+                
+                doc.autoTable({
+                    head: head,
+                    body: body,
+                    startY: 45,
+                    theme: 'grid',
+                    headStyles: { fillColor: [46, 64, 83] }
                 });
                 
                 const currentDate = this.getCurrentDateFormatted();
-                doc.save(`reporte_completo_cargas_${currentDate}.pdf`);
+                doc.save(`reporte_completo_bonos_${currentDate}.pdf`);
             },
 
             downloadSessionPDF(sessionId) {
@@ -1675,6 +1685,87 @@
                 const currentDate = this.getCurrentDateFormatted();
                 doc.save(`detalle_carga_${displayId.replace(/\//g, '-')}_${currentDate}.pdf`);
             },
+
+            downloadDetailedBalancePDF() {
+                const doc = new jsPDF();
+                this.addPdfHeader(doc, "Balance Detallado");
+
+                let allRecordsRaw = this.state.allSessions.flatMap(session => session.records);
+                const consolidatedRecords = this._consolidateBonoRecords(allRecordsRaw);
+
+                // Sales by vendor
+                const salesByVendor = {};
+                consolidatedRecords.forEach(record => {
+                    const vendorKey = (record.vendedor || 'Desconocido').trim().toLowerCase();
+                    if (!salesByVendor[vendorKey]) {
+                        salesByVendor[vendorKey] = { count: 0, total: 0, originalName: record.vendedor || 'Desconocido' };
+                    }
+                    salesByVendor[vendorKey].count++;
+                    salesByVendor[vendorKey].total += record.cuotas === '2' ? this.state.config.BONO_PRICE_TWO_INSTALLMENTS : this.state.config.BONO_PRICE_ONE_INSTALLMENT;
+                });
+
+                const vendorBody = Object.values(salesByVendor).map(data => [
+                    data.originalName, data.count, this.formatCurrency(data.total)
+                ]);
+
+                doc.setFontSize(14);
+                doc.text("Resumen de Ventas por Vendedor", 14, 50);
+                doc.autoTable({
+                    head: [['Vendedor', 'Bonos Vendidos', 'Monto Total']],
+                    body: vendorBody,
+                    startY: 55,
+                    theme: 'grid'
+                });
+
+                let lastY = doc.autoTable.previous.finalY + 15;
+
+                // General Summary
+                const totalSold = consolidatedRecords.length;
+                const totalPrinted = this.state.config.totalPrinted;
+                const remainingToSell = totalPrinted - totalSold;
+                
+                doc.setFontSize(14);
+                doc.text("Resumen General", 14, lastY);
+
+                const summaryBody = [
+                    ['Bonos Vendidos', totalSold.toString()],
+                    ['Bonos Faltantes', remainingToSell.toString()],
+                    ['Total Ingresos (Bonos)', this.formatCurrency(this.state.simpleBalanceCache.totalIngresos)],
+                    ['Total Egresos', `-${this.formatCurrency(this.state.simpleBalanceCache.totalEgresos)}`],
+                    ['Depósito en Banco', this.formatCurrency(this.getNumericValue(this.dom.depositoBancoInput.value))]
+                ];
+
+                doc.autoTable({
+                    body: summaryBody,
+                    startY: lastY + 5,
+                    theme: 'grid',
+                    styles: { fontStyle: 'bold' },
+                     columnStyles: {
+                        0: { fillColor: [230, 230, 230] },
+                    },
+                    didDrawCell: (data) => {
+                        if (data.row.index === 1) { // Bonos Faltantes
+                             doc.setTextColor(255, 0, 0);
+                        }
+                    },
+                    willDrawCell: (data) => {
+                         doc.setTextColor(0, 0, 0);
+                    }
+                });
+
+                lastY = doc.autoTable.previous.finalY + 15;
+
+                // Chapel notes
+                doc.setFontSize(12);
+                doc.text("Distribución a Capillas:", 14, lastY);
+                doc.setFontSize(10);
+                doc.text("- Capilla Itatí: $1,000,000", 14, lastY + 7);
+                doc.text("- Capilla La Merced: $1,000,000", 14, lastY + 14);
+                doc.text("- Capilla Cruz de los Milagros: $1,000,000", 14, lastY + 21);
+
+                const currentDate = this.getCurrentDateFormatted();
+                doc.save(`balance_detallado_${currentDate}.pdf`);
+            },
             
             addPdfHeader(doc, title) {
                 doc.setFontSize(20);
@@ -1715,6 +1806,24 @@
                 setTimeout(() => {
                     toast.remove();
                 }, 3000);
+            },
+
+            updateVendedoresList() {
+                const vendedores = new Set();
+                this.state.allSessions.forEach(session => {
+                    session.records.forEach(record => {
+                        if (record.vendedor) {
+                            vendedores.add(record.vendedor);
+                        }
+                    });
+                });
+
+                this.dom.vendedoresList.innerHTML = '';
+                [...vendedores].sort().forEach(vendedor => {
+                    const option = document.createElement('option');
+                    option.value = vendedor;
+                    this.dom.vendedoresList.appendChild(option);
+                });
             },
 
             formatCurrencyInput(event) {
@@ -1779,5 +1888,4 @@
     </script>
 </body>
 </html>
-
 
