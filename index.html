@@ -115,29 +115,6 @@
             <p class="text-xl text-gray-600">"Sembradores de Esperanza"</p>
             <p id="welcomeMessage" class="text-lg text-gray-700"></p>
             
-            <!-- Panel de Administrador (visible solo para admins) -->
-            <div id="adminDashboard" class="hidden my-4 p-4 border rounded-lg bg-white text-left space-y-3">
-                <h3 class="text-xl font-bold text-gray-800 text-center mb-2">Panel de Administrador</h3>
-                <div>
-                    <div class="flex justify-between items-center text-green-600">
-                        <span class="font-semibold">Ingresos del Mes:</span>
-                        <span id="monthlyIncome" class="font-bold text-lg"></span>
-                    </div>
-                </div>
-                <div>
-                    <div class="flex justify-between items-center text-red-600">
-                        <span class="font-semibold">Egresos del Mes:</span>
-                        <span id="monthlyExpenses" class="font-bold text-lg"></span>
-                    </div>
-                </div>
-                <hr>
-                <div>
-                    <div class="flex justify-between items-center text-gray-800">
-                        <span class="font-semibold text-lg">Balance General:</span>
-                        <span id="totalBalance" class="font-extrabold text-xl"></span>
-                    </div>
-                </div>
-            </div>
 
             <div id="authError" class="hidden p-4 my-4 text-sm text-red-700 bg-red-100 rounded-lg text-left"></div>
             <div id="mainButtons" class="space-y-4">
@@ -150,14 +127,13 @@
                 <button id="goToExpenseButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 rounded-lg">
                     Egresos
                 </button>
-                <button id="goToBalanceButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-orange-500 to-orange-700 hover:from-orange-600 hover:to-orange-800 rounded-lg">
+                <button id="goToSimpleBalanceButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-orange-500 to-orange-700 hover:from-orange-600 hover:to-orange-800 rounded-lg">
                     Balance
                 </button>
-                 <button id="goToRecycleBinButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-yellow-500 to-yellow-700 hover:from-yellow-600 hover:to-yellow-800 rounded-lg">
+                <button id="goToRecycleBinButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-yellow-500 to-yellow-700 hover:from-yellow-600 hover:to-yellow-800 rounded-lg">
                     Papelera
                 </button>
                 <button id="downloadReportFromMainButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 rounded-lg">Descargar Reporte</button>
-                <button id="goToSalesReportButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-teal-500 to-teal-700 hover:from-teal-600 hover:to-teal-800 rounded-lg">Balance de Ventas</button>
                 <button id="logoutButton" class="w-full px-4 py-2 mt-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cerrar Sesión</button>
             </div>
         </div>
@@ -266,28 +242,6 @@
             <button id="downloadAllLoadsPdfButton" class="w-full mb-2 px-4 py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 rounded-lg">Descargar reporte completo</button>
             <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 rounded-lg">Volver al Inicio</button>
         </div>
-
-        <!-- 7. Pantalla de Balance -->
-        <div id="balanceScreen" class="screen p-8 bg-gray-50 rounded-xl shadow-lg fade-in">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Balance General</h2>
-             <!-- NEW: Search and Filter controls for balance -->
-            <div class="mb-4 flex flex-col sm:flex-row gap-2">
-                <input type="text" id="balanceSearchInput" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500" placeholder="Buscar...">
-                <select id="balanceFilterSelect" class="px-3 py-2 border border-gray-300 rounded-md bg-white shadow-sm focus:outline-none focus:ring-indigo-500">
-                    <option value="all">Buscar en Todo</option>
-                    <option value="nombre">Comprador</option>
-                    <option value="vendedor">Vendedor</option>
-                    <option value="bono">Nro. Bono</option>
-                </select>
-            </div>
-            <div id="balanceListContainer" class="mb-6 max-h-80 overflow-y-auto p-3 bg-white rounded-lg border"></div>
-            <div id="balanceSummaryContainer" class="mb-6 p-4 bg-gray-100 rounded-lg space-y-2 text-base"></div>
-            <div class="space-y-3 mt-4">
-                <button id="downloadBalanceSummaryPdfButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 rounded-lg">Descargar Resumen (PDF)</button>
-                <button id="downloadBalancePdfButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 rounded-lg">Descargar Detalle Completo (PDF)</button>
-                <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Volver al Inicio</button>
-            </div>
-        </div>
         
         <!-- 9. Pantalla de Egresos -->
         <div id="expenseScreen" class="screen p-8 bg-gray-50 rounded-xl shadow-lg fade-in">
@@ -324,65 +278,48 @@
 
         <!-- 11. Pantalla de Papelera de Reciclaje -->
         <div id="recycleBinScreen" class="screen p-8 bg-gray-50 rounded-xl shadow-lg fade-in">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Papelera de Reciclaje</h2>
+            <h2 class="text-2xl font-bold text-gray-800 mb-1 text-center">Papelera de Reciclaje</h2>
+            <p id="recycleBinCount" class="text-center text-gray-600 mb-4"></p>
             <div id="recycleBinListContainer" class="mb-6 max-h-96 overflow-y-auto space-y-3"></div>
             <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 rounded-lg">Volver al Inicio</button>
         </div>
         
-        <!-- 12. Pantalla de Reporte de Ventas -->
-        <div id="salesReportScreen" class="screen p-8 bg-gray-50 rounded-xl shadow-lg fade-in">
-            <h2 id="salesReportTitle" class="text-2xl font-bold text-gray-800 mb-6 text-center">Parroquia San José<br>Balance de Venta de Bonos</h2>
-    
-            <!-- Total Sold Box -->
-            <div class="p-4 bg-indigo-100 border border-indigo-200 rounded-lg text-center mb-6">
-                <p class="text-lg font-medium text-indigo-800">Total de Bonos Vendidos</p>
-                <p id="totalSoldCount" class="text-4xl font-extrabold text-indigo-900"></p>
-            </div>
-    
-            <!-- Sales by Seller -->
-            <h3 class="text-xl font-bold text-gray-800 mb-2">Detalle por Vendedor</h3>
-            <div id="salesByVendedorContainer" class="mb-6 max-h-48 overflow-y-auto p-3 bg-white rounded-lg border space-y-2">
-                <!-- Content generated by JS -->
-            </div>
-    
-            <!-- Overall Totals -->
-            <h3 class="text-xl font-bold text-gray-800 mb-2">Resumen General</h3>
-            <div class="p-4 bg-gray-100 rounded-lg mb-6 space-y-2">
-                <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Total de Bonos Impresos:</span><span id="printedBonosCount" class="font-bold text-gray-900">500</span></div>
-                <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Total de Bonos Vendidos:</span><span id="totalSoldOverall" class="font-bold text-green-700"></span></div>
-                <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Bonos Faltantes a Vender:</span><span id="remainingBonos" class="font-bold text-red-700"></span></div>
-            </div>
-    
-            <!-- Financial Totals -->
-            <h3 class="text-xl font-bold text-gray-800 mb-2">Totales Financieros</h3>
-            <div id="financialReportContainer" class="p-4 bg-gray-800 text-white rounded-lg space-y-3">
-                 <div class="flex justify-between items-center text-base border-b border-gray-600 pb-2">
-                    <span class="font-semibold">Total Vendido (Bonos):</span>
-                    <span id="reportTotalVendido" class="font-extrabold text-green-400"></span>
+        <!-- NEW: 13. Pantalla de Balance (repurposed) -->
+        <div id="simpleBalanceScreen" class="screen p-8 bg-gray-50 rounded-xl shadow-lg fade-in">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Balance</h2>
+            
+            <div class="space-y-4 text-lg p-4 bg-white rounded-lg border">
+                <div class="flex justify-between items-center text-xl">
+                    <span class="font-semibold text-green-700">Total Ingresos (Bonos):</span>
+                    <span id="totalIngresosBonos" class="font-extrabold text-green-700"></span>
                 </div>
-                <div class="flex justify-between items-center text-base border-b border-gray-600 pb-2">
-                    <span class="font-semibold">Total Egresos:</span>
-                    <span id="reportTotalEgresos" class="font-extrabold text-red-400"></span>
+                <div class="flex justify-between items-center text-xl">
+                    <span class="font-semibold text-red-700">Total Egresos:</span>
+                    <span id="totalEgresosGeneral" class="font-extrabold text-red-700"></span>
                 </div>
-                <div class="flex justify-between items-center text-lg pt-2 pb-2 border-b border-gray-600">
-                    <span class="font-bold">Resultado (Vendido - Egresos):</span>
-                    <span id="reportResultado" class="font-extrabold text-yellow-400"></span>
+                
+                <hr class="border-t-2 border-gray-300 my-2">
+
+                <div class="flex items-center gap-2 pt-2">
+                    <label for="depositoBancoInput" class="font-semibold text-gray-700 shrink-0">Deposito del Banco:</label>
+                    <input type="text" inputmode="numeric" id="depositoBancoInput" class="w-full px-2 py-1 border border-gray-300 rounded-md shadow-sm text-right font-bold text-gray-900">
                 </div>
-                 <div class="flex justify-between items-center text-base pt-2 pb-2 border-b border-gray-600">
-                    <span class="font-semibold">Total Banco Depositado:</span>
-                    <span id="reportBancoDepositado" class="font-extrabold"></span>
-                </div>
-                <div class="flex justify-between items-center text-lg pt-2">
-                    <span class="font-bold">Diferencia Final:</span>
-                    <span id="reportDiferenciaFinal" class="font-extrabold"></span>
+                 <p class="text-xs text-gray-500 -mt-2 text-right">Presiona el botón de abajo para guardar el monto.</p>
+
+
+                <hr class="border-t-2 border-gray-300 my-2">
+
+                <div class="flex justify-between items-center text-2xl">
+                    <span class="font-bold text-blue-800">Depositos por Transferencia:</span>
+                    <span id="depositosPorTransferencia" class="font-extrabold text-blue-800"></span>
                 </div>
             </div>
-    
-            <div class="mt-6 space-y-3">
-                <button id="downloadSalesReportPdfButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 rounded-lg">Descargar PDF</button>
+            <div class="mt-8 space-y-3">
+                <button id="saveBalanceConfigButton" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 rounded-lg">Guardar Monto del Depósito</button>
                 <button onclick="App.showScreen('initialScreen')" class="w-full px-4 py-3 font-semibold text-white bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 rounded-lg">Volver al Inicio</button>
             </div>
         </div>
+
 
     </div>
 
@@ -455,6 +392,8 @@
                 config: {
                     BONO_PRICE_ONE_INSTALLMENT: 15000,
                     BONO_PRICE_TWO_INSTALLMENTS: 30000,
+                    totalPrinted: 500,       // Default value, will be overwritten from DB
+                    bancoDepositado: 2375739 // Default value, will be overwritten from DB
                 },
                 currentUser: null,
                 isAdmin: false,
@@ -480,6 +419,10 @@
                 liveSummaryPage: 1,
                 recordsPerPage: 3,
                 pendingSecondInstallmentRecord: null, // Para guardar temporalmente el registro
+                simpleBalanceCache: {
+                    totalIngresos: 0,
+                    totalEgresos: 0
+                },
             },
 
             // --- INICIALIZACIÓN ---
@@ -530,12 +473,6 @@
                     authError: document.getElementById('authError'),
                     mainButtons: document.getElementById('mainButtons'),
                     welcomeMessage: document.getElementById('welcomeMessage'),
-                    balanceScreen: document.getElementById('balanceScreen'),
-                    balanceListContainer: document.getElementById('balanceListContainer'),
-                    balanceSummaryContainer: document.getElementById('balanceSummaryContainer'),
-                    downloadBalancePdfButton: document.getElementById('downloadBalancePdfButton'),
-                    downloadBalanceSummaryPdfButton: document.getElementById('downloadBalanceSummaryPdfButton'),
-                    goToBalanceButton: document.getElementById('goToBalanceButton'),
                     logoutButton: document.getElementById('logoutButton'),
                     expenseScreen: document.getElementById('expenseScreen'),
                     expenseForm: document.getElementById('expenseForm'),
@@ -544,10 +481,6 @@
                     expenseListContainer: document.getElementById('expenseListContainer'),
                     toastContainer: document.getElementById('toastContainer'),
                     goToExpenseButton: document.getElementById('goToExpenseButton'),
-                    adminDashboard: document.getElementById('adminDashboard'),
-                    monthlyIncome: document.getElementById('monthlyIncome'),
-                    monthlyExpenses: document.getElementById('monthlyExpenses'),
-                    totalBalance: document.getElementById('totalBalance'),
                     vendedoresList: document.getElementById('vendedoresList'),
                     liveSummaryContainer: document.getElementById('liveSummaryContainer'),
                     liveSummaryPagination: document.getElementById('liveSummaryPagination'),
@@ -563,21 +496,16 @@
                     goToRecycleBinButton: document.getElementById('goToRecycleBinButton'),
                     downloadAllLoadsPdfButton: document.getElementById('downloadAllLoadsPdfButton'),
                     downloadReportFromMainButton: document.getElementById('downloadReportFromMainButton'),
-                    goToSalesReportButton: document.getElementById('goToSalesReportButton'),
-                    salesReportScreen: document.getElementById('salesReportScreen'),
-                    totalSoldCount: document.getElementById('totalSoldCount'),
-                    salesByVendedorContainer: document.getElementById('salesByVendedorContainer'),
-                    totalSoldOverall: document.getElementById('totalSoldOverall'),
-                    remainingBonos: document.getElementById('remainingBonos'),
-                    reportTotalVendido: document.getElementById('reportTotalVendido'),
-                    reportTotalEgresos: document.getElementById('reportTotalEgresos'),
-                    reportResultado: document.getElementById('reportResultado'),
-                    reportBancoDepositado: document.getElementById('reportBancoDepositado'),
-                    reportDiferenciaFinal: document.getElementById('reportDiferenciaFinal'),
-                    downloadSalesReportPdfButton: document.getElementById('downloadSalesReportPdfButton'),
                     historySearchInput: document.getElementById('historySearchInput'),
-                    balanceSearchInput: document.getElementById('balanceSearchInput'),
-                    balanceFilterSelect: document.getElementById('balanceFilterSelect'),
+                    recycleBinCount: document.getElementById('recycleBinCount'),
+                    // New simple balance screen elements
+                    simpleBalanceScreen: document.getElementById('simpleBalanceScreen'),
+                    goToSimpleBalanceButton: document.getElementById('goToSimpleBalanceButton'),
+                    totalIngresosBonos: document.getElementById('totalIngresosBonos'),
+                    totalEgresosGeneral: document.getElementById('totalEgresosGeneral'),
+                    depositoBancoInput: document.getElementById('depositoBancoInput'),
+                    depositosPorTransferencia: document.getElementById('depositosPorTransferencia'),
+                    saveBalanceConfigButton: document.getElementById('saveBalanceConfigButton'),
                 };
             },
 
@@ -622,7 +550,7 @@
                 document.getElementById('goToFormButton').addEventListener('click', () => this.promptForDate());
                 document.getElementById('goToHistoryButton').addEventListener('click', () => this.showHistoryScreen());
                 this.dom.goToExpenseButton.addEventListener('click', () => this.showExpenseScreen());
-                this.dom.goToBalanceButton.addEventListener('click', () => this.showBalanceScreen());
+                this.dom.goToSimpleBalanceButton.addEventListener('click', () => this.showSimpleBalanceScreen());
                 this.dom.goToRecycleBinButton.addEventListener('click', () => this.showRecycleBinScreen());
                 this.dom.logoutButton.addEventListener('click', () => this.logout());
                 this.dom.dataForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleAddOrUpdateRecord(); });
@@ -638,8 +566,6 @@
                     }
                 });
                 this.dom.bonoNro2Input.addEventListener('input', () => this.checkBonoExistence());
-                this.dom.downloadBalancePdfButton.addEventListener('click', () => this.downloadBalancePDF());
-                this.dom.downloadBalanceSummaryPdfButton.addEventListener('click', () => this.downloadBalanceSummaryPDF());
                 this.dom.expenseForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleExpenseFormSubmit(); });
                 this.dom.confirmDateButton.addEventListener('click', () => this.handleDateConfirm());
                 this.dom.cancelDateButton.addEventListener('click', () => this.dom.dateConfirmModal.classList.add('hidden'));
@@ -649,11 +575,12 @@
                 this.dom.expenseAmountInput.addEventListener('input', (e) => this.formatCurrencyInput(e));
                 this.dom.downloadAllLoadsPdfButton.addEventListener('click', () => this.downloadAllLoadsPDF());
                 this.dom.downloadReportFromMainButton.addEventListener('click', () => this.downloadAllLoadsPDF());
-                this.dom.goToSalesReportButton.addEventListener('click', () => this.showSalesReportScreen());
                 this.dom.historySearchInput.addEventListener('input', () => this.showHistoryScreen());
-                this.dom.balanceSearchInput.addEventListener('input', () => this.showBalanceScreen());
-                this.dom.balanceFilterSelect.addEventListener('change', () => this.showBalanceScreen());
-                this.dom.downloadSalesReportPdfButton.addEventListener('click', () => this.downloadSalesReportPDF());
+                this.dom.depositoBancoInput.addEventListener('input', (e) => {
+                    this.formatCurrencyInput(e);
+                    this.recalculateSimpleBalance();
+                });
+                this.dom.saveBalanceConfigButton.addEventListener('click', () => this.saveBalanceConfig());
             },
 
             // --- AUTENTICACIÓN Y NAVEGÁCIÓn ---
@@ -733,15 +660,9 @@
 
             updateUIForUser() {
                 const isAdmin = this.state.isAdmin;
-                this.dom.goToBalanceButton.style.display = isAdmin ? 'block' : 'none';
                 this.dom.goToExpenseButton.style.display = isAdmin ? 'block' : 'none';
-                this.dom.adminDashboard.style.display = isAdmin ? 'block' : 'none';
+                this.dom.goToSimpleBalanceButton.style.display = isAdmin ? 'block' : 'none';
                 this.dom.goToRecycleBinButton.style.display = isAdmin ? 'block' : 'none';
-                this.dom.goToSalesReportButton.style.display = isAdmin ? 'block' : 'none'; // Show button for admins
-
-                if (isAdmin) {
-                    this.updateDashboard();
-                }
             },
 
             togglePasswordVisibility() {
@@ -783,6 +704,22 @@
                         this.promptForSecondInstallment(recordState);
                     }
                 }
+            },
+            
+            promptForDate() {
+                this.dom.modalDateInput.valueAsDate = new Date();
+                this.dom.dateConfirmTitle.textContent = 'Confirmar Fecha de Carga';
+                this.dom.dateConfirmModal.classList.remove('hidden');
+            },
+
+            handleDateConfirm() {
+                const selectedDate = this.dom.modalDateInput.value;
+                if (!selectedDate) {
+                    this.showToast('Por favor, seleccione una fecha.', 'error');
+                    return;
+                }
+                this.startNewSession(selectedDate);
+                this.dom.dateConfirmModal.classList.add('hidden');
             },
 
             promptForSecondInstallment(existingRecord) {
@@ -1121,11 +1058,12 @@
             },
 
             // --- GESTIÓN DE DATOS EN FIRESTORE ---
-             loadAllDataFromFirestore() {
+            loadAllDataFromFirestore() {
                  this.loadHistoryFromFirestore();
                  this.loadExpensesFromFirestore();
                  this.loadDeletedItemsFromFirestore();
-           },
+                 this.loadAppConfig();
+            },
 
             loadHistoryFromFirestore() {
                 if (this.state.unsubscribeHistory) this.state.unsubscribeHistory();
@@ -1152,7 +1090,6 @@
                     if (document.getElementById('historyScreen').classList.contains('active-screen')) {
                         this.showHistoryScreen();
                     }
-                    this.updateDashboard();
                 }, (error) => {
                     console.error("Error al escuchar los cambios del historial:", error);
                     this.showLoading(false);
@@ -1378,400 +1315,12 @@
                 } finally {
                     this.showLoading(false);
                     if(this.dom.recycleBinScreen.classList.contains('active-screen')){
-                           this.renderRecycleBin(); // Refresh recycle bin view
+                          this.renderRecycleBin(); // Refresh recycle bin view
                     }
                 }
-            },
-            
-            // --- CÓDIGO ACTUALIZADO PARA BALANCE CON FILTRO ---
-            showBalanceScreen() {
-                this.dom.balanceListContainer.innerHTML = '';
-                this.dom.balanceSummaryContainer.innerHTML = '';
-                
-                const searchTerm = this.dom.balanceSearchInput.value.toLowerCase();
-                const filterBy = this.dom.balanceFilterSelect.value;
-
-                let allRecordsRaw = [];
-                this.state.allSessions.forEach(session => {
-                    session.records.forEach(record => {
-                        allRecordsRaw.push({
-                            ...record,
-                            fechaCarga: session.id.replace(/-/g, '/')
-                        });
-                    });
-                });
-
-                let allRecords = this._consolidateBonoRecords(allRecordsRaw);
-                
-                let filteredRecords = allRecords;
-                if (searchTerm) {
-                    filteredRecords = allRecords.filter(r => {
-                        const bonoNum = `${r.bonoNro1}-${r.bonoNro2}`;
-                        switch(filterBy) {
-                            case 'nombre':
-                                return r.nombre.toLowerCase().includes(searchTerm);
-                            case 'vendedor':
-                                return r.vendedor && r.vendedor.toLowerCase().includes(searchTerm);
-                            case 'bono':
-                                return bonoNum.includes(searchTerm);
-                            case 'all':
-                            default:
-                                return (r.nombre.toLowerCase().includes(searchTerm) ||
-                                        (r.vendedor && r.vendedor.toLowerCase().includes(searchTerm)) ||
-                                        bonoNum.includes(searchTerm));
-                        }
-                    });
-                }
-
-                let totalBonosEfectivo = 0, totalBonosTransferencia = 0;
-                const salesByVendedor = {};
-
-                filteredRecords.forEach(record => {
-                    const monto = record.cuotas == 1 ? this.state.config.BONO_PRICE_ONE_INSTALLMENT : this.state.config.BONO_PRICE_TWO_INSTALLMENTS;
-                    if (record.tipoPago === 'Efectivo') {
-                        totalBonosEfectivo += monto;
-                    } else {
-                        totalBonosTransferencia += monto;
-                    }
-
-                    if (record.vendedor && record.vendedor.trim() !== '') {
-                        const normalizedVendedor = record.vendedor.trim().toLowerCase();
-                        if (!salesByVendedor[normalizedVendedor]) {
-                            salesByVendedor[normalizedVendedor] = {
-                                originalName: record.vendedor.trim(),
-                                total: 0
-                            };
-                        }
-                        salesByVendedor[normalizedVendedor].total += monto;
-                    }
-                });
-
-                let totalExpensesEfectivo = 0, totalExpensesTransferencia = 0;
-                this.state.expenses.forEach(expense => {
-                    const monto = parseFloat(expense.amount);
-                    if (expense.type === 'Efectivo') {
-                        totalExpensesEfectivo += monto;
-                    } else {
-                        totalExpensesTransferencia += monto;
-                    }
-                });
-
-                const totalBonos = totalBonosEfectivo + totalBonosTransferencia;
-                const totalExpenses = totalExpensesEfectivo + totalExpensesTransferencia;
-                const detalleEfectivoMenosEgresos = totalBonosEfectivo - totalExpenses;
-                const calculoCompleto = totalBonosEfectivo - totalExpenses - totalBonosTransferencia;
-
-
-                this.state.balanceData = {
-                    totalBonosEfectivo, totalBonosTransferencia, totalBonos,
-                    salesByVendedor,
-                    totalExpensesEfectivo, totalExpensesTransferencia, totalExpenses,
-                    detalleEfectivoMenosEgresos,
-                    calculoCompleto,
-                    allRecords: filteredRecords,
-                    expenses: this.state.expenses
-                };
-
-                let balanceHTML = '<div><h3 class="text-lg font-semibold text-gray-700 mb-2 border-b pb-2">Ingresos por Bonos (Filtrados)</h3>';
-                if (filteredRecords.length === 0) {
-                    balanceHTML += '<p class="text-center text-gray-500">No hay registros que coincidan con la búsqueda.</p>';
-                } else {
-                    filteredRecords.sort((a, b) => this.parseIdToDate(a.fechaCarga).localeCompare(this.parseIdToDate(b.fechaCarga))).reverse();
-                    filteredRecords.forEach(record => {
-                        const monto = record.cuotas == 1 ? this.state.config.BONO_PRICE_ONE_INSTALLMENT : this.state.config.BONO_PRICE_TWO_INSTALLMENTS;
-                        balanceHTML += `<div class="p-3 mb-2 border rounded-md bg-white grid grid-cols-3 gap-2 items-center text-sm"><div><p class="font-semibold">${record.nombre}</p><p class="text-xs text-gray-500">${record.fechaCarga}</p></div><p class="text-center">${record.tipoPago}</p><p class="text-right font-semibold">${this.formatCurrency(monto)}</p></div>`;
-                    });
-                }
-                balanceHTML += '</div>';
-
-                balanceHTML += '<div class="mt-6"><h3 class="text-lg font-semibold text-red-700 mb-2 border-b border-red-200 pb-2">Egresos (No Filtrados)</h3>';
-                if (this.state.expenses.length === 0) {
-                    balanceHTML += '<p class="text-center text-gray-500">No hay egresos registrados.</p>';
-                } else {
-                    this.state.expenses.forEach(expense => {
-                        const monto = parseFloat(expense.amount);
-                        balanceHTML += `<div class="p-3 mb-2 border rounded-md bg-white grid grid-cols-3 gap-2 items-center text-sm"><div><p class="font-semibold">${expense.description}</p><p class="text-xs text-gray-500">${this.formatDateForId(expense.date)}</p></div><p class="text-center">${expense.type}</p><p class="text-right font-semibold text-red-600">-${this.formatCurrency(monto)}</p></div>`;
-                    });
-                }
-                balanceHTML += '</div>';
-                this.dom.balanceListContainer.innerHTML = balanceHTML;
-
-
-                let salesSummaryHTML = '';
-                if (Object.keys(salesByVendedor).length > 0) {
-                     salesSummaryHTML += '<div class="p-4 border rounded-lg bg-white mb-4"><h4 class="font-bold text-lg mb-2 text-gray-800">Resumen de Ventas por Vendedor (Filtrado)</h4>';
-                     const sortedVendedores = Object.keys(salesByVendedor).sort();
-                     for (const normalizedVendedor of sortedVendedores) {
-                         const data = salesByVendedor[normalizedVendedor];
-                         salesSummaryHTML += `<div class="flex justify-between items-center"><span class="font-medium text-gray-600">${data.originalName}:</span><span class="font-bold text-gray-800">${this.formatCurrency(data.total)}</span></div>`;
-                     }
-                     salesSummaryHTML += '</div>';
-                }
-
-                this.dom.balanceSummaryContainer.innerHTML = `
-                    <div class="p-4 border rounded-lg bg-white mb-4">
-                        <h4 class="font-bold text-lg mb-2 text-gray-800">Resumen de Ingresos (Filtrado)</h4>
-                        <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Total Efectivo:</span><span class="font-bold text-green-700">${this.formatCurrency(totalBonosEfectivo)}</span></div>
-                        <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Total Transferencia:</span><span class="font-bold text-blue-700">${this.formatCurrency(totalBonosTransferencia)}</span></div>
-                        <hr class="my-2 border-gray-200">
-                        <div class="flex justify-between items-center text-lg"><span class="font-bold text-gray-800">Total Ingresos Bonos:</span><span class="font-extrabold text-gray-900">${this.formatCurrency(totalBonos)}</span></div>
-                    </div>
-                    ${salesSummaryHTML}
-                    <div class="p-4 border rounded-lg bg-white mb-4">
-                        <h4 class="font-bold text-lg mb-2 text-gray-800">Resumen de Egresos (No Filtrado)</h4>
-                        <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Total Egresos Efectivo:</span><span class="font-bold text-red-600">-${this.formatCurrency(totalExpensesEfectivo)}</span></div>
-                        <div class="flex justify-between items-center"><span class="font-medium text-gray-600">Total Egresos Transferencia:</span><span class="font-bold text-red-600">-${this.formatCurrency(totalExpensesTransferencia)}</span></div>
-                        <hr class="my-2 border-gray-200">
-                        <div class="flex justify-between items-center text-lg"><span class="font-bold text-gray-800">Total Egresos:</span><span class="font-extrabold text-red-700">-${this.formatCurrency(totalExpenses)}</span></div>
-                    </div>
-                    <div class="p-4 border rounded-lg bg-gray-800 text-white space-y-3">
-                        <h4 class="font-bold text-xl mb-2">Balances Finales (Basado en Filtro)</h4>
-                        <div class="flex justify-between items-center text-base border-b border-gray-600 pb-2">
-                            <span class="font-semibold">Total Ventas (Efectivo):</span>
-                            <span class="font-extrabold text-green-400">${this.formatCurrency(totalBonosEfectivo)}</span>
-                        </div>
-                        <div class="flex justify-between items-center text-base border-b border-gray-600 pb-2">
-                            <span class="font-semibold">Total Ventas (Transferencia):</span>
-                            <span class="font-extrabold text-blue-400">${this.formatCurrency(totalBonosTransferencia)}</span>
-                        </div>
-                        <div class="flex justify-between items-center text-base border-b border-gray-600 pb-2">
-                            <span class="font-semibold">Total General de Ventas:</span>
-                            <span class="font-extrabold">${this.formatCurrency(totalBonos)}</span>
-                        </div>
-                        <div class="flex justify-between items-center text-base border-b border-gray-600 pb-2">
-                            <span class="font-semibold">Total Egresos (Generales):</span>
-                            <span class="font-extrabold text-red-400">-${this.formatCurrency(totalExpenses)}</span>
-                        </div>
-                        <div class="pt-3">
-                            <h5 class="font-bold text-lg mb-2 text-gray-300">Más Detalles</h5>
-                            <div class="flex justify-between items-center text-base border-b border-gray-700 pb-2">
-                                <span class="font-semibold">Total Ventas Efectivo - Total Egresos:</span>
-                                <span class="font-extrabold">${this.formatCurrency(detalleEfectivoMenosEgresos)}</span>
-                            </div>
-                            <div class="flex justify-between items-center text-base border-b border-gray-700 pt-2 pb-2">
-                                <span class="font-semibold">Efectivo - Egresos - Transferencias:</span>
-                                <span class="font-extrabold">${this.formatCurrency(calculoCompleto)}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                this.showScreen('balanceScreen');
-            },
-            
-            downloadBalanceSummaryPDF() {
-                if (!this.state.balanceData) {
-                    this.showToast('Por favor, genere el balance en pantalla primero.', 'error');
-                    return;
-                }
-                const {
-                    salesByVendedor,
-                    expenses,
-                    totalBonosEfectivo,
-                    totalBonosTransferencia,
-                    totalBonos,
-                    totalExpenses,
-                    detalleEfectivoMenosEgresos,
-                    calculoCompleto
-                } = this.state.balanceData;
-
-                const doc = new jsPDF();
-                doc.setFontSize(16);
-                doc.setFont(undefined, 'bold');
-                doc.text("Parroquia San José", 105, 15, { align: 'center' });
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'normal');
-                doc.text("Balance de Ventas y Egresos de Bonos", 105, 25, { align: 'center' });
-
-                doc.setFontSize(10);
-                doc.text(this.getCurrentDateFormatted(), doc.internal.pageSize.getWidth() - 15, 20, { align: 'right' });
-
-                doc.setDrawColor(180, 180, 180);
-                doc.line(15, 32, doc.internal.pageSize.getWidth() - 15, 32);
-
-                let startY = 40;
-                
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'bold');
-                doc.text('Detalle de Ventas por Vendedor', 14, startY);
-                startY += 7;
-                const salesSummaryRows = Object.keys(salesByVendedor).sort().map(vendedor => [salesByVendedor[vendedor].originalName, this.formatCurrency(salesByVendedor[vendedor].total)]);
-                doc.autoTable({
-                    head: [["Vendedor", "Total Vendido"]],
-                    body: salesSummaryRows,
-                    startY: startY,
-                    theme: 'grid',
-                    headStyles: { fillColor: [22, 163, 74] } // Green
-                });
-                startY = doc.autoTable.previous.finalY + 15;
-
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'bold');
-                doc.text('Detalle de Egresos', 14, startY);
-                startY += 7;
-                const expenseTableRows = expenses.map(expense => {
-                    const monto = parseFloat(expense.amount);
-                    return [this.formatDateForId(expense.date), expense.description, expense.type, `-${this.formatCurrency(monto)}`];
-                });
-                 doc.autoTable({
-                    head: [["Fecha", "Descripción", "Tipo de Pago", "Monto"]],
-                    body: expenseTableRows,
-                    startY: startY,
-                    theme: 'grid',
-                    headStyles: { fillColor: [220, 38, 38] } // Red
-                });
-                startY = doc.autoTable.previous.finalY + 15;
-
-                if (startY > 250) { 
-                    doc.addPage();
-                    startY = 20; 
-                }
-
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'bold');
-                doc.text('Balances Finales', 14, startY);
-                startY += 7;
-                doc.autoTable({
-                    startY: startY,
-                    theme: 'plain',
-                    body: [
-                        ['Total Ventas (Efectivo):', this.formatCurrency(totalBonosEfectivo)],
-                        ['Total Ventas (Transferencia):', this.formatCurrency(totalBonosTransferencia)],
-                        ['Total General de Ventas:', this.formatCurrency(totalBonos)],
-                        ['Total Egresos:', `-${this.formatCurrency(totalExpenses)}`],
-                        ['', ''], // Spacer
-                        [{content: 'Más Detalles', colSpan: 2, styles: { fontStyle: 'bold', halign: 'left' }}],
-                        ['Total Ventas Efectivo - Total Egresos:', this.formatCurrency(detalleEfectivoMenosEgresos)],
-                        ['Efectivo - Egresos - Transferencias:', this.formatCurrency(calculoCompleto)]
-                    ],
-                    columnStyles: { 
-                        0: { halign: 'right', fontStyle: 'bold' },
-                        1: { halign: 'right' }
-                    },
-                    didParseCell: (data) => {
-                        if (data.cell.raw.colSpan === 2) {
-                            data.cell.styles.halign = 'left';
-                        }
-                    }
-                });
-
-                const currentDate = this.getCurrentDateFormatted();
-                doc.save(`resumen_balance_bonos_${currentDate}.pdf`);
-            },
-
-            downloadBalancePDF() {
-                if (!this.state.balanceData) {
-                    this.showToast('Por favor, genere el balance en pantalla primero.', 'error');
-                    return;
-                }
-
-                const {
-                    allRecords: bonoRecords,
-                    expenses,
-                    salesByVendedor,
-                    totalBonosEfectivo,
-                    totalBonosTransferencia,
-                    totalBonos,
-                    totalExpensesEfectivo,
-                    totalExpensesTransferencia,
-                    totalExpenses,
-                    detalleEfectivoMenosEgresos,
-                    calculoCompleto
-                } = this.state.balanceData;
-
-                const doc = new jsPDF();
-                let startY = this.addPdfHeader(doc, "Balance Detallado");
-                
-                doc.setFontSize(14);
-                doc.text('Ingresos por Bonos', 14, startY);
-                const bonoTableRows = bonoRecords.sort((a,b) => this.parseIdToDate(a.fechaCarga).localeCompare(this.parseIdToDate(b.fechaCarga))).reverse().map(record => {
-                    const monto = record.cuotas == 1 ? this.state.config.BONO_PRICE_ONE_INSTALLMENT : this.state.config.BONO_PRICE_TWO_INSTALLMENTS;
-                    return [record.fechaCarga, record.nombre, record.tipoPago, this.formatCurrency(monto)];
-                });
-                doc.autoTable({
-                    head: [["Fecha", "Nombre", "Tipo de Pago", "Monto"]],
-                    body: bonoTableRows,
-                    startY: startY + 7, theme: 'grid', headStyles: { fillColor: [67, 56, 202] }
-                });
-                
-                let finalY = doc.autoTable.previous.finalY + 15;
-                doc.setFontSize(14);
-                doc.text('Egresos', 14, finalY);
-                const expenseTableRows = expenses.map(expense => {
-                    const monto = parseFloat(expense.amount);
-                    return [this.formatDateForId(expense.date), expense.description, expense.type, `-${this.formatCurrency(monto)}`];
-                });
-                 doc.autoTable({
-                    head: [["Fecha", "Descripción", "Tipo de Pago", "Monto"]],
-                    body: expenseTableRows,
-                    startY: finalY + 7, theme: 'grid', headStyles: { fillColor: [220, 38, 38] }
-                });
-
-
-                const salesSummaryRows = Object.keys(salesByVendedor).sort().map(vendedor => [salesByVendedor[vendedor].originalName, this.formatCurrency(salesByVendedor[vendedor].total)]);
-                
-                let finalY_summary = doc.autoTable.previous.finalY + 10;
-                if (finalY_summary > 180) { // Adjusted margin for better spacing
-                    doc.addPage();
-                    finalY_summary = 20;
-                }
-
-                doc.autoTable({
-                    startY: finalY_summary,
-                    theme: 'plain',
-                    body: [
-                        [{content: 'Resumen de Ingresos (Bonos)', colSpan: 2, styles: {fontStyle: 'bold'}}],
-                        ['Total Efectivo (Bonos):', this.formatCurrency(totalBonosEfectivo)],
-                        ['Total Transferencia (Bonos):', this.formatCurrency(totalBonosTransferencia)],
-                        [{content: 'Total Ingresos Bonos:', styles: {fontStyle: 'bold'}}, {content: this.formatCurrency(totalBonos), styles: {fontStyle: 'bold'}}],
-                        ['', ''],
-                        [{content: 'Resumen de Ventas por Vendedor', colSpan: 2, styles: {fontStyle: 'bold'}}],
-                        ...salesSummaryRows,
-                        ['', ''],
-                        [{content: 'Resumen de Egresos', colSpan: 2, styles: {fontStyle: 'bold'}}],
-                        ['Total Egresos Efectivo:', `-${this.formatCurrency(totalExpensesEfectivo)}`],
-                        ['Total Egresos Transferencia:', `-${this.formatCurrency(totalExpensesTransferencia)}`],
-                        [{content: 'Total Egresos:', styles: {fontStyle: 'bold'}}, {content: `-${this.formatCurrency(totalExpenses)}`, styles: {fontStyle: 'bold'}}],
-                        ['', ''],
-                        [{content: 'Balances Finales', colSpan: 2, styles: {fontStyle: 'bold', fontSize: 12}}],
-                        ['Total Ventas (Efectivo):', this.formatCurrency(totalBonosEfectivo)],
-                        ['Total Ventas (Transferencia):', this.formatCurrency(totalBonosTransferencia)],
-                        ['Total General de Ventas:', this.formatCurrency(totalBonos)],
-                        ['Total Egresos:', `-${this.formatCurrency(totalExpenses)}`],
-                        ['', ''],
-                        [{content: 'Más Detalles', colSpan: 2, styles: {fontStyle: 'bold', fontSize: 12}}],
-                        ['Total Ventas Efectivo - Total Egresos:', this.formatCurrency(detalleEfectivoMenosEgresos)],
-                        ['Efectivo - Egresos - Transferencias:', this.formatCurrency(calculoCompleto)]
-                    ],
-                    columnStyles: { 0: { halign: 'right' }, 1: { halign: 'right' } },
-                    didParseCell: (data) => {
-                        if (data.cell.raw.colSpan === 2) {
-                            data.cell.styles.halign = 'left';
-                        }
-                    }
-                });
-                
-                const currentDate = this.getCurrentDateFormatted();
-                doc.save(`balance_detallado_${currentDate}.pdf`);
             },
             
             // --- LÓGICA DE EGRESOS ---
-            promptForDate() {
-                this.dom.modalDateInput.valueAsDate = new Date();
-                this.dom.dateConfirmTitle.textContent = 'Confirmar Fecha de Carga';
-                this.dom.dateConfirmModal.classList.remove('hidden');
-            },
-
-            handleDateConfirm() {
-                const selectedDate = this.dom.modalDateInput.value;
-                if (!selectedDate) {
-                    this.showToast('Por favor, seleccione una fecha.', 'error');
-                    return;
-                }
-                this.startNewSession(selectedDate);
-                this.dom.dateConfirmModal.classList.add('hidden');
-            },
-
             showExpenseScreen() {
                 this.state.showAllExpenses = false;
                 this.dom.expenseForm.reset();
@@ -1793,7 +1342,6 @@
                     if (document.getElementById('expenseScreen').classList.contains('active-screen')) {
                         this.renderExpenses();
                     }
-                    this.updateDashboard();
                 });
             },
 
@@ -1861,122 +1409,6 @@
                 window.scrollTo(0, 0);
             },
             
-            showToast(message, type = 'success') {
-                const toastContainer = this.dom.toastContainer;
-                const toast = document.createElement('div');
-                toast.className = `toast toast-${type}`;
-                toast.textContent = message;
-                toastContainer.appendChild(toast);
-
-                try {
-                    const synth = new Tone.Synth().toDestination();
-                    if (type === 'success') {
-                        synth.triggerAttackRelease("C5", "8n", Tone.now());
-                    } else if (type === 'error') {
-                        synth.triggerAttackRelease("A3", "8n", Tone.now());
-                    }
-                } catch (e) {
-                    console.warn("No se pudo reproducir el sonido, puede requerir interacción del usuario primero.");
-                }
-
-                setTimeout(() => {
-                    toast.remove();
-                }, 3000);
-            },
-
-            addPdfHeader(doc, title) {
-                doc.setFontSize(20);
-                doc.setFont(undefined, 'bold');
-                doc.text("Parroquia San José Bono", 15, 20);
-
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'normal');
-                doc.text(title, 15, 30);
-
-                doc.setFontSize(10);
-                doc.text(this.getCurrentDateFormatted(), doc.internal.pageSize.getWidth() - 15, 20, { align: 'right' });
-
-                doc.setDrawColor(180, 180, 180);
-                doc.line(15, 35, doc.internal.pageSize.getWidth() - 15, 35);
-
-                return 45;
-            },
-
-            updateDashboard() {
-                if (!this.state.isAdmin) {
-                    return;
-                }
-
-                const now = new Date();
-                const currentYear = now.getFullYear();
-                const currentMonth = now.getMonth();
-
-                let monthlyRecordsRaw = [];
-                this.state.allSessions.forEach(session => {
-                    const sessionDate = new Date(session.rawDate);
-                    if (sessionDate.getFullYear() === currentYear && sessionDate.getMonth() === currentMonth) {
-                        session.records.forEach(record => {
-                            monthlyRecordsRaw.push(record);
-                        });
-                    }
-                });
-                
-                const monthlyRecords = this._consolidateBonoRecords(monthlyRecordsRaw);
-                let monthlyIncome = 0;
-                monthlyRecords.forEach(record => {
-                    monthlyIncome += record.cuotas == 1 ? this.state.config.BONO_PRICE_ONE_INSTALLMENT : this.state.config.BONO_PRICE_TWO_INSTALLMENTS;
-                });
-
-                let monthlyExpenses = 0;
-                this.state.expenses.forEach(expense => {
-                    const expenseDate = new Date(expense.date);
-                    if (expenseDate.getFullYear() === currentYear && expenseDate.getMonth() === currentMonth) {
-                        monthlyExpenses += parseFloat(expense.amount);
-                    }
-                });
-
-                let allRecordsRaw = this.state.allSessions.flatMap(s => s.records);
-                const allRecords = this._consolidateBonoRecords(allRecordsRaw);
-                let totalIncome = 0;
-                allRecords.forEach(record => {
-                    totalIncome += record.cuotas == 1 ? this.state.config.BONO_PRICE_ONE_INSTALLMENT : this.state.config.BONO_PRICE_TWO_INSTALLMENTS;
-                });
-
-                let totalExpenses = 0;
-                this.state.expenses.forEach(expense => {
-                    totalExpenses += parseFloat(expense.amount);
-                });
-
-                this.dom.monthlyIncome.textContent = this.formatCurrency(monthlyIncome);
-                this.dom.monthlyExpenses.textContent = `-${this.formatCurrency(monthlyExpenses)}`;
-                this.dom.totalBalance.textContent = this.formatCurrency(totalIncome - totalExpenses);
-            },
-            
-            updateVendedoresList() {
-                const vendedores = new Set();
-                this.state.allSessions.forEach(session => {
-                    session.records.forEach(record => {
-                        if (record.vendedor) {
-                            vendedores.add(record.vendedor);
-                        }
-                    });
-                });
-
-                this.dom.vendedoresList.innerHTML = '';
-                [...vendedores].sort().forEach(vendedor => {
-                    const option = document.createElement('option');
-                    option.value = vendedor;
-                    this.dom.vendedoresList.appendChild(option);
-                });
-            },
-
-            // --- FUNCIONES DE LA PAPELERA ---
-
-            showRecycleBinScreen() {
-                this.renderRecycleBin();
-                this.showScreen('recycleBinScreen');
-            },
-
             loadDeletedItemsFromFirestore() {
                 if (this.state.unsubscribeDeleted) this.state.unsubscribeDeleted();
                 
@@ -2010,238 +1442,87 @@
                 this.state.unsubscribeDeleted = () => listeners.forEach(unsub => unsub());
             },
 
-            renderRecycleBin() {
-                const container = this.dom.recycleBinListContainer;
-                container.innerHTML = '';
-                if (this.state.deletedItems.length === 0) {
-                    container.innerHTML = '<p class="text-center text-gray-500">La papelera está vacía.</p>';
-                    return;
-                }
-
-                this.state.deletedItems.forEach(item => {
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'flex justify-between items-center p-3 bg-white rounded-lg border';
-                    let description = `Elemento borrado`;
-                    
-                    switch(item.type) {
-                        case 'session':
-                            description = `Carga del ${item.id.replace(/-/g, '/')}`;
-                            break;
-                        case 'expense':
-                             description = `Egreso: ${item.data.description} por ${this.formatCurrency(item.data.amount || 0)}`;
-                            break;
+             // --- NUEVA PANTALLA DE REPORTE Y CONFIGURACIÓN ---
+            async loadAppConfig() {
+                const configDocRef = doc(this.state.db, "config", "app_settings");
+                try {
+                    const docSnap = await getDoc(configDocRef);
+                    if (docSnap.exists()) {
+                        const dbConfig = docSnap.data();
+                        this.state.config = { ...this.state.config, ...dbConfig };
+                    } else {
+                        console.log("No se encontró configuración en DB, usando defaults.");
                     }
-
-                    itemDiv.innerHTML = `
-                        <div>
-                            <p class="font-semibold text-gray-800">${description}</p>
-                            <p class="text-sm text-gray-500">Eliminado: ${this.formatTimestamp(item.data.deletedAt)}</p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="App.restoreItem('${item.id}', '${item.type}')" class="text-xs px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600">Restaurar</button>
-                            <button onclick="App.promptDeleteItem('${item.id}', '${item.type}', null, true)" class="text-xs px-2 py-1 bg-red-700 text-white rounded hover:bg-red-800">Eliminar Definitivamente</button>
-                        </div>
-                    `;
-                    container.appendChild(itemDiv);
-                });
+                } catch (error) {
+                    console.error("Error al cargar la configuración:", error);
+                    this.showToast('No se pudo cargar la configuración.', 'error');
+                }
             },
 
-            async restoreItem(id, type) {
+            async saveBalanceConfig() {
                 this.showLoading(true);
-                const collectionName = {
-                    'session': 'sessions',
-                    'expense': 'expenses',
-                }[type];
-
-                if (!collectionName) {
-                    this.showToast('Tipo de elemento desconocido.', 'error');
-                    this.showLoading(false);
-                    return;
-                }
-
-                const docRef = doc(this.state.db, collectionName, id);
+                const configToSave = {
+                    bancoDepositado: this.getNumericValue(this.dom.depositoBancoInput.value)
+                };
+                const configDocRef = doc(this.state.db, "config", "app_settings");
                 try {
-                    await updateDoc(docRef, {
-                        deleted: false,
-                        deletedAt: null
-                    });
-                    this.showToast('Elemento restaurado con éxito.');
+                    await setDoc(configDocRef, configToSave, { merge: true });
+                    this.state.config.bancoDepositado = configToSave.bancoDepositado;
+                    this.showToast('Monto del depósito guardado.');
                 } catch (error) {
-                    console.error("Error al restaurar:", error);
-                    this.showToast('Error al restaurar el elemento.', 'error');
+                    console.error("Error al guardar la configuración:", error);
+                    this.showToast('Error al guardar el monto.', 'error');
                 } finally {
                     this.showLoading(false);
                 }
             },
-            
-             // --- NUEVA PANTALLA DE REPORTE ---
-             showSalesReportScreen() {
-                const allRecordsRaw = this.state.allSessions.flatMap(session => 
-                    session.records.map(record => ({...record}))
-                );
+
+            showSimpleBalanceScreen() {
+                const allRecordsRaw = this.state.allSessions.flatMap(session => session.records);
+                
                 const consolidatedRecords = this._consolidateBonoRecords(allRecordsRaw);
-
-                const salesBySeller = {};
-                consolidatedRecords.forEach(record => {
-                    const vendedor = record.vendedor ? record.vendedor.trim() : 'Sin Vendedor';
-                    if (!salesBySeller[vendedor]) {
-                        salesBySeller[vendedor] = {
-                            originalName: vendedor,
-                            count: 0
-                        };
-                    }
-                    salesBySeller[vendedor].count++;
-                });
-
-                const totalSold = consolidatedRecords.length;
-                const totalPrinted = 500;
-                const remainingToSell = totalPrinted - totalSold;
-
-                let totalRevenueAll = 0;
+                let totalIngresos = 0;
                 
                 consolidatedRecords.forEach(record => {
-                    const monto = record.cuotas === '2' ? this.state.config.BONO_PRICE_TWO_INSTALLMENTS : this.state.config.BONO_PRICE_ONE_INSTALLMENT;
-                    totalRevenueAll += monto;
+                    totalIngresos += record.cuotas === '2' ? this.state.config.BONO_PRICE_TWO_INSTALLMENTS : this.state.config.BONO_PRICE_ONE_INSTALLMENT;
                 });
 
-                const totalExpenses = this.state.expenses.reduce((sum, expense) => sum + parseFloat(expense.amount || 0), 0);
-                const resultado = totalRevenueAll - totalExpenses;
-                const bancoDepositado = 2375739;
-                const diferenciaFinal = resultado - bancoDepositado;
-
-                this.dom.totalSoldCount.textContent = totalSold;
-
-                const sortedVendedores = Object.values(salesBySeller).sort((a, b) => b.count - a.count);
-                this.dom.salesByVendedorContainer.innerHTML = sortedVendedores.length > 0 ? sortedVendedores.map(vendedor => `
-                    <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
-                        <span class="font-medium text-gray-700">${vendedor.originalName}</span>
-                        <span class="font-bold text-gray-900">${vendedor.count}</span>
-                    </div>
-                `).join('') : '<p class="text-center text-gray-500">No hay ventas registradas.</p>';
-
-                this.dom.totalSoldOverall.textContent = totalSold;
-                this.dom.remainingBonos.textContent = remainingToSell;
-
-                this.dom.reportTotalVendido.textContent = this.formatCurrency(totalRevenueAll);
-                this.dom.reportTotalEgresos.textContent = `-${this.formatCurrency(totalExpenses)}`;
-                this.dom.reportResultado.textContent = this.formatCurrency(resultado);
-                this.dom.reportBancoDepositado.textContent = this.formatCurrency(bancoDepositado);
-                this.dom.reportDiferenciaFinal.textContent = this.formatCurrency(diferenciaFinal);
-
-
-                this.showScreen('salesReportScreen');
-            },
-            
-            downloadSalesReportPDF() {
-                // Recalculate or retrieve data to ensure it's current
-                const allRecordsRaw = this.state.allSessions.flatMap(session => session.records.map(record => ({...record})));
-                const consolidatedRecords = this._consolidateBonoRecords(allRecordsRaw);
-
-                const salesBySeller = {};
-                consolidatedRecords.forEach(record => {
-                    const vendedor = record.vendedor ? record.vendedor.trim() : 'Sin Vendedor';
-                    if (!salesBySeller[vendedor]) {
-                        salesBySeller[vendedor] = { originalName: vendedor, count: 0 };
-                    }
-                    salesBySeller[vendedor].count++;
-                });
-                const sortedVendedores = Object.values(salesBySeller).sort((a, b) => b.count - a.count);
-
-                const totalSold = consolidatedRecords.length;
-                const totalPrinted = 500;
-                const remainingToSell = totalPrinted - totalSold;
-
-                let totalRevenueAll = 0;
-                consolidatedRecords.forEach(record => {
-                    const monto = record.cuotas === '2' ? this.state.config.BONO_PRICE_TWO_INSTALLMENTS : this.state.config.BONO_PRICE_ONE_INSTALLMENT;
-                    totalRevenueAll += monto;
+                let totalEgresos = 0;
+                this.state.expenses.forEach(expense => {
+                    totalEgresos += parseFloat(expense.amount || 0);
                 });
 
-                const totalExpenses = this.state.expenses.reduce((sum, expense) => sum + parseFloat(expense.amount || 0), 0);
-                const resultado = totalRevenueAll - totalExpenses;
-                const bancoDepositado = 2375739;
-                const diferenciaFinal = resultado - bancoDepositado;
+                // Cache values for live calculation
+                this.state.simpleBalanceCache.totalIngresos = totalIngresos;
+                this.state.simpleBalanceCache.totalEgresos = totalEgresos;
+
+                // Populate UI
+                this.dom.totalIngresosBonos.textContent = this.formatCurrency(totalIngresos);
+                this.dom.totalEgresosGeneral.textContent = `-${this.formatCurrency(totalEgresos)}`;
                 
-                // PDF Generation
-                const doc = new jsPDF();
-                let startY = this.addPdfHeader(doc, "Balance de Venta de Bonos");
-
-                // Total Sold Box (visual element in PDF)
-                doc.setFontSize(12);
-                doc.text("Total de Bonos Vendidos:", 105, startY, { align: 'center' });
-                startY += 8;
-                doc.setFontSize(22);
-                doc.setFont(undefined, 'bold');
-                doc.text(totalSold.toString(), 105, startY, { align: 'center' });
-                startY += 15;
-
-                // Sales by Seller Table
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'bold');
-                doc.text("Detalle por Vendedor", 14, startY);
-                const vendedorRows = sortedVendedores.map(v => [v.originalName, v.count.toString()]);
-                doc.autoTable({
-                    head: [['Vendedor', 'Cantidad Vendida']],
-                    body: vendedorRows,
-                    startY: startY + 7,
-                    theme: 'grid',
-                    headStyles: { fillColor: [79, 70, 229] } // Indigo
-                });
-                startY = doc.autoTable.previous.finalY + 15;
-
-                // Check if there's enough space for the next two summary tables
-                const requiredHeight = 85; // Estimated height for both tables + titles + spacing
-                const pageHeight = doc.internal.pageSize.getHeight();
-                const bottomMargin = 20;
-
-                if (startY + requiredHeight > pageHeight - bottomMargin) {
-                    doc.addPage();
-                    startY = 20;
-                }
-
-                // Resumen General Table
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'bold');
-                doc.text("Resumen General", 14, startY);
-                doc.autoTable({
-                    body: [
-                        ['Total de Bonos Impresos:', totalPrinted.toString()],
-                        ['Total de Bonos Vendidos:', totalSold.toString()],
-                        ['Bonos Faltantes a Vender:', remainingToSell.toString()],
-                    ],
-                    startY: startY + 7,
-                    theme: 'plain',
-                    columnStyles: { 0: { halign: 'right', fontStyle: 'bold' }, 1: { halign: 'right' } }
-                });
-                startY = doc.autoTable.previous.finalY + 15;
+                this.dom.depositoBancoInput.value = this.state.config.bancoDepositado.toLocaleString('es-ES');
                 
-                // Financial Totals Table
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'bold');
-                doc.text("Totales Financieros", 14, startY);
-                doc.autoTable({
-                    body: [
-                        ['Total Vendido (Bonos):', this.formatCurrency(totalRevenueAll)],
-                        ['Total Egresos:', `-${this.formatCurrency(totalExpenses)}`],
-                        [{content: 'Resultado (Vendido - Egresos):', styles: {fontStyle: 'bold'}}, {content: this.formatCurrency(resultado), styles: {fontStyle: 'bold'}}],
-                        ['Total Banco Depositado:', this.formatCurrency(bancoDepositado)],
-                        [{content: 'Diferencia Final:', styles: {fontStyle: 'bold'}}, {content: this.formatCurrency(diferenciaFinal), styles: {fontStyle: 'bold'}}]
-                    ],
-                    startY: startY + 7,
-                    theme: 'plain',
-                    columnStyles: { 0: { halign: 'right' }, 1: { halign: 'right' } }
-                });
-                
-                const currentDate = this.getCurrentDateFormatted();
-                doc.save(`balance_ventas_${currentDate}.pdf`);
+                this.recalculateSimpleBalance(); // Initial calculation
+
+                this.showScreen('simpleBalanceScreen');
             },
 
-            // --- FUNCIONES AUXILIARES ---
+            recalculateSimpleBalance() {
+                const totalIngresos = this.state.simpleBalanceCache.totalIngresos;
+                const totalEgresos = this.state.simpleBalanceCache.totalEgresos;
+                const depositoBanco = this.getNumericValue(this.dom.depositoBancoInput.value);
+
+                const depositosPorTransferencia = totalIngresos - totalEgresos - depositoBanco;
+
+                this.dom.depositosPorTransferencia.textContent = this.formatCurrency(depositosPorTransferencia);
+            },
+
             _getRecordMonto(record) {
-                if (record.isSecondInstallment) {
-                    return this.state.config.BONO_PRICE_ONE_INSTALLMENT;
+                if (record.cuotas == '2') { // A full payment record
+                    return this.state.config.BONO_PRICE_TWO_INSTALLMENTS;
                 }
-                return record.cuotas == 1 ? this.state.config.BONO_PRICE_ONE_INSTALLMENT : this.state.config.BONO_PRICE_TWO_INSTALLMENTS;
+                // An installment payment record
+                return this.state.config.BONO_PRICE_ONE_INSTALLMENT;
             },
     
             _consolidateBonoRecords(rawRecords) {
@@ -2283,6 +1564,159 @@
                 return definitiveBonos;
             },
 
+            downloadAllLoadsPDF() {
+                const doc = new jsPDF();
+                this.addPdfHeader(doc, "Reporte Completo de Cargas");
+                let startY = 45;
+
+                const sortedSessions = this.state.allSessions.sort((a, b) => (a.rawDate || this.parseIdToDate(a.id)).localeCompare(b.rawDate || this.parseIdToDate(b.id))).reverse();
+
+                sortedSessions.forEach(session => {
+                    if (session.records.length === 0) return;
+
+                    const displayId = session.id.replace(/-/g, '/');
+                    
+                    if (startY > 250) {
+                        doc.addPage();
+                        startY = this.addPdfHeader(doc, "Reporte Completo de Cargas (cont.)");
+                    }
+                    
+                    doc.setFontSize(14);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(`Carga del ${displayId}`, 14, startY);
+                    
+                    const head = [['Nro Bono', 'Nombre', 'Teléfono', 'Vendedor', 'Pago', 'Cuotas', 'Monto']];
+                    
+                    const sortedRecords = session.records.sort((a, b) => {
+                        const numA1 = parseInt(a.bonoNro1, 10);
+                        const numB1 = parseInt(b.bonoNro1, 10);
+                        if (numA1 !== numB1) {
+                            return numA1 - numB1;
+                        }
+                        const numA2 = parseInt(a.bonoNro2, 10);
+                        const numB2 = parseInt(b.bonoNro2, 10);
+                        return numA2 - numB2;
+                    });
+
+                    const body = sortedRecords.map(record => {
+                        const monto = this._getRecordMonto(record);
+                        return [
+                            `${record.bonoNro1}-${record.bonoNro2}`,
+                            record.nombre,
+                            record.telefono,
+                            record.vendedor,
+                            record.tipoPago,
+                            record.cuotas,
+                            this.formatCurrency(monto)
+                        ];
+                    });
+                    
+                    doc.autoTable({
+                        head: head,
+                        body: body,
+                        startY: startY + 7,
+                        theme: 'grid',
+                        headStyles: { fillColor: [46, 64, 83] },
+                        didDrawPage: (data) => {
+                            startY = data.cursor.y + 15;
+                        }
+                    });
+                    startY = doc.autoTable.previous.finalY + 15;
+                });
+                
+                const currentDate = this.getCurrentDateFormatted();
+                doc.save(`reporte_completo_cargas_${currentDate}.pdf`);
+            },
+
+            downloadSessionPDF(sessionId) {
+                const session = sessionId ? this.state.allSessions.find(s => s.id === sessionId) : { records: this.state.currentSessionRecords, id: this.formatDateForId(this.state.currentSessionRecords[0].fecha) };
+                if (!session || session.records.length === 0) {
+                    this.showToast('No hay datos para generar el PDF.', 'error');
+                    return;
+                }
+
+                const doc = new jsPDF();
+                const displayId = session.id.replace(/-/g, '/');
+                this.addPdfHeader(doc, `Detalle de Carga - ${displayId}`);
+                
+                const head = [['Nro Bono', 'Nombre', 'Teléfono', 'Vendedor', 'Pago', 'Cuotas', 'Monto']];
+                
+                const sortedRecords = session.records.sort((a, b) => {
+                    const numA1 = parseInt(a.bonoNro1, 10);
+                    const numB1 = parseInt(b.bonoNro1, 10);
+                    if (numA1 !== numB1) {
+                        return numA1 - numB1;
+                    }
+                    const numA2 = parseInt(a.bonoNro2, 10);
+                    const numB2 = parseInt(b.bonoNro2, 10);
+                    return numA2 - numB2;
+                });
+
+                const body = sortedRecords.map(record => {
+                    const monto = this._getRecordMonto(record);
+                    return [
+                        `${record.bonoNro1}-${record.bonoNro2}`,
+                        record.nombre,
+                        record.telefono,
+                        record.vendedor,
+                        record.tipoPago,
+                        record.cuotas,
+                        this.formatCurrency(monto)
+                    ];
+                });
+                
+                doc.autoTable({
+                    head: head,
+                    body: body,
+                    startY: 45,
+                    theme: 'grid'
+                });
+
+                const currentDate = this.getCurrentDateFormatted();
+                doc.save(`detalle_carga_${displayId.replace(/\//g, '-')}_${currentDate}.pdf`);
+            },
+            
+            addPdfHeader(doc, title) {
+                doc.setFontSize(20);
+                doc.setFont(undefined, 'bold');
+                doc.text("Parroquia San José Bono", 15, 20);
+
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'normal');
+                doc.text(title, 15, 30);
+
+                doc.setFontSize(10);
+                doc.text(this.getCurrentDateFormatted(), doc.internal.pageSize.getWidth() - 15, 20, { align: 'right' });
+
+                doc.setDrawColor(180, 180, 180);
+                doc.line(15, 35, doc.internal.pageSize.getWidth() - 15, 35);
+
+                return 45;
+            },
+
+            showToast(message, type = 'success') {
+                const toastContainer = this.dom.toastContainer;
+                const toast = document.createElement('div');
+                toast.className = `toast toast-${type}`;
+                toast.textContent = message;
+                toastContainer.appendChild(toast);
+
+                try {
+                    const synth = new Tone.Synth().toDestination();
+                    if (type === 'success') {
+                        synth.triggerAttackRelease("C5", "8n", Tone.now());
+                    } else if (type === 'error') {
+                        synth.triggerAttackRelease("A3", "8n", Tone.now());
+                    }
+                } catch (e) {
+                    console.warn("No se pudo reproducir el sonido, puede requerir interacción del usuario primero.");
+                }
+
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
+            },
+
             formatCurrencyInput(event) {
                 const input = event.target;
                 let value = input.value.replace(/\./g, '');
@@ -2299,7 +1733,7 @@
 
             getNumericValue(formattedValue) {
                 if (!formattedValue || typeof formattedValue !== 'string') return 0;
-                const cleanValue = formattedValue.replace(/\./g, '');
+                const cleanValue = formattedValue.replace(/\./g, '').replace(/,/g, '.'); // Handle decimals if needed in future
                 return parseInt(cleanValue, 10) || 0;
             },
 
@@ -2345,4 +1779,5 @@
     </script>
 </body>
 </html>
+
 
