@@ -409,7 +409,6 @@
                     bancoDepositado: 2375739 // Default value, will be overwritten from DB
                 },
                 currentUser: null,
-                isAdmin: false,
                 currentSessionRecords: [],
                 allSessions: [],
                 expenses: [],
@@ -620,8 +619,6 @@
 
             login(user) {
                 this.state.currentUser = user;
-                const adminEmails = ['adanrdmato@gmail.com', 'jose@example.com']; 
-                this.state.isAdmin = adminEmails.includes(user.email);
 
                 if (user.email === 'daianavirginiafroy@gmail.com') {
                     this.dom.welcomeMessage.textContent = 'Bienvenido Javier';
@@ -645,7 +642,6 @@
             
             logoutCleanup() {
                 this.state.currentUser = null;
-                this.state.isAdmin = false;
                 
                 if (this.state.unsubscribeHistory) this.state.unsubscribeHistory();
                 if (this.state.unsubscribeExpenses) this.state.unsubscribeExpenses();
@@ -676,10 +672,10 @@
             },
 
             updateUIForUser() {
-                const isAdmin = this.state.isAdmin;
-                this.dom.goToExpenseButton.style.display = isAdmin ? 'block' : 'none';
-                this.dom.goToSimpleBalanceButton.style.display = isAdmin ? 'block' : 'none';
-                this.dom.goToRecycleBinButton.style.display = isAdmin ? 'block' : 'none';
+                this.dom.goToExpenseButton.style.display = 'block';
+                this.dom.goToSimpleBalanceButton.style.display = 'block';
+                this.dom.goToRecycleBinButton.style.display = 'block';
+                this.dom.downloadReportFromMainButton.style.display = 'block';
             },
 
             togglePasswordVisibility() {
@@ -1685,7 +1681,7 @@
                 const currentDate = this.getCurrentDateFormatted();
                 doc.save(`detalle_carga_${displayId.replace(/\//g, '-')}_${currentDate}.pdf`);
             },
-
+            
             downloadDetailedBalancePDF() {
                 const doc = new jsPDF();
                 this.addPdfHeader(doc, "Balance Detallado");
@@ -1717,7 +1713,8 @@
                     theme: 'grid'
                 });
 
-                let lastY = doc.autoTable.previous.finalY + 15;
+                doc.addPage();
+                let lastY = this.addPdfHeader(doc, "Balance Detallado (cont.)");
 
                 // General Summary
                 const totalSold = consolidatedRecords.length;
