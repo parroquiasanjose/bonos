@@ -672,6 +672,7 @@
             },
 
             updateUIForUser() {
+                // Todos los usuarios ven lo mismo
                 this.dom.goToExpenseButton.style.display = 'block';
                 this.dom.goToSimpleBalanceButton.style.display = 'block';
                 this.dom.goToRecycleBinButton.style.display = 'block';
@@ -1564,19 +1565,35 @@
                 const definitiveBonos = [];
 
                 for (const [key, records] of bonosGrouped.entries()) {
+                    // Sort by date to find the first entry
                     records.sort((a, b) => a.fecha.localeCompare(b.fecha));
                     
-                    const firstRecord = { ...records[0] }; 
+                    // --- FIX ---
+                    // Find the original sale record: the one that is NOT a second installment.
+                    // If multiple exist (data entry error), the sort by date will pick the earliest.
+                    let originalSaleRecord = records.find(r => !r.isSecondInstallment);
+                    
+                    // Fallback: If all records are (wrongly) marked as 2nd installments,
+                    // or if the data is old (pre-isSecondInstallment flag),
+                    // just take the earliest record as the owner.
+                    if (!originalSaleRecord) {
+                        originalSaleRecord = records[0];
+                    }
+
+                    // Use this original record as the base
+                    const firstRecord = { ...originalSaleRecord }; 
+                    // --- END FIX ---
 
                     const hasCuota2 = records.some(r => String(r.cuotas) === '2');
                     const cuota1Count = records.filter(r => String(r.cuotas) === '1').length;
 
                     if (hasCuota2 || cuota1Count >= 2) {
-                        firstRecord.cuotas = '2'; 
+                        firstRecord.cuotas = '2'; // Mark as fully paid
                     } else {
-                        firstRecord.cuotas = '1';
+                        firstRecord.cuotas = '1'; // Mark as partially paid
                     }
                     
+                    // Use the tipoPago from the *latest* record
                     firstRecord.tipoPago = records[records.length - 1].tipoPago;
 
                     definitiveBonos.push(firstRecord);
@@ -1720,13 +1737,15 @@
                 const totalSold = consolidatedRecords.length;
                 const totalPrinted = this.state.config.totalPrinted;
                 const remainingToSell = totalPrinted - totalSold;
+                const remainingValue = remainingToSell * this.state.config.BONO_PRICE_TWO_INSTALLMENTS;
                 
                 doc.setFontSize(14);
                 doc.text("Resumen General", 14, lastY);
 
                 const summaryBody = [
                     ['Bonos Vendidos', totalSold.toString()],
-                    ['Bonos Faltantes', remainingToSell.toString()],
+                    ['Bonos Faltantes (Cantidad)', remainingToSell.toString()],
+                    ['Bonos Faltantes (Importe)', this.formatCurrency(remainingValue)],
                     ['Total Ingresos (Bonos)', this.formatCurrency(this.state.simpleBalanceCache.totalIngresos)],
                     ['Total Egresos', `-${this.formatCurrency(this.state.simpleBalanceCache.totalEgresos)}`],
                     ['Depósito en Banco', this.formatCurrency(this.getNumericValue(this.dom.depositoBancoInput.value))]
@@ -1741,7 +1760,7 @@
                         0: { fillColor: [230, 230, 230] },
                     },
                     didDrawCell: (data) => {
-                        if (data.row.index === 1) { // Bonos Faltantes
+                        if (data.row.index === 1 || data.row.index === 2) { // Bonos Faltantes (Cantidad y Importe)
                              doc.setTextColor(255, 0, 0);
                         }
                     },
@@ -1821,6 +1840,64 @@
                     option.value = vendedor;
                     this.dom.vendedoresList.appendChild(option);
                 });
+            },
+
+            renderRecycleBin() {
+                const container = this.dom.recycleBinListContainer;
+                container.innerHTML = '';
+                const items = this.state.deletedItems;
+                
+                this.dom.recycleBinCount.textContent = `${items.length} elemento(s) en la papelera.`;
+
+                if (items.length === 0) {
+                    container.innerHTML = '<p class="text-center text-gray-500">La papelera está vacía.</p>';
+                    return;
+                }
+
+                items.forEach(item => {
+                    let title = `Elemento borrado (ID: ${item.id})`;
+                    let details = `Tipo: ${item.type}, Borrado: ${this.formatTimestamp(item.data.deletedAt)}`;
+                    
+                    if (item.type === 'session') {
+                        title = `Carga del ${item.data.id || item.id}`;
+                    } else if (item.type === 'expense') {
+                        title = `Egreso: ${item.data.description}`;
+                        details = `${this.formatCurrency(parseFloat(item.data.amount))} | Borrado: ${this.formatTimestamp(item.data.deletedAt)}`;
+                    }
+
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg border';
+                    itemDiv.innerHTML = `
+                        <div>
+                            <p class="font-semibold text-gray-800">${title}</p>
+                            <p class="text-sm text-gray-600">${details}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="App.restoreItem('${item.id}', '${item.type}')" class="text-xs px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600">Restaurar</button>
+                            <button onclick="App.promptDeleteItem('${item.id}', '${item.type}', null, true)" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button>
+                        </div>
+                    `;
+                    container.appendChild(itemDiv);
+                });
+            },
+
+            async restoreItem(id, type) {
+                this.showLoading(true);
+                let collectionName = type === 'session' ? 'sessions' : 'expenses';
+                const docRef = doc(this.state.db, collectionName, id);
+                
+                try {
+                    await updateDoc(docRef, {
+                        deleted: false,
+                        deletedAt: null
+                    });
+                    this.showToast('Elemento restaurado con éxito.');
+                } catch (error) {
+                    console.error("Error al restaurar:", error);
+                    this.showToast('Error al restaurar el elemento.', 'error');
+                } finally {
+                    this.showLoading(false);
+                }
             },
 
             formatCurrencyInput(event) {
